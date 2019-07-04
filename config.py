@@ -1,5 +1,5 @@
 from nonebot.default_config import *
 
-SUPERUSERS = {2370275150}
+SUPERUSERS = {}
 COMMAND_START = {'*'}
 #DEBUG = False

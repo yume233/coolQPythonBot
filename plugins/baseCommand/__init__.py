@@ -1,4 +1,4 @@
-from nonebot import on_command, CommandSession
+from nonebot import on_command, CommandSession ,MessageSegment
 
 
 @on_command('execute', aliases=('command', 'commands', '执行', '指令'))
