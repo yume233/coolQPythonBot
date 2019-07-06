@@ -7,6 +7,7 @@ from .config import *
 @on_command('illust_image_search', aliases=('以图搜图', '搜图'))
 async def illustSearch(session: CommandSession):
     image = session.get('image', prompt='请将图片和搜图指令一同发送')
+    await session.send('开始搜索图片')
     status,getResult = await fullBehavior(image)
     if not status:
         session.finish(getResult)
@@ -33,5 +34,5 @@ async def fullBehavior(imageURL:bytes) -> dict:
     for perSubject in correctInfo['subject']:
         singleMessage = MESSAGE_REPEAT.format(**perSubject)
         resultList.append(singleMessage)
-    fullResult = ''.join(resultList) + MESSAGE_SUFFIX
+    fullResult = ''.join(resultList[:RETURN_SIZE]) + MESSAGE_SUFFIX.format(**correctInfo)
     return True,fullResult
