@@ -1,10 +1,12 @@
 import random
-import aiofiles
 from base64 import b64encode
 
+import aiofiles
 from nonebot import (CommandSession, IntentCommand, MessageSegment, on_command,
                      on_natural_language)
 from nonebot.log import logger
+
+from .config import DISABLE_RANK
 from .getPicture import downloadImage, getImageList
 
 
@@ -26,6 +28,8 @@ async def _(session: CommandSession):
         for perRank in list(strippedArgs.upper()):
             if not perRank in rankList:
                 await session.finish('评级%s不存在' % perRank)
+            if perRank in list(DISABLE_RANK.upper()):
+                await session.finish('%s级色图已被禁用' % perRank)
         session.state['rank'] = strippedArgs
 
 

@@ -1,9 +1,11 @@
-from .config import ASCII2D_ADDRESS,RETURN_SIZE,PREDOWNLOAD_PREVIEW
-from .networkRequest import getPreview, createShortLink
+from urllib.parse import urljoin, urlparse
+
+from lxml import etree
 from nonebot import MessageSegment
 from nonebot.log import logger
-from urllib.parse import urlparse, urljoin
-from lxml import etree
+
+from .config import ASCII2D_ADDRESS, PREDOWNLOAD_PREVIEW, RETURN_SIZE
+from .networkRequest import createShortLink, getPreview
 
 
 async def getCorrectInfo(originData: str) -> dict:

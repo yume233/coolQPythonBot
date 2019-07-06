@@ -5,7 +5,7 @@ MAX_RETIRES = 5
 RETURN_SIZE = 3
 PREDOWNLOAD_PREVIEW = False
 IMAGE_FALLBACK_ADDRESS = 'https://i.loli.net/2019/07/06/5d204c14ae18535485.png'
-END_SYMBOL = ('结束','-','算了','再见','滚')
+END_SYMBOL = ('结束', '-', '算了', '再见', '滚')
 MESSAGE_REPEAT = '''
 ----------
 {perview}

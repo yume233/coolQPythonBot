@@ -1,7 +1,8 @@
 import threading
-import requests
 from asyncio import sleep
 from queue import Queue
+
+import requests
 
 
 class requestsAsync:

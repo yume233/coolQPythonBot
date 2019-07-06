@@ -1,10 +1,12 @@
-from .config import *
+from nonebot import (CommandSession, IntentCommand, on_command,
+                     on_natural_language)
+
 from .animeSearchAPI import searchAnimeByScreenshot
+from .config import *
 from .imageCache import downloadImage
-from nonebot import CommandSession, on_command,on_natural_language,IntentCommand
 
 
-@on_command('anime_screenshot_search', aliases=('以图搜番', '搜番','以图识番'))
+@on_command('anime_screenshot_search', aliases=('以图搜番', '搜番', '以图识番'))
 async def animeSearch(session: CommandSession):
     imageResource = session.get('image', prompt='请将图片和搜番指令一同发送')
     result = await searchAnimeByScreenshot(imageResource)
@@ -19,11 +21,13 @@ async def animeSearch(session: CommandSession):
             returnResult = ''.join(resultList[:RETURN_INFO_SIZE])
         else:
             returnResult = '没有找到相关番剧'
-        await session.send(returnResult,at_sender=True)
+        await session.send(returnResult, at_sender=True)
 
-@on_natural_language(keywords=('以图搜番','以图识番'))
+
+@on_natural_language(keywords=('以图搜番', '以图识番'))
 async def _(session):
-    return IntentCommand(90.0,'anime_screenshot_search')
+    return IntentCommand(90.0, 'anime_screenshot_search')
+
 
 @animeSearch.args_parser
 async def _(session: CommandSession):

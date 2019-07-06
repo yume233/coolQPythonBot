@@ -1,5 +1,6 @@
-from nonebot import CommandSession, on_command, on_natural_language, NLPSession,IntentCommand
 import aiohttp
+from nonebot import (CommandSession, IntentCommand, NLPSession, on_command,
+                     on_natural_language)
 
 API_ADDRESS = 'https://v1.hitokoto.cn/'
 MESSAGE_FORMAT = '{hitokoto}——{from}'
