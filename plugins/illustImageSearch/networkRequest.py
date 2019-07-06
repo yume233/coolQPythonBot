@@ -6,15 +6,16 @@ from nonebot.log import logger
 from requests import RequestException
 
 from .config import *
-from .fakeAsyncRequest import requestsAsync
+from asyncRequest import request
 
 
-async def getSearchResult(imageLink: str) -> bytes:
-    getResult = b''
+async def getSearchResult(imageLink: str) -> str:
+    getResult = ''
     imageSearchURL = urljoin(ASCII2D_ADDRESS, 'search/url/' + imageLink)
     for _ in range(MAX_RETIRES):
         try:
-            getResult = await requestsAsync.get(imageSearchURL)
+            getResult = await request.get(imageSearchURL)
+            getResult = getResult.text()
         except RequestException as e:
             logger.debug('Async Http Request Error:%s' % e)
         else:
@@ -24,8 +25,8 @@ async def getSearchResult(imageLink: str) -> bytes:
 
 async def getPreview(perviewLink: str) -> str:
     try:
-        perviewResult = await requestsAsync.get(perviewLink, timeout=6)
-        returnData = 'base64://' + b64encode(perviewResult).decode()
+        perviewResult = await request.get(perviewLink, timeout=6)
+        returnData = 'base64://' + b64encode(perviewResult.content).decode()
     except RequestException as e:
         logger.debug('Async Http Request Error:%s' % e)
         returnData = IMAGE_FALLBACK_ADDRESS
@@ -34,21 +35,23 @@ async def getPreview(perviewLink: str) -> str:
 
 async def createShortLink(links: list):
     urlParams = {'source': str(SHORTLINK_APIKEY), 'url_long': links}
-    apiResult = b''
+    apiResult = None
     for _ in range(MAX_RETIRES):
         try:
-            apiResult = await requestsAsync.get(
-                SHORTLINK_ADDRESS, params=urlParams)
+            apiResult = await request.get(SHORTLINK_ADDRESS, params=urlParams)
         except RequestException as e:
             logger.debug('Async Http Request Error:%s' % e)
         else:
             break
     if not apiResult:
         raise Exception
-    apiLoaded = json.loads(apiResult.decode())
-    linkDict = {}
-    for perURL in apiLoaded['urls']:
-        longURL = perURL['url_long']
-        shortURL = perURL['url_short']
-        linkDict[longURL] = shortURL
+    apiLoaded = apiResult.json()
+    linkDict = {
+        perURL['url_long']: perURL['url_short']
+        for perURL in apiLoaded['urls']
+    }
+    # for perURL in apiLoaded['urls']:
+    #     longURL = perURL['url_long']
+    #     shortURL = perURL['url_short']
+    #     linkDict[longURL] = shortURL
     return linkDict

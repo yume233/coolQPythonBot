@@ -1,15 +1,13 @@
-import json
-from asyncio import sleep
 from base64 import b64encode
 from queue import Queue
-from threading import Thread
 
 from nonebot.log import logger
 from PIL import Image
 from requests import RequestException
 
+from asyncRequest import request
+
 from .config import *
-from .fakeAsyncRequest import requestsAsync
 from .tmpFile import tmpFile
 
 
@@ -20,7 +18,7 @@ def _convertImage(imageRes: bytes) -> bytes:
                 f.write(imageRes)
             with Image.open(readFilename) as img:
                 img.save(writeFilename, 'PNG')
-            with open(readFilename, 'rb') as f:
+            with open(writeFilename, 'rb') as f:
                 readRes = f.read()
     return readRes
 
@@ -34,8 +32,8 @@ def _getProxies():
 
 async def _basicGetJSON(params: dict) -> dict:
     try:
-        responData = await requestsAsync.get(API_ADDRESS, params=params)
-        responData = json.loads(responData.decode())
+        responData = await request.get(API_ADDRESS, params=params)
+        responData = responData.json()
         if responData.get('error'):
             responData['error'] = responData['error']['message'] + responData[
                 'error']['user_message'] + responData['error']['reason']
@@ -51,7 +49,7 @@ class pixiv:
         headers = {'Referer': 'https://www.pixiv.net'}
         for _ in range(MAX_RETRIES):
             try:
-                responData = await requestsAsync.get(
+                responData = await request.get(
                     url,
                     headers=headers,
                     timeout=(3, None),
@@ -62,8 +60,7 @@ class pixiv:
             else:
                 break
         if responData:
-            convertedData = _convertImage(responData)
-            print(convertedData[:50])
+            convertedData = _convertImage(responData.content)
             return 'base64://' + b64encode(convertedData).decode()
         else:
             return IMAGE_FALLBACK
@@ -76,6 +73,7 @@ class pixiv:
 
     @staticmethod
     async def searchIllust(keyword: str,
+                           page: int = 1,
                            searchMode: int = 0,
                            ascending: bool = False) -> dict:
         searchModeString = (
@@ -85,6 +83,7 @@ class pixiv:
             'type': 'search',
             'word': keyword,
             'mode': searchModeString,
+            'page': page,
             'order': 'date_asc' if ascending else 'date_desc'
         }
         getData = await _basicGetJSON(argsPayload)

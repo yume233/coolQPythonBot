@@ -8,30 +8,30 @@ import aiohttp
 from requests import RequestException
 
 from .config import *
-from .fakeAsyncRequest import requestsAsync
+from asyncRequest import request
 
 
 async def getImageList() -> dict:
     requestAddress = API_ADDRESS(random.randint(1, 1000))
     try:
-        requestData = await requestsAsync.get(
+        requestData = await request.get(
             requestAddress, proxies=_getProxy())
     except RequestException as e:
         listData = {'error': e}
     else:
-        listData = {'result': json.loads(requestData.decode())}
+        listData = {'result': requestData.json()}
     return listData
 
 
 async def downloadImage(url) -> dict:
     for _ in range(MAX_RETRIES):
         try:
-            requestResult = await requestsAsync.get(
+            requestResult = await request.get(
                 url, proxies=_getProxy(), timeout=(3, None))
         except RequestException as e:
             returnData = {'error': e}
         else:
-            returnData = {'result': requestResult}
+            returnData = {'result': requestResult.content}
             break
     return returnData
 

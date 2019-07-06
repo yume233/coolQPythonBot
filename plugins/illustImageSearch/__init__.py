@@ -1,8 +1,10 @@
 from nonebot import CommandSession, on_command
 
+from asyncRequest import request
+
 from .config import *
-from .fakeAsyncRequest import requestsAsync
 from .infoMatch import getCorrectInfo
+from .networkRequest import getSearchResult
 
 
 @on_command('illust_image_search', aliases=('以图搜图', '搜图'))
@@ -28,15 +30,14 @@ async def _(session: CommandSession):
 
 
 async def fullBehavior(imageURL: bytes) -> dict:
-    imageSearchURL = ASCII2D_ADDRESS + 'search/url/' + imageURL
-    searchData = await requestsAsync.get(imageSearchURL)
+    searchData = await getSearchResult(imageURL)
     if not searchData:
         return False, '图片搜索失败'
-    correctInfo = await getCorrectInfo(searchData.decode())
-    resultList = []
-    for perSubject in correctInfo['subject']:
-        singleMessage = MESSAGE_REPEAT.format(**perSubject)
-        resultList.append(singleMessage)
+    correctInfo = await getCorrectInfo(searchData)
+    resultList = [
+        MESSAGE_REPEAT.format(**perSubject)
+        for perSubject in correctInfo['subject']
+    ]
     fullResult = ''.join(
         resultList[:RETURN_SIZE]) + MESSAGE_SUFFIX.format(**correctInfo)
     return True, fullResult
