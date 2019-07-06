@@ -1,36 +1,36 @@
-from .config import INDEX_ID_LIST
+from .config import ASCII2D_ADDRESS
+from .networkRequest import getPreview, createShortLink
 from nonebot import MessageSegment
 from nonebot.log import logger
+from urllib.parse import urlparse, urljoin
+from lxml import etree
 
-def getCorrectInfo(originData: dict) -> dict:
-    dataHeader = originData['header']
-    dataResult = originData['results']
-    shortRemain = dataHeader['short_remaining']
-    longRemain = dataHeader['long_remaining']
-    resultSize = dataHeader['results_returned']
-    returnHeader = {
-        'shortr': shortRemain,
-        'longr': longRemain,
-        'size': resultSize
-    }
-    resultList = []
-    for perResult in dataResult:
-        indexID = perResult['header']['index_id']
-        getType, getKey = INDEX_ID_LIST.get(str(indexID), [None, None])
-        if getType == None:
-            from json import dumps
-            logger.debug("Can't indentify JSON:'%s'"%dumps(perResult,ensure_ascii=False))
-            continue
-        imageID = int(perResult['data'][getKey])
-        imagePreviewLink = str(perResult['header']['thumbnail'])
-        imagePreviewSegment = MessageSegment.image(file=imagePreviewLink)
-        imageSimilarity = float(perResult['header']['similarity'])
-        singleResult = {
-            'source': getType,
-            'id': imageID,
-            'preview': imagePreviewSegment,
-            'preview_link':imagePreviewLink,
-            'simliarity': imageSimilarity / 100
+
+async def getCorrectInfo(originData: str) -> dict:
+    analyzeHTML = etree.HTML(originData)
+    subjectList = []
+    linkList = []
+    for perSubject in analyzeHTML.xpath(
+            '//div[@class="row item-box"][position()>1]'):
+        perviewLink = urljoin(ASCII2D_ADDRESS,
+                              perSubject.xpath('.//div/img/@src')[0])
+        perview = MessageSegment.image(await getPreview(perviewLink))
+        imageTitle = perSubject.xpath('//a[@rel][1]/text()')[0]
+        imageLink = perSubject.xpath('//a[@rel][1]/@href')[0]
+        imageSource = urlparse(imageLink).netloc
+        dataDict = {
+            'perview': perview,
+            'perview_link': perviewLink,
+            'title': imageTitle,
+            'link_source': imageLink,
+            'source': imageSource
         }
-        resultList.append(singleResult)
-    return {'header': returnHeader, 'result': resultList}
+        subjectList.append(dataDict)
+        linkList.append(imageLink)
+    shortedLink = createShortLink(linkList)
+    returnDict = {'size': len(subjectList), 'subject': []}
+    for perSubject in subjectList:
+        shortLink = shortedLink[perSubject['link_source']]
+        perSubject['link'] = shortLink
+        returnDict['subject'].append(perSubject)
+    return returnDict

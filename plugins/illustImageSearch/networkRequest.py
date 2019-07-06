@@ -1,48 +1,54 @@
-import aiohttp
-from .tmpFile import tmpFile
+import json
+from base64 import b64encode
+from urllib.parse import urljoin
+
+from nonebot.log import logger
+from requests import RequestException
+
 from .config import *
+from .fakeAsyncRequest import requestsAsync
 
 
-def _fileForm(fileRes: bytes):
-    with tmpFile(path=CACHE_DIR, destory=False) as tempFilename:
-        with open(tempFilename, 'wb') as f:
-            f.write(fileRes)
-    formData = {'file': open(tempFilename, 'rb')}
-    return formData
-
-
-async def uploadImage(imageRes: bytes) -> dict:
-    timeout = aiohttp.ClientTimeout(10, 1.5)
-    returnData = {'error': 1}
-    dbMask = ''
-    for perMask in INDEX_TYPES:
-        dbMask = dbMask + str(int(INDEX_TYPES[perMask]))
-    dbMask = str(int(dbMask, 2))
-    requestAddress = API_ADDRESS + dbMask
-    for _ in range(MAX_RETRIES):
+async def getSearchResult(imageLink: str) -> bytes:
+    getResult = b''
+    imageSearchURL = urljoin(ASCII2D_ADDRESS, 'search/url/' + imageLink)
+    for _ in range(MAX_RETIRES):
         try:
-            async with aiohttp.ClientSession() as reqSession:
-                async with reqSession.post(
-                        requestAddress,
-                        data=_fileForm(imageRes),
-                        proxy=PROXY_ADDRESS,
-                        timeout=timeout) as resp:
-                    if resp.status == 200:
-                        returnData = await resp.json()
-                    else:
-                        returnData = {'header': {'status': resp.status}}
-        except aiohttp.ClientError as e:
-            print('Async Http Error:', e)
+            getResult = await requestsAsync.get(imageSearchURL)
+        except RequestException as e:
+            logger.debug('Async Http Request Error:%s' % e)
         else:
             break
+    return getResult
+
+
+async def getPreview(perviewLink: str) -> str:
+    try:
+        perviewResult = await requestsAsync.get(perviewLink, timeout=6)
+        returnData = 'base64://' + b64encode(perviewResult).decode()
+    except RequestException as e:
+        logger.debug('Async Http Request Error:%s' % e)
+        returnData = IMAGE_FALLBACK_ADDRESS
     return returnData
 
 
-async def downloadImage(imageURL: str) -> bytes:
-    async with aiohttp.ClientSession() as reqSession:
-        async with reqSession.get(imageURL) as resp:
-            if resp.status == 200:
-                data = await resp.read()
-            else:
-                data = b''
-    return data
+async def createShortLink(links: list):
+    urlParams = {'source': str(SHORTLINK_APIKEY), 'url_long': links}
+    apiResult = b''
+    for _ in range(MAX_RETIRES):
+        try:
+            apiResult = await requestsAsync.get(
+                SHORTLINK_ADDRESS, params=urlParams)
+        except RequestException as e:
+            logger.debug('Async Http Request Error:%s' % e)
+        else:
+            break
+    if not apiResult:
+        raise Exception
+    apiLoaded = json.loads(apiResult.decode())
+    linkDict = {}
+    for perURL in apiLoaded['urls']:
+        longURL = perURL['url_long']
+        shortURL = perURL['url_short']
+        linkDict[longURL] = shortURL
+    return linkDict
