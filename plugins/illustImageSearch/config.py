@@ -1,4 +1,5 @@
 ASCII2D_ADDRESS = 'https://ascii2d.net/'
+PROXY_ADDRESS = 'http://127.0.0.1:1081'
 SHORTLINK_ADDRESS = 'https://api.weibo.com/2/short_url/shorten.json'
 SHORTLINK_APIKEY = '569452181'
 MAX_RETIRES = 5
@@ -10,7 +11,7 @@ MESSAGE_REPEAT = '''
 ----------
 {perview}
 标题:{title}
-来自:{source}
+来自:{source} {id}
 {link}'''
 MESSAGE_SUFFIX = '''
 ==========

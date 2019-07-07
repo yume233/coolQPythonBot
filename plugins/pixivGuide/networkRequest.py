@@ -114,7 +114,11 @@ class pixiv:
         return getData
 
     @staticmethod
-    async def getMemberIllust(memberID: int) -> dict:
-        argsPayload = {'type': 'member_illust', 'id': str(memberID)}
+    async def getMemberIllust(memberID: int, page: int = 1) -> dict:
+        argsPayload = {
+            'type': 'member_illust',
+            'id': str(memberID),
+            'page': str(page)
+        }
         getData = await _basicGetJSON(argsPayload)
         return getData

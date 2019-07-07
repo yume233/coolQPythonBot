@@ -14,7 +14,8 @@ async def getSearchResult(imageLink: str) -> str:
     imageSearchURL = urljoin(ASCII2D_ADDRESS, 'search/url/' + imageLink)
     for _ in range(MAX_RETIRES):
         try:
-            getResult = await request.get(imageSearchURL)
+            getResult = await request.get(
+                imageSearchURL, timeout=6, proxies=_getProxies())
             getResult = getResult.text()
         except RequestException as e:
             logger.debug('Async Http Request Error:%s' % e)
@@ -36,6 +37,8 @@ async def getPreview(perviewLink: str) -> str:
 async def createShortLink(links: list):
     urlParams = {'source': str(SHORTLINK_APIKEY), 'url_long': links}
     apiResult = None
+    if not links:
+        return {}
     for _ in range(MAX_RETIRES):
         try:
             apiResult = await request.get(SHORTLINK_ADDRESS, params=urlParams)
@@ -50,8 +53,11 @@ async def createShortLink(links: list):
         perURL['url_long']: perURL['url_short']
         for perURL in apiLoaded['urls']
     }
-    # for perURL in apiLoaded['urls']:
-    #     longURL = perURL['url_long']
-    #     shortURL = perURL['url_short']
-    #     linkDict[longURL] = shortURL
     return linkDict
+
+
+def _getProxies():
+    if PROXY_ADDRESS:
+        return {'http': PROXY_ADDRESS, 'https': PROXY_ADDRESS}
+    else:
+        return {}

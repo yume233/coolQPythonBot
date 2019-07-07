@@ -3,6 +3,7 @@ import os
 import random
 from base64 import b64encode
 from uuid import uuid4
+from secrets import token_bytes
 
 import aiohttp
 from requests import RequestException
@@ -10,6 +11,9 @@ from requests import RequestException
 from .config import *
 from asyncRequest import request
 
+def changeFileHash(originFile:bytes)->bytes:
+    fileAdd = b'\x00' * 16 + token_bytes(16)
+    return originFile + fileAdd
 
 async def getImageList() -> dict:
     requestAddress = API_ADDRESS(random.randint(1, 1000))

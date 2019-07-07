@@ -8,6 +8,16 @@ from .config import ASCII2D_ADDRESS, PREDOWNLOAD_PREVIEW, RETURN_SIZE
 from .networkRequest import createShortLink, getPreview
 
 
+def _url2param(url: str) -> dict:
+    paramString = urlparse(url).query
+    param = {}
+    for perQuery in paramString.split('&'):
+        perValue = perQuery.split('=')
+        if len(perValue) == 2:
+            param[perValue[0]] = perValue[1]
+    return param
+
+
 async def getCorrectInfo(originData: str) -> dict:
     analyzeHTML = etree.HTML(originData)
     subjectList = []
@@ -16,14 +26,18 @@ async def getCorrectInfo(originData: str) -> dict:
             '//div[@class="row item-box"][position()>1]'):
         perviewLink = urljoin(ASCII2D_ADDRESS,
                               perSubject.xpath('.//div/img/@src')[0])
-        imageTitle = perSubject.xpath('.//a[@rel][1]/text()')[0]
-        imageLink = perSubject.xpath('.//a[@rel][1]/@href')[0]
+        imageTitle = perSubject.xpath('.//a[@rel][1]/text()')
+        imageTitle = imageTitle[0] if imageTitle else '获取失败'
+        imageLink = perSubject.xpath('.//a[@rel][1]/@href')
+        imageLink = imageLink[0] if imageLink else perviewLink
         imageSource = urlparse(imageLink).netloc
+        imageID = _url2param(imageLink).get('illust_id','')
         dataDict = {
             'perview_link': perviewLink,
             'title': imageTitle,
             'link_source': imageLink,
-            'source': imageSource
+            'source': imageSource,
+            'id':imageID
         }
         subjectList.append(dataDict)
         linkList.append(imageLink)
