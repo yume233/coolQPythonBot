@@ -5,8 +5,9 @@ from urllib.parse import urljoin
 from nonebot.log import logger
 from requests import RequestException
 
-from .config import *
 from asyncRequest import request
+
+from .config import *
 
 
 async def getSearchResult(imageLink: str) -> str:

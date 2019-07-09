@@ -154,11 +154,13 @@ async def _(session):
 @on_command('pixiv_rankrandom', aliases=('一图', ))
 async def pixivRankRandom(session: CommandSession):
     await session.send('开始获取一图')
-    apiResult = await pixiv.getRank()
+    rankMode = random.choice(['day', 'week', 'month'])
+    apiResult = await pixiv.getRank(rankMode)
     if apiResult.get('error') != None:
         session.finish('一图获取错误,原因:%s' % apiResult['error'])
     parseResult = parseMultiImage(apiResult)
-    choiceResult = random.choice(parseResult['result'])
+    choiceResult = random.choice(
+        [data for data in parseResult['result'] if data['type'] == 'illust'])
     imageGet = await pixiv.downloadImage(choiceResult['download'][0]['large'])
     sendMessage = RANDOM_RANK_PERFIX.format(**choiceResult) + str(
         MessageSegment.image(imageGet)) + RANDOM_RANK_SUFFIX.format(

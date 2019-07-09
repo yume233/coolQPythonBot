@@ -22,7 +22,7 @@ def parseSingleImage(data: dict) -> dict:
                 illustData['total_view']) if illustData['total_view'] else 0
     returnData = {
         'id': illustData['id'],
-        'title':illustData['title'],
+        'title': illustData['title'],
         'preview_link': dwlLinks[0]['medium'],
         'preview': str(MessageSegment.image(dwlLinks[0]['medium'])),
         'author': illustData['user']['name'],
@@ -33,7 +33,8 @@ def parseSingleImage(data: dict) -> dict:
         'download': dwlLinks,
         'view': illustData['total_view'],
         'bookmark': illustData['total_bookmarks'],
-        'ratio': hotRatio
+        'ratio': hotRatio,
+        'type': illustData['type']
     }
     return returnData
 

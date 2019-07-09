@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.db
 cache/*
+res/*
 test*
 
 # C extensions
