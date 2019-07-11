@@ -28,12 +28,14 @@ class request:
         resultQueue = queue.Queue(1)
 
         def basicGet(*args, **kwargs):
-            logger.debug('Start Access %s' %
+            logger.debug('Start Access "%s" Via GET method.' %
                          (kwargs['url'] if kwargs.get('url') else args[0]))
             try:
                 with requests.get(*args, **kwargs) as resp:
                     respObject = request.response(resp.content,
                                                   resp.status_code)
+                    resp.raise_for_status()
+                    logger.debug('GET %s Succeed' % resp.url)
             except requests.RequestException as e:
                 respObject = str(e)
             resultQueue.put(respObject)
@@ -51,13 +53,14 @@ class request:
         resultQueue = queue.Queue(1)
 
         def basicPost(*args, **kwargs):
-            logger.debug('Start Access %s' %
+            logger.debug('Start Access "%s" Via POST method.' %
                          (kwargs['url'] if kwargs.get('url') else args[0]))
             try:
                 with requests.post(*args, **kwargs) as resp:
                     respObject = request.response(resp.content,
                                                   resp.status_code)
                     resp.raise_for_status()
+                    logger.debug('POST "%s" Succeed' % resp.url)
             except requests.RequestException as e:
                 respObject = str(e)
             resultQueue.put(respObject)

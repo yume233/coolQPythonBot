@@ -8,6 +8,10 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 Base = declarative_base()
 
 
+class EnhancedDict(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+
 class subscribeUser(Base):
     __tablename__ = 'subscribe_user'
     subscribe_id = Column(Integer, primary_key=True)
@@ -28,7 +32,7 @@ class subscribeAnime(Base):
 
 class database:
     def __init__(self):
-        self.engine = create_engine('sqlite:///bilibiliGuide.db')
+        self.engine = create_engine('sqlite:///res/bilibiliGuide.db')
         sessionFactory = sessionmaker(bind=self.engine)
         Base.metadata.create_all(self.engine)
         session = scoped_session(sessionFactory)
@@ -37,19 +41,15 @@ class database:
         self.decode = lambda x: json.loads(x)
 
     def addNewSubscriber(self, subscribeID: int, ctx: dict, type: int = 0):
-        nowTime = int(time.time())
         subscribeClass = subscribeAnime if type else subscribeUser
         databaseGet = self.session.query(subscribeClass).filter_by(
             subscribe_id=subscribeID).all()
         if not databaseGet:
             subscribePeople = []
             subscribeGroup = {}
-            subscribeClass.update_time = nowTime
         else:
             subscribePeople = self.decode(databaseGet[0].subscribe_people)
             subscribeGroup = self.decode(databaseGet[0].subscribe_group)
-            subscribeClass = databaseGet[0]
-        print(databaseGet, subscribeClass, subscribePeople, subscribeGroup)
         if ctx.get('group_id') != None:
             groupID = str(ctx['group_id'])
             subscriber = ctx['user_id']
@@ -61,10 +61,19 @@ class database:
         else:
             subscriber = ctx['user_id']
             subscribePeople.append(subscriber)
-        subscribeClass.subscribe_id = subscribeID
-        subscribeClass.subscribe_people = self.encode(subscribePeople)
-        subscribeClass.subscribe_group = self.encode(subscribeGroup)
-        self.session.add(subscribeClass)
+        enhDict = EnhancedDict()
+        enhDict.subscribe_people = self.encode(subscribePeople)
+        enhDict.subscribe_group = self.encode(subscribeGroup)
+        #print(databaseGet, subscribeClass, subscribePeople, subscribeGroup)
+        if not databaseGet:
+            enhDict.subscribe_id = subscribeID
+            enhDict.update_time = int(time.time())
+            addClass = subscribeClass(**enhDict)
+        else:
+            addClass = databaseGet[0]
+            for perAttr in enhDict:
+                setattr(addClass,perAttr,enhDict[perAttr])
+        self.session.add(addClass)
         self.session.commit()
 
     def getSubscriberList(self, subscirbeID: int, type: int = 0) -> dict:

@@ -1,24 +1,36 @@
 from random import randint
+import traceback
 
 from nonebot import CommandSession, NLPSession, on_command, on_natural_language
 from nonebot.permission import SUPERUSER, GROUP_ADMIN, check_permission, GROUP_MEMBER
 from nonebot.log import logger
 import json
 
-RANDOM_RATE = 10
+from permission import permission
+
+__plugin_name__ = 'randomRepeater'
+RANDOM_RATE = 20
 GROUP_RATE = {}
+
+
+def traceTest():
+    trace = traceback.extract_stack()
+    traceRoute = []
+    for perTrace in trace:
+        traceRoute.append(tuple(perTrace))
+    logger.debug(traceRoute)
 
 
 @on_natural_language(only_short_message=True, permission=GROUP_MEMBER)
 async def _(session: NLPSession):
+    #traceTest()
+    groupRate = permission.getSettings(session.ctx, __plugin_name__,
+                                       {'rate': RANDOM_RATE})['rate']
     logger.debug(
         'Session CTX is:"%s"' % json.dumps(session.ctx, ensure_ascii=False))
-    groupID = session.ctx.get('group_id')
-    repeatRate = GROUP_RATE[str(groupID)] if GROUP_RATE.get(
-        str(groupID)) != None else RANDOM_RATE
-    if not repeatRate:
+    if not groupRate:
         return
-    elif not randint(0, repeatRate - 1):
+    elif not randint(0, groupRate - 1):
         await session.send(session.msg_text)
 
 
@@ -32,10 +44,11 @@ async def repeat(session: CommandSession):
             1 / RANDOM_RATE) if RANDOM_RATE else 0)
     elif await check_permission(session.bot, session.ctx, GROUP_ADMIN):
         groupID = session.ctx.get('group_id')
-        defaultValue = GROUP_RATE[str(groupID)] if GROUP_RATE.get(
-            str(groupID)) != None else RANDOM_RATE
+        defaultValue = permission.getSettings(session.ctx, __plugin_name__,
+                                              {'rate': RANDOM_RATE})['rate']
         valueGet = session.get_optional('rate', defaultValue)
-        GROUP_RATE[str(groupID)] = valueGet
+        permission.applySettings(session.ctx, __plugin_name__,
+                                 {'rate': valueGet})
         sendMsg = '群{group}复读概率已经被设置为{rate:.1%}'.format(
             group=groupID, rate=(1 / valueGet if valueGet else 0))
     await session.send(sendMsg)

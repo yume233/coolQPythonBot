@@ -11,15 +11,17 @@ from requests import RequestException
 from .config import *
 from asyncRequest import request
 
-def changeFileHash(originFile:bytes)->bytes:
+
+def changeFileHash(originFile: bytes) -> bytes:
     fileAdd = b'\x00' * 16 + token_bytes(16)
     return originFile + fileAdd
 
+
 async def getImageList() -> dict:
-    requestAddress = API_ADDRESS(random.randint(1, 1000))
+    getAddr = API_ADDRESS if random.random() >= .5 else API_ADDRESS_2
+    requestAddress = getAddr(random.randint(1, 1000))
     try:
-        requestData = await request.get(
-            requestAddress, proxies=_getProxy())
+        requestData = await request.get(requestAddress, proxies=_getProxy())
     except RequestException as e:
         listData = {'error': e}
     else:
@@ -30,8 +32,9 @@ async def getImageList() -> dict:
 async def downloadImage(url) -> dict:
     for _ in range(MAX_RETRIES):
         try:
-            requestResult = await request.get(
-                url, proxies=_getProxy(), timeout=(3, None))
+            requestResult = await request.get(url,
+                                              proxies=_getProxy(),
+                                              timeout=(1.5, None))
         except RequestException as e:
             returnData = {'error': e}
         else:

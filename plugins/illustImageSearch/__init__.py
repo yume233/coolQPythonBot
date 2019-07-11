@@ -2,18 +2,19 @@ from nonebot import CommandSession, on_command
 from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 
 from asyncRequest import request
+from permission import permission
 
 from .config import *
 from .infoMatch import getCorrectInfo
 from .networkRequest import getSearchResult
 
-DISABLE_LIST = []
+__plugin_name__ = 'illustImageSearch'
 
 
 @on_command(
     'illust_image_search', aliases=('以图搜图', '搜图'), permission=GROUP_MEMBER)
 async def illustSearch(session: CommandSession):
-    if session.ctx.get('group_id') in DISABLE_LIST:
+    if permission.getDisable(session.ctx, __plugin_name__):
         session.finish('此群搜图功能已被禁用')
     image = session.get('image', prompt='请将图片和搜图指令一同发送')
     await session.send('开始搜索图片')
@@ -51,17 +52,11 @@ async def fullBehavior(imageURL: bytes) -> dict:
 
 @on_command('illust_disable', permission=GROUP_ADMIN | SUPERUSER)
 async def disable(session: CommandSession):
-    global DISABLE_LIST
-    groupID = session.ctx['group_id']
-    if not groupID in DISABLE_LIST:
-        DISABLE_LIST.append(groupID)
+    permission.disablePlugin(session.ctx, __plugin_name__)
     await session.send('搜图功能已禁用')
 
 
 @on_command('illust_enable', permission=GROUP_ADMIN | SUPERUSER)
 async def enable(session: CommandSession):
-    global DISABLE_LIST
-    groupID = session.ctx['group_id']
-    while groupID in DISABLE_LIST:
-        DISABLE_LIST.remove(groupID)
+    permission.enablePlugin(session.ctx, __plugin_name__)
     await session.send('搜图功能已启用')

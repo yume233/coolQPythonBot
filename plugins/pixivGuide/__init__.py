@@ -68,13 +68,15 @@ async def pixivSearchImage(session: CommandSession):
     pageNumber = session.get_optional('pn', default=1)
     sortSet = session.get_optional('sort', default=False)
     await session.send('开始搜索“%s”的第%d页' % (keyword, pageNumber))
-    apiResult = await pixiv.searchIllust(
-        keyword, page=pageNumber, ascending=sortSet)
+    apiResult = await pixiv.searchIllust(keyword,
+                                         page=pageNumber,
+                                         ascending=sortSet)
     if apiResult.get('error') != None:
         session.finish('图片搜索出错,原因:%s' % apiResult['error'])
     parseResult = parseMultiImage(apiResult)
-    sortResult = sorted(
-        parseResult['result'], key=lambda x: x['ratio'], reverse=True)
+    sortResult = sorted(parseResult['result'],
+                        key=lambda x: x['ratio'],
+                        reverse=True)
     repeatMessage = [
         SEARCH_IMAGE_REPEAT.format(**data) for data in sortResult
         if (not 'R-18' in data['tags']) or ALLOW_R18
@@ -100,6 +102,8 @@ async def _(session: CommandSession):
         pageNumber, strippedArgs = outArgs
         if pageNumber.isdigit():
             session.state['pn'] = int(pageNumber)
+        else:
+            strippedArgs = pageNumber + ' ' + strippedArgs
     session.state['keyword'] = strippedArgs
 
 
@@ -117,8 +121,9 @@ async def pixivMemberIllust(session: CommandSession):
     if apiResult.get('error') != None:
         session.finish('画师搜索出错,原因:%s' % apiResult['error'])
     parseResult = parseMultiImage(apiResult)
-    sortedResult = sorted(
-        parseResult['result'], key=lambda x: x['ratio'], reverse=True)
+    sortedResult = sorted(parseResult['result'],
+                          key=lambda x: x['ratio'],
+                          reverse=True)
     repeatMessage = [
         MEMBER_IMAGE_REPEAT.format(**data) for data in sortedResult
         if (not 'R-18' in data['tags']) or ALLOW_R18

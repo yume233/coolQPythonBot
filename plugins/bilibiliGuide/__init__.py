@@ -12,9 +12,10 @@ from .infoParse import parse
 from .networkRequest import bilibili
 
 database = _database()
+__plugin_name__ = 'bilibiliGuide'
+__plugin_usage__ = USEAGE
 
-
-@on_command('bilibili_subscribe', aliases=('b站关注', '关注'))
+@on_command('bilibili_subscribe', aliases=('b站关注', '关注','b站订阅','订阅'))
 async def subscribe(session: CommandSession):
     subID = session.get('id')
     subType = session.get('type')

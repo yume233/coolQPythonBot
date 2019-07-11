@@ -1,11 +1,13 @@
 import time
 from nonebot import MessageSegment, on_command, CommandSession
 
+from permission import permission,nameJoin
+
 from .config import *
 from .networkRequest import netease
 
 TIME_RANGE = {}
-
+__plugin_name__ = 'neteaseGuide'
 
 @on_command('netease_ticket', aliases=('点歌', '听歌'))
 async def neteaseTicket(session: CommandSession):
