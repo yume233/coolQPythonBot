@@ -101,6 +101,7 @@ class parse:
             'area': seasonData['area'],
             'episode': _autoSort(episodeList, sortKey='pubtime_stamp')
         }
+        returnData.update({'epsize': len(returnData['episode'])})
         return returnData
 
     @staticmethod

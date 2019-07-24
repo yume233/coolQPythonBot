@@ -20,7 +20,7 @@ async def getSetu(session: CommandSession):
     rank: str = session.get_optional('rank', 's')
     picNum: int = session.get_optional('num', 1)
     picNum = picNum if picNum <= MAX_SEND else 3
-    await session.send('%s级色图装载中……将连续发送%s张图片' % (rank.upper(), picNum))
+    await session.send('%s级涩图装载中……将连续发送%s张图片' % (rank.upper(), picNum))
     for _ in range(picNum):
         status, result = await fullBehavior(rank)
         if not status:
@@ -52,11 +52,11 @@ async def _setuArgsParser(session: CommandSession):
         if not perRank in rankList:
             await session.finish('评级%s不存在' % perRank)
         if perRank in (notAvalRank if not userPerm else []):
-            await session.finish('%s级色图已被禁用' % perRank)
+            await session.finish('%s级涩图已被禁用' % perRank)
     session.state['rank'] = strippedArgs
 
 
-@on_natural_language(keywords=('来一张色图', '我要康色图'))
+@on_natural_language(keywords=('来一张涩图', '我要康涩图'))
 async def _setuNLP(session):
     return IntentCommand(70.0, 'setu')
 

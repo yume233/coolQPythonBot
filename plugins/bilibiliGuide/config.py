@@ -29,4 +29,33 @@ SEARCH_PERFIX = ''
 SEARCH_SUFFIX = '''
 ======
 Powered by Biliplus/imjad API'''
+ANIME_INFO_PREFIX = '''
+{preview}
+番剧名称:{name}({alias})
+番剧简介:{info}
+共{epsize}话'''
+ANIME_INFO_REPEAT = '''
+------
+{name}-{ep_name}
+{preview}
+更新时间:{pubtime}
+ID:{id}
+观看链接:{link}'''
+ANIME_INFO_SUFFIX = '''
+======
+Powered by Biliplus/imjad API'''
+AUTHOR_INFO_PREFIX = '''
+up:{name},UID:{id}
+{preview}'''
+AUTHOR_INFO_REPEAT = '''
+------
+《{name}》,ID:{id}
+{preview}
+更新时间:{pubtime}
+分区:{reigon}
+观看链接:{link}
+'''
+AUTHOR_INFO_SUFFIX = '''
+======
+Powered by Biliplus/imjad API'''
 USEAGE = ''
