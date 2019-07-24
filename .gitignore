@@ -1,11 +1,15 @@
+#Custom ignore
+!.gitkeep
+!default.*
+*.yml
+cache/*
+res/*
+test*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.db
-cache/*
-res/*
-test*
 
 # C extensions
 *.so
