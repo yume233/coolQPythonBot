@@ -2,6 +2,7 @@
 !.gitkeep
 !default.*
 *.yml
+*.sqlite*
 cache/*
 res/*
 test*

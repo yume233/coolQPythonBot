@@ -1,28 +1,23 @@
-from asyncio import AbstractEventLoop, get_event_loop
+from asyncio import get_running_loop
+from asyncio import run as asyncRun
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
 
 EXECUTOR = ThreadPoolExecutor()
 
 
-def Async(function=None, *, loop: AbstractEventLoop = get_event_loop()):
-    if function is None:
-        return partial(Async, loop=loop)
-
+def Async(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        return loop.run_in_executor(EXECUTOR,
-                                    lambda: function(*args, **kwargs))
+        return get_running_loop().run_in_executor(
+            EXECUTOR, lambda: function(*args, **kwargs))
 
     return wrapper
 
 
-def Sync(function=None, *, loop: AbstractEventLoop = get_event_loop()):
-    if function is None:
-        return partial(Sync, loop=loop)
-
+def Sync(function=None):
     @wraps(function)
     def wrapper(*args, **kwargs):
-        return loop.run_until_complete(function(*args, **kwargs))
+        return asyncRun(function(*args, **kwargs))
 
     return wrapper

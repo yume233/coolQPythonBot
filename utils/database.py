@@ -72,3 +72,5 @@ class _database:
             'stack': getData.exception_stack,
             'time': getData.exception_time
         }
+
+database = _database()

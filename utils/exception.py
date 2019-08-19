@@ -1,6 +1,7 @@
 class BaseBotError(Exception):
-    def __init__(self, reason: str):
-        self.reason = str(reason)
+    def __init__(self, reason: str = None, trace: str = None):
+        self.reason = str(reason) if reason else None
+        self.trace = str(trace).upper() if trace else None
         super().__init__(reason)
 
 
