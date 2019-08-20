@@ -1,9 +1,8 @@
 import os
-import re
 from datetime import timedelta
 
 from nonebot import default_config as dc
-from yaml import safe_load, safe_dump
+from yaml import safe_dump, safe_load
 
 CONFIG_DIR = 'configs/bot.yml'
 if os.path.isfile(CONFIG_DIR):
@@ -21,11 +20,11 @@ def timeDeltaRead(key, default: timedelta) -> timedelta:
 
 
 def getSettings() -> dict:
-    from re import compile
-    regexp = compile(r'^[0-9A-Z_]+$')
     return {
         k: getattr(settings, k)
-        for k in sorted(dir(settings)) if regexp.match(k)
+        for k in sorted(
+            filter(lambda x: x.isupper() and not x.startswith('_'),
+                   dir(settings)))
     }
 
 
@@ -65,6 +64,9 @@ class settings:
 
     APSCHEDULER_CONFIG = CONFIG_READ.get\
         ('apscheduler_config',dc.APSCHEDULER_CONFIG)
+
+    DATABASE_ADDRESS = CONFIG_READ.get\
+        ('database_address','sqlite:///database.sqlite')
 
 
 if not os.path.isfile(CONFIG_DIR):
