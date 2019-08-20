@@ -51,12 +51,19 @@ def processSession(function=None,
 
         if pluginName:
             fullPluginName = nameJoin(pluginName, *methodName.split('.'))
-            chatType = 'group' if session.ctx.get('group_id') else 'user'
-            getID = session.ctx.get('group_id', session.ctx['user_id'])
+            chatType = session.ctx['message_type'] \
+                if session.ctx['message_type'] == 'group' else 'user'
+            getID = session.ctx['group_id'] \
+                if chatType == 'group' else session.ctx['user_id']
             enabled = manager.settings(fullPluginName, getID, chatType).status
         else:
             fullPluginName = None
             enabled = True
+
+        if type(session) == CommandSession:
+            for perKeyword in settings.SESSION_CANCEL_KEYWORD:
+                if perKeyword in sessionText:
+                    session.finish(settings.SESSION_CANCEL_EXPRESSION)
 
         logger.debug(f'Session Class:{session},' +
                      f'Plugin Name:{fullPluginName},' +
@@ -65,9 +72,16 @@ def processSession(function=None,
 
         try:
             if not isinstance(session, BaseSession): raise BaseBotError
-            if not enabled: raise BotDisabledError('此插件不允许在此处使用')
+
+            if not enabled:
+                if type(session) == CommandSession:
+                    raise BotDisabledError('此插件不允许在此处使用')
+                else:
+                    return
+
             returnResult = await function\
                 (SyncWrapper(session) if convToSync else session, *args,**kwargs)
+
         except (_FinishException, _PauseException, SwitchException):
             raise
         except BotDisabledError as e:
@@ -117,7 +131,5 @@ def processSession(function=None,
                 msg, at = returnResult, True
             if at: msg = f'\n{msg}'
             await session.send(msg, at_sender=at)
-
-        session.finish()
 
     return wrapper
