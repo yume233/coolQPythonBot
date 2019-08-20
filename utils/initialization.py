@@ -1,4 +1,4 @@
-from nonebot import NoneBot, get_bot
+from nonebot import NoneBot, get_bot, logger
 
 from .customDecorators import Async
 from .customObjects import SyncWrapper
@@ -8,6 +8,7 @@ from .database import database
 def start(bot: NoneBot):
     @bot.asgi.before_serving
     async def _():
+        logger.info('Start initialization Users and Groups')
         bot: NoneBot = get_bot()
         groupList = [(i['group_id'], i['group_name'])
                      for i in await bot.get_group_list()]
@@ -18,6 +19,7 @@ def start(bot: NoneBot):
             addName = lambda x: (x.update({'group_name': groupName}), x)[1]
             totalMembers.extend(map(addName, memberList))
             database.writeGroup(groupID, groupName, memberList)
+            logger.debug(f'Info of Group "{groupName}"[{groupID}] Initialized')
         for perMember in totalMembers:
             username = perMember['nickname']
             userID = perMember['user_id']
@@ -29,6 +31,7 @@ def start(bot: NoneBot):
                     'name': username,
                     'group': [perMember]
                 }
+        logger.debug(f'Users Info Initialized,Total:{len(userDict)}')
         database.batchWriteUser([
             database.writeUser(userID=userID,
                                username=userInfo['name'],
@@ -36,3 +39,4 @@ def start(bot: NoneBot):
                                _inBatch=True)
             for userID, userInfo in userDict.items()
         ])
+        logger.debug(f'Initialization finished!')

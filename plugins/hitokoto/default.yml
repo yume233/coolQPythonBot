@@ -1,0 +1,2 @@
+api_address: 'https://v1.hitokoto.cn/'
+reply_format: '{hitokoto}——{from}'

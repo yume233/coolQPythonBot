@@ -5,10 +5,21 @@ import yaml
 from .customObjects import DictOpreating
 
 
-def configLoad(path: str):
+def configLoad(path: str) -> dict:
     with open(path, 'rb') as f:
         ymlLoad = yaml.safe_load(f)
     return ymlLoad if type(ymlLoad) == dict else dict()
+
+
+def filePath(file: str, name: str) -> str:
+    path, _ = os.path.split(file)
+    return os.path.join(path, name)
+
+
+def touch(path: str) -> str:
+    if not os.path.isfile(path):
+        open(path, 'wb').close()
+    return path
 
 
 class configsReader:

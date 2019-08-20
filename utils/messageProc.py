@@ -9,6 +9,7 @@ from nonebot.command import SwitchException, _FinishException, _PauseException
 from nonebot.session import BaseSession
 
 from .botConfig import settings
+from .customDecorators import Timeit
 from .customObjects import SyncWrapper
 from .database import database
 from .exception import *
@@ -40,6 +41,7 @@ def processSession(function=None,
                        methodName=methodName)
 
     @wraps(function)
+    @Timeit
     async def wrapper(session: UnionSession, *args, **kwargs):
         sessionText = ''.join([
             i['data']['text'] for i in session.ctx['message']
@@ -112,6 +114,7 @@ def processSession(function=None,
                 msg, at = returnResult
             else:
                 msg, at = returnResult, True
+            if at: msg = f'\n{msg}'
             await session.send(msg, at_sender=at)
 
         session.finish()

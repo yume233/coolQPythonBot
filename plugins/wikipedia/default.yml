@@ -1,0 +1,21 @@
+proxy:
+    enable: true
+    address: 'http://127.0.0.1:1081'
+
+apis:
+    wiki: 'https://zh.wikipedia.org/w/api.php'
+    short: 'https://api.weibo.com/2/short_url/shorten.json'
+    short_key: #Please create a new file configuration
+
+customize:
+    prefix: |
+        您搜索的关键词为"{keyword}"
+    repeat: |
+        ---------
+        标题:"{title}"
+        介绍:"{introduce}"
+        详情:{link}
+    suffix: |
+        =========
+        共返回{size}个结果
+        Powered by Wikipedia
