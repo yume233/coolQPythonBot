@@ -45,17 +45,43 @@ def shortURL(urlList: list) -> dict:
     requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
     try:
         result = requests.get(CONFIG_READ.apis.short, params=requestParam)
-        result = {
-            perurl['url_long']: perurl['url_short']
-            for perurl in result.json()['urls']
-        }
+        result.raise_for_status()
     except requests.RequestException:
         traceID = database.catchException(time(), format_exc())
         raise BotRequestError('生成短链接失败', traceID)
-    return result
+    return result.json()
 
-@on_command('wikipedia',aliases=('维基搜索','维基'))
+
+@on_command('wikipedia', aliases=('维基搜索', '维基'))
 @processSession(pluginName='wikipedia')
 @SyncToAsync
-def wikipedia(session:CommandSession):
+def wikipedia(session: CommandSession):
     keyword = session.get('keyword')
+    session.send(f'开始Wiki搜索{keyword}')
+    _, resultTitles, resultIntros, resultLinks = getWiki(keyword)
+    resultShortLinks = {
+        i['url_long']: i['url_short']
+        for i in shortURL(resultLinks)['urls']
+    }
+    finalResult = {'keyword': keyword, 'size': len(resultTitles)}
+    finalResult['result'] = [{
+        'title': resultTitles[i],
+        'introduce': resultIntros[i],
+        'link': resultShortLinks[resultLinks[i]]
+    } for i in range(len(resultTitles))]
+    repeatMessage = [
+        str(CONFIG_READ.customize.repeat).format(**result)
+        for result in finalResult['result']
+    ]
+    fullMessage = str(CONFIG_READ.customize.prefix).format(**finalResult)+\
+        ''.join(repeatMessage[:CONFIG_READ.size])+\
+        str(CONFIG_READ.customize.suffix).format(**finalResult)
+    return fullMessage
+
+
+@wikipedia.args_parser
+async def _(session: CommandSession):
+    strippedArgs = session.current_arg_text.strip()
+    if not strippedArgs:
+        session.pause('请输入搜索关键词')
+    session.state['keyword'] = strippedArgs

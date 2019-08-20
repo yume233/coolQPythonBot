@@ -1,13 +1,13 @@
-from asyncio import get_running_loop
-from asyncio import run as asyncRun
+from asyncio import Task, get_event_loop, get_running_loop
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
-from time import time_ns
+from time import sleep, time_ns
 from typing import Union
 
 from nonebot import IntentCommand, logger, on_natural_language
 
-EXECUTOR = ThreadPoolExecutor()
+_EXECUTOR = ThreadPoolExecutor()
+_EVENT_LOOP = get_event_loop()
 
 
 def Timeit(function):
@@ -30,8 +30,8 @@ def Async(function):
     @wraps(function)
     @Timeit
     def wrapper(*args, **kwargs):
-        return get_running_loop().run_in_executor(
-            EXECUTOR, lambda: function(*args, **kwargs))
+        return get_running_loop().run_in_executor\
+            (_EXECUTOR, lambda: function(*args, **kwargs))
 
     return wrapper
 
@@ -40,7 +40,12 @@ def Sync(function):
     @wraps(function)
     @Timeit
     def wrapper(*args, **kwargs):
-        return asyncRun(function(*args, **kwargs))
+        task: Task = _EVENT_LOOP.create_task(function(*args, **kwargs))
+        while not task.done():
+            sleep(.1)
+        if task.exception():
+            raise task.exception()
+        return task.result()
 
     return wrapper
 

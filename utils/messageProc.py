@@ -34,7 +34,8 @@ def nameJoin(pluginName: str, *methodsName) -> str:
 def processSession(function=None,
                    *,
                    pluginName: str = '',
-                   methodName: str = ''):
+                   methodName: str = '',
+                   convToSync: bool = True):
     if function is None:
         return partial(processSession,
                        pluginName=pluginName,
@@ -65,8 +66,8 @@ def processSession(function=None,
         try:
             if not isinstance(session, BaseSession): raise BaseBotError
             if not enabled: raise BotDisabledError('此插件不允许在此处使用')
-            returnResult = await function(SyncWrapper(session), *args,
-                                          **kwargs)
+            returnResult = await function\
+                (SyncWrapper(session) if convToSync else session, *args,**kwargs)
         except (_FinishException, _PauseException, SwitchException):
             raise
         except BotDisabledError as e:

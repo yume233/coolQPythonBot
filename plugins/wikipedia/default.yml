@@ -19,3 +19,5 @@ customize:
         =========
         共返回{size}个结果
         Powered by Wikipedia
+
+size: 3
