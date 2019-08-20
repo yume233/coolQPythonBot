@@ -67,6 +67,7 @@ class settings:
 
     DATABASE_ADDRESS = CONFIG_READ.get\
         ('database_address','sqlite:///database.sqlite')
+    DATABASE_DEBUG = CONFIG_READ.get('database_debug', False)
 
 
 if not os.path.isfile(CONFIG_DIR):

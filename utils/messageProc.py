@@ -32,8 +32,8 @@ def nameJoin(pluginName: str, *methodsName) -> str:
 
 def processSession(function=None,
                    *,
-                   pluginName: str = None,
-                   methodName: str = None):
+                   pluginName: str = '',
+                   methodName: str = ''):
     if function is None:
         return partial(processSession,
                        pluginName=pluginName,
@@ -46,7 +46,7 @@ def processSession(function=None,
             if i['type'] == 'text'
         ])
 
-        if (pluginName and methodName):
+        if pluginName:
             fullPluginName = nameJoin(pluginName, *methodName.split('.'))
             chatType = 'group' if session.ctx.get('group_id') else 'user'
             getID = session.ctx.get('group_id', session.ctx['user_id'])
@@ -56,14 +56,15 @@ def processSession(function=None,
             enabled = True
 
         logger.debug(f'Session Class:{session},' +
-                     f'Plugin Name:{fullPluginName}' +
+                     f'Plugin Name:{fullPluginName},' +
                      f'Message Text:"{sessionText}",' + f'Enabled:{enabled},' +
                      f'CTX:"{session.ctx}"')
 
         try:
             if not isinstance(session, BaseSession): raise BaseBotError
             if not enabled: raise BotDisabledError('此插件不允许在此处使用')
-            getText = await function(SyncWrapper(session), *args, **kwargs)
+            returnResult = await function(SyncWrapper(session), *args,
+                                          **kwargs)
         except (_FinishException, _PauseException, SwitchException):
             raise
         except BotDisabledError as e:
@@ -105,7 +106,14 @@ def processSession(function=None,
             if settings.DEBUG: raise
             trace = database.catchException(time(), format_exc())
             await session.send(f'出现未知错误,追踪ID:{trace},请联系开发者')
-        if getText: await session.send(getText, at_sender=True)
+
+        if returnResult:
+            if type(returnResult) == tuple:
+                msg, at = returnResult
+            else:
+                msg, at = returnResult, True
+            await session.send(msg, at_sender=at)
+
         session.finish()
 
     return wrapper

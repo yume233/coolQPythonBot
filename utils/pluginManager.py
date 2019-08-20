@@ -39,7 +39,7 @@ class SingleSetting(object):
         return _CACHE
 
     @cache.setter
-    def _(self, value):
+    def cache(self, value):
         global _CACHE
         assert type(value) == dict
         _CACHE = value
@@ -50,7 +50,7 @@ class SingleSetting(object):
         return _MODIFED
 
     @modifed.setter
-    def _(self, value):
+    def modifed(self, value):
         global _MODIFED
         assert type(value) == bool
         _MODIFED = value
@@ -68,7 +68,7 @@ class SingleSetting(object):
             .get(self.id, self.cache[self.name]['status']['default'])
 
     @settings.setter
-    def _(self, value):
+    def settings(self, value):
         if value == self.settings: return
         self.modifed = True
         newSetting = self.cache[self.name]['settings']
@@ -78,7 +78,7 @@ class SingleSetting(object):
                              status=self.cache[self.name]['status'])
 
     @status.setter
-    def _(self, value):
+    def status(self, value):
         if value == self.status: return
         self.modifed = True
         newStatus = self.cache[self.name]['status']
@@ -95,7 +95,7 @@ class _PluginManager:
         return _CACHE
 
     @cache.setter
-    def _(self, value):
+    def cache(self, value):
         global _CACHE
         assert type(value) == dict
         _CACHE = value
@@ -106,7 +106,7 @@ class _PluginManager:
         return _MODIFED
 
     @modifed.setter
-    def _(self, value):
+    def modifed(self, value):
         global _MODIFED
         assert type(value) == bool
         _MODIFED = value
@@ -122,6 +122,8 @@ class _PluginManager:
                 return
         self.modifed = True
         temp = lambda x: {'group': dict(), 'user': dict(), 'default': x}
+        logger.debug(f'Register New Plugin:{pluginName},' +
+                     f'Settings:{defaultSettings},Status:{defaultStatus}')
         database.writePlugin(pluginName=pluginName,
                              status=temp(defaultStatus),
                              setting=temp(defaultSettings))

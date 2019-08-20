@@ -45,7 +45,7 @@ class Errors(Base):
 class _database:
     def __init__(self):
         self.engine = create_engine(settings.DATABASE_ADDRESS,
-                                    echo=settings.DEBUG)
+                                    echo=settings.DATABASE_DEBUG)
         Base.metadata.create_all(self.engine)
         self.sessionFactory = sessionmaker(bind=self.engine)
         self.originSession = scoped_session(self.sessionFactory)
@@ -83,11 +83,18 @@ class _database:
 
     def writeGroup(self, groupID: int, groupName: str, groupMembers: list):
         localSession: Session = self.originSession()
-        enhDict: Groups = EnhancedDict()
-        enhDict.group_id = int(groupID)
-        enhDict.group_name = str(groupName)
-        enhDict.group_member = dumps(groupMembers)
-        localSession.add(Groups(**enhDict))
+        queryResult:Groups = localSession.query(Groups)\
+            .filter(Groups.group_id == groupID).first()
+        if not queryResult:
+            enhDict: Groups = EnhancedDict()
+            enhDict.group_id = int(groupID)
+            enhDict.group_name = str(groupName)
+            enhDict.group_member = dumps(groupMembers)
+            localSession.add(Groups(**enhDict))
+        else:
+            queryResult.group_member = dumps(groupMembers)
+            queryResult.group_name = str(groupName)
+            localSession.add(queryResult)
         localSession.commit()
         self.originSession.remove()
 
@@ -114,17 +121,26 @@ class _database:
                   username: str,
                   userGroups: list,
                   _inBatch: bool = False):
-        enhDict: Users = EnhancedDict()
-        enhDict.user_id = int(userID)
-        enhDict.user_name = str(username)
-        enhDict.user_groups = dumps(userGroups)
+        localSession: Session = self.originSession()
+        queryResult:Users = localSession.query(Users)\
+            .filter(Users.user_id == userID).first()
+        if not queryResult:
+            enhDict: Users = EnhancedDict()
+            enhDict.user_id = int(userID)
+            enhDict.user_name = str(username)
+            enhDict.user_groups = dumps(userGroups)
+            commitObj = Users(**enhDict)
+        else:
+            queryResult.user_name = str(username)
+            queryResult.user_groups = dumps(userGroups)
+            commitObj = queryResult
         if not _inBatch:
-            localSession: Session = self.originSession()
-            localSession.add(Users(**enhDict))
+            localSession.add(commitObj)
             localSession.commit()
             self.originSession.remove()
         else:
-            return Users(**enhDict)
+            self.originSession.remove()
+            return commitObj
 
     def batchWriteUser(self, userList: List[Users]):
         localSession: Session = self.originSession()
@@ -167,7 +183,7 @@ class _database:
             queryResult.plugin_status = dumps(status)
             localSession.add(queryResult)
         else:
-            enhDict: Plugins = EnhancedDict
+            enhDict: Plugins = EnhancedDict()
             enhDict.plugin_name = str(pluginName)
             enhDict.plugin_status = dumps(status)
             enhDict.plugin_settings = dumps(setting)
