@@ -84,7 +84,7 @@ def CatchRequestsException(function=None,
                            prompt: str = None,
                            retries: int = 1):
     if function is None:
-        return partial(CatchRequestsException, prompt=prompt)
+        return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
     @wraps(function)
     def wrapper(*args, **kwargs):
@@ -92,8 +92,10 @@ def CatchRequestsException(function=None,
             try:
                 return function(*args, **kwargs)
             except RequestException as error:
-                if isinstance(error, HTTPError): raise
-        else:
-            raise error
+                traceID = CatchException()
+                logger.debug(
+                    f'Request Function {function} Error Occured:{error}')
+                #if isinstance(error, HTTPError): break
+        raise BotRequestError(prompt, traceID)
 
     return wrapper

@@ -18,46 +18,27 @@ from .pluginManager import manager
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
 
 
-def nameJoin(pluginName: str, *methodsName) -> str:
-    def cleanDot(name: str) -> str:
-        if name.startswith('.'):
-            name = name[1:]
-        if name.endswith('.'):
-            name = name[:-1]
-        return name
-
-    methodsName: List[str] = [cleanDot(i) for i in methodsName if i]
-    methodsName.insert(0, cleanDot(pluginName))
-    return '.'.join(methodsName)
-
-
 def processSession(function=None,
                    *,
                    pluginName: str = '',
-                   methodName: str = '',
                    convToSync: bool = True):
     if function is None:
         return partial(processSession,
                        pluginName=pluginName,
-                       methodName=methodName)
+                       convToSync=convToSync)
 
     @wraps(function)
     @Timeit
     async def wrapper(session: UnionSession, *args, **kwargs):
+        returnResult = None
         sessionText = ''.join([
             i['data']['text'] for i in session.ctx['message']
             if i['type'] == 'text'
         ])
 
         if pluginName:
-            fullPluginName = nameJoin(pluginName, *methodName.split('.'))
-            chatType = session.ctx['message_type'] \
-                if session.ctx['message_type'] == 'group' else 'user'
-            getID = session.ctx['group_id'] \
-                if chatType == 'group' else session.ctx['user_id']
-            enabled = manager.settings(fullPluginName, getID, chatType).status
+            enabled = manager.settings(pluginName, ctx=session.ctx).status
         else:
-            fullPluginName = None
             enabled = True
 
         if type(session) == CommandSession:
@@ -66,7 +47,7 @@ def processSession(function=None,
                     session.finish(settings.SESSION_CANCEL_EXPRESSION)
 
         logger.debug(f'Session Class:{session},' +
-                     f'Plugin Name:{fullPluginName},' +
+                     f'Plugin Name:{pluginName},' +
                      f'Message Text:"{sessionText}",' + f'Enabled:{enabled},' +
                      f'CTX:"{session.ctx}"')
 

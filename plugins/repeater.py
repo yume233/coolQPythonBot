@@ -18,12 +18,9 @@ manager.registerPlugin('repeater',
 @processSession(pluginName='repeater')
 @SyncToAsync
 def _(session: NLPSession):
-    sessType = session.ctx['message_type'] \
-        if session.ctx['message_type'] == 'group' else 'user'
-    sessID = session.ctx['group_id'] \
-        if sessType == 'group' else session.ctx['user_id']
-    groupRate = manager.settings('repeater', sessID, sessType).settings['rate']
+    groupRate = manager.settings('repeater', ctx=session.ctx).settings['rate']
     randomNum, msgID = randint(0, groupRate - 1), session.ctx['message_id']
+    sessID = session.ctx['group_id']
     logger.debug(f'Repeat Rate of Group {sessID} is {(1/groupRate)*100}%,' +
                  f'Now Random Number of message {msgID} is {randomNum}')
     if not randomNum:
@@ -33,22 +30,21 @@ def _(session: NLPSession):
 @on_command('repeat_rate',
             aliases=('复读概率', ),
             permission=SUPERUSER | GROUP_ADMIN)
+@processSession
 @SyncToAsync
 def repeatSetter(session: CommandSession):
     getRate = session.get_optional('rate', 20)
-    session: CommandSession = SyncWrapper(session)
-    sessType = session.ctx['message_type'] \
-        if session.ctx['message_type'] == 'group' else 'user'
-    sessID = session.ctx['group_id'] \
-        if sessType == 'group' else session.ctx['user_id']
-    getSettings = manager.settings('repeater', sessID, sessType)
+    sessID = session.ctx['group_id']
+    getSettings = manager.settings('repeater', ctx=session.ctx)
     if not getSettings.status: getSettings.status = True
     getSettings.settings = {'rate': getRate}
     session.send(f'群{sessID}复读概率已被设置为{(1/getRate)*100}%')
 
 
 @repeatSetter.args_parser
-async def _(session: CommandSession):
+@processSession
+@SyncToAsync
+def _(session: CommandSession):
     if session.current_arg_text.strip().isdigit():
         rate = int(session.current_arg_text.strip())
         if rate <= 0:
@@ -62,10 +58,7 @@ async def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     session: CommandSession = SyncWrapper(session)
-    sessType = session.ctx['message_type'] \
-        if session.ctx['message_type'] == 'group' else 'user'
-    sessID = session.ctx['group_id'] \
-        if sessType == 'group' else session.ctx['user_id']
-    getSettings = manager.settings('repeater', sessID, sessType)
+    sessID = session.ctx['group_id']
+    getSettings = manager.settings('repeater', ctx=session.ctx)
     getSettings.status = False
     session.send(f'群{sessID}复读已经关闭')

@@ -3,7 +3,7 @@ api:
     retries: 5
 
 proxy:
-    enable: true
+    enable: false
     address: 'http://127.0.0.1:1081'
 
 customize:

@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any
+from typing import Any, List
 
 from nonebot import logger
 
@@ -9,7 +9,20 @@ _CACHE = dict()
 _MODIFED = True
 
 
-def checker(function):
+def nameJoin(pluginName: str, *methodsName) -> str:
+    def cleanDot(name: str) -> str:
+        if name.startswith('.'):
+            name = name[1:]
+        if name.endswith('.'):
+            name = name[:-1]
+        return name
+
+    methodsName: List[str] = [cleanDot(i) for i in methodsName if i]
+    methodsName.insert(0, cleanDot(pluginName))
+    return '.'.join(methodsName)
+
+
+def _checker(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
         global _MODIFED
@@ -56,13 +69,13 @@ class SingleSetting(object):
         _MODIFED = value
 
     @property
-    @checker
+    @_checker
     def settings(self) -> Any:
         return self.cache[self.name]['settings'][self.type]\
             .get(self.id, self.cache[self.name]['settings']['default'])
 
     @property
-    @checker
+    @_checker
     def status(self) -> bool:
         return self.cache[self.name]['status'][self.type]\
             .get(self.id, self.cache[self.name]['status']['default'])
@@ -111,7 +124,7 @@ class _PluginManager:
         assert type(value) == bool
         _MODIFED = value
 
-    @checker
+    @_checker
     def registerPlugin(self,
                        pluginName: str,
                        defaultStatus: bool = True,
@@ -128,8 +141,12 @@ class _PluginManager:
                              status=temp(defaultStatus),
                              setting=temp(defaultSettings))
 
-    def settings(self, pluginName: str, id: int, idType: str) -> SingleSetting:
-        return SingleSetting(id=id, pluginName=pluginName, type=idType)
+    def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
+        sessType = ctx['message_type'] \
+            if ctx['message_type'] == 'group' else 'user'
+        sessID = ctx['group_id'] \
+            if sessType == 'group' else ctx['user_id']
+        return SingleSetting(id=sessID, pluginName=pluginName, type=sessType)
 
 
 manager = _PluginManager()

@@ -46,7 +46,7 @@ def shortURL(urlList: list) -> dict:
 @SyncToAsync
 def wikipedia(session: CommandSession):
     keyword = session.get('keyword')
-    session.send(f'开始Wiki搜索{keyword}')
+    session.send(f'开始Wiki搜索:{keyword}')
     _, resultTitles, resultIntros, resultLinks = getWiki(keyword)
     resultShortLinks = {
         i['url_long']: i['url_short']

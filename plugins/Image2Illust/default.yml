@@ -1,0 +1,23 @@
+apis:
+    ascii2d: 'https://ascii2d.net/search/url/'
+    short: 'https://api.weibo.com/2/short_url/shorten.json'
+    short_key : #Please create a new file configuration
+    retries: 5
+
+proxy:
+    enable: false
+    address: 'http://127.0.0.1:1081'
+
+customize:
+    size: 3
+    prefix: ''
+    repeat: |
+        ----------
+        {preview}
+        标题:{title}
+        来自:{source} {id}
+        {link}
+    suffix: |
+        ==========
+        返回结果{size}个
+        数据来自:ascii2d.net
