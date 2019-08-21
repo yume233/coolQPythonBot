@@ -52,7 +52,7 @@ class _database:
 
     def catchException(self, time: float, stack: str) -> str:
         localSession: Session = self.originSession()
-        traceID = token_hex(8)
+        traceID = token_hex(4)
         enhDict: Errors = EnhancedDict()
         enhDict.exception_trace_id = int(traceID, 16)
         enhDict.exception_time = float(time)

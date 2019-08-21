@@ -1,13 +1,8 @@
-from time import time
-from traceback import format_exc
-
 import requests
 from nonebot import CommandSession, on_command
 
 from utils.configsReader import configsReader, filePath, touch
-from utils.customDecorators import SyncToAsync
-from utils.database import database
-from utils.exception import BotRequestError
+from utils.customDecorators import SyncToAsync, CatchRequestsException
 from utils.messageProc import processSession
 from utils.pluginManager import manager
 
@@ -17,6 +12,7 @@ CONFIG_READ = configsReader(touch(filePath(__file__, 'config.yml')),
 manager.registerPlugin('wikipedia')
 
 
+@CatchRequestsException(prompt='从维基获取数据出错')
 def getWiki(keyword: str) -> dict:
     requestParam = {
         'action': 'opensearch',
@@ -28,27 +24,20 @@ def getWiki(keyword: str) -> dict:
         'http': CONFIG_READ.proxy.address,
         'https': CONFIG_READ.proxy.address
     } if CONFIG_READ.proxy.enable else {}
-    try:
-        result = requests.get(CONFIG_READ.apis.wiki,
-                              params=requestParam,
-                              proxies=proxyParam)
-        result.raise_for_status()
-    except requests.RequestException:
-        traceID = database.catchException(time(), format_exc())
-        raise BotRequestError('从维基拉取数据出错', traceID)
+    result = requests.get(CONFIG_READ.apis.wiki,
+                          params=requestParam,
+                          proxies=proxyParam)
+    result.raise_for_status()
     return result.json()
 
 
+@CatchRequestsException(prompt='生成短链接失败')
 def shortURL(urlList: list) -> dict:
     if not urlList:
         return {}
     requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
-    try:
-        result = requests.get(CONFIG_READ.apis.short, params=requestParam)
-        result.raise_for_status()
-    except requests.RequestException:
-        traceID = database.catchException(time(), format_exc())
-        raise BotRequestError('生成短链接失败', traceID)
+    result = requests.get(CONFIG_READ.apis.short, params=requestParam)
+    result.raise_for_status()
     return result.json()
 
 
@@ -80,7 +69,9 @@ def wikipedia(session: CommandSession):
 
 
 @wikipedia.args_parser
-async def _(session: CommandSession):
+@processSession
+@SyncToAsync
+def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         session.pause('请输入搜索关键词')

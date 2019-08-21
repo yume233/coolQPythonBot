@@ -1,0 +1,21 @@
+api:
+    address: 'https://trace.moe/api/search'
+    retries: 5
+
+proxy:
+    enable: true
+    address: 'http://127.0.0.1:1081'
+
+customize:
+    size: 3
+    prefix: ''
+    repeat: |
+        --------------
+        番剧名称:{anime}
+        英文名:{title_english}
+        第{episode}话{at}秒
+        相似度:{similarity:.2%}
+    suffix: |
+        ==============
+        API请求剩余:{limit}/{limit_ttl}s
+        Powered by trace.moe

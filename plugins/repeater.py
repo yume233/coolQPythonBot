@@ -1,6 +1,7 @@
 from random import randint
 
-from nonebot import CommandSession, NLPSession, on_command, on_natural_language
+from nonebot import (CommandSession, NLPSession, logger, on_command,
+                     on_natural_language)
 from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 
 from utils.customDecorators import SyncToAsync
@@ -22,7 +23,10 @@ def _(session: NLPSession):
     sessID = session.ctx['group_id'] \
         if sessType == 'group' else session.ctx['user_id']
     groupRate = manager.settings('repeater', sessID, sessType).settings['rate']
-    if not randint(0, groupRate - 1):
+    randomNum, msgID = randint(0, groupRate - 1), session.ctx['message_id']
+    logger.debug(f'Repeat Rate of Group {sessID} is {(1/groupRate)*100}%,' +
+                 f'Now Random Number of message {msgID} is {randomNum}')
+    if not randomNum:
         return session.msg, False
 
 
@@ -47,7 +51,7 @@ def repeatSetter(session: CommandSession):
 async def _(session: CommandSession):
     if session.current_arg_text.strip().isdigit():
         rate = int(session.current_arg_text.strip())
-        if not rate:
+        if rate <= 0:
             session.finish('无效的复读概率值,应为一个有效的正整数')
         session.state['rate'] = rate
 

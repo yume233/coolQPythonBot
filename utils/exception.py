@@ -1,3 +1,12 @@
+def CatchException() -> str:
+    from time import time as get_time
+    from traceback import format_exc
+    from .database import database
+    stack, time = format_exc(), get_time()
+    trace = database.catchException(time, stack)
+    return trace.upper()
+
+
 class BaseBotError(Exception):
     def __init__(self, reason: str = None, trace: str = None):
         """__init__ 
