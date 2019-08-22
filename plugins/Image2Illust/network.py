@@ -26,6 +26,6 @@ def shortLink(linkList: Iterable) -> Dict[str, str]:
         'source': str(Config.apis.short_key),
         'url_long': list(linkList)
     }
-    apiGet = requests.get(Config.apis.short, params=urlParams)
+    apiGet = requests.get(Config.apis.short, params=urlParams,timeout=3)
     apiGet.raise_for_status()
     return {i['url_long']: i['url_short'] for i in apiGet.json()['urls']}

@@ -27,7 +27,7 @@ def _convertToPNG(imageRes: bytes) -> bytes:
 
 @CatchRequestsException(prompt='从Pixiv获取接口信息失败')
 def _baseGetJSON(params: dict) -> dict:
-    r = requests.get(Config.apis.address, params=params)
+    r = requests.get(Config.apis.address, params=params, timeout=3)
     r.raise_for_status()
     resp: dict = r.json()
     if resp.get('error'):
@@ -43,7 +43,7 @@ def downloadImage(url: str) -> str:
         'http': Config.proxy.address,
         'https': Config.proxy.address
     } if Config.proxy.enable else {}
-    r = requests.get(url, headers=headers, timeout=(12, None), proxies=proxies)
+    r = requests.get(url, headers=headers, timeout=(6, 12), proxies=proxies)
     r.raise_for_status()
     pngImage = _convertToPNG(r.content)
     return f'base64://{b64encode(pngImage).decode()}'

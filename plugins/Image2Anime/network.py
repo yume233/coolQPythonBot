@@ -6,7 +6,7 @@ from .config import Config
 
 @CatchRequestsException(prompt='下载用户发出图片失败')
 def imageDownload(url: str):
-    data = requests.get(url, timeout=3)
+    data = requests.get(url, timeout=(3,6))
     data.raise_for_status()
     dataBytes = data.content
     return dataBytes, len(dataBytes)
@@ -25,7 +25,7 @@ def whatanimeUpload(file: str) -> dict:
         'json': {
             'image': file
         },
-        'timeout': (3, None),
+        'timeout': (3, 21),
         'proxies': ({
             'http': Config.proxy.address,
             'https': Config.proxy.address

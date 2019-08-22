@@ -36,7 +36,7 @@ def shortURL(urlList: list) -> dict:
     if not urlList:
         return {}
     requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
-    result = requests.get(CONFIG_READ.apis.short, params=requestParam)
+    result = requests.get(CONFIG_READ.apis.short, params=requestParam,timeout=3)
     result.raise_for_status()
     return result.json()
 

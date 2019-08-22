@@ -20,7 +20,10 @@ def getImageList() -> list:
         'http': Config.proxy.address,
         'https': Config.proxy.address
     } if Config.proxy.enable else {}
-    getData = requests.get(url=address, params=params, proxies=proxy)
+    getData = requests.get(url=address,
+                           params=params,
+                           proxies=proxy,
+                           timeout=(3, 21))
     getData.raise_for_status()
     return getData.json()
 
@@ -31,7 +34,7 @@ def downloadImage(url) -> str:
         'http': Config.proxy.address,
         'https': Config.proxy.address
     } if Config.proxy.enable else {}
-    r = requests.get(url, proxies=proxy,timeout=(3,None))
+    r = requests.get(url, proxies=proxy, timeout=(3, 21))
     r.raise_for_status()
     resp = b64encode(_changeHash(r.content)).decode()
     return f'base64://{resp}'
