@@ -87,6 +87,7 @@ def CatchRequestsException(function=None,
         return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
     @wraps(function)
+    @Timeit
     def wrapper(*args, **kwargs):
         for _ in range(retries):
             try:

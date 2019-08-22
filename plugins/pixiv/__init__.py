@@ -63,4 +63,112 @@ def _(session: CommandSession):
         session.pause('请输入p站图片ID')
     session.state['id'] = int(digits)
     if texts:
-        session.state['res'] = texts
+        session.state['res'] = texts.replace(' ', '')
+
+
+@on_command(SEARCH_IMAGE_METHOD, aliases=('p站搜图', '搜索图片'))
+@processSession(pluginName=SEARCH_IMAGE_METHOD)
+@WithKeyword('p站搜图', command=SEARCH_IMAGE_METHOD)
+@SyncToAsync
+def searchImage(session: CommandSession):
+    keywords = session.get('keyword')
+    page = session.get_optional('page', 1)
+    session.send(f'开始搜索"{keywords}"的第{page}页')
+    apiGet = pixiv.searchIllust(keyword=keywords, page=page)
+    apiParse = parseMultiImage(apiGet)
+    sortResult = sorted(apiParse['result'],
+                        key=lambda x: x['ratio'],
+                        reverse=True)
+    enableR18 = manager.settings(SEARCH_IMAGE_METHOD,
+                                 session.ctx).settings['r-18']
+    messageRepeat = [
+        str(Config.customize.search_repeat).format(**data)
+        for data in sortResult if (not 'R-18' in data['tags']) or enableR18
+    ]
+    fullMessage = str(Config.customize.search_prefix).format(**apiParse)\
+        + ''.join(messageRepeat[:Config.customize.size])\
+        + str(Config.customize.search_suffix).format(**apiParse)
+    return fullMessage
+
+
+@searchImage.args_parser
+@processSession(pluginName=SEARCH_IMAGE_METHOD)
+@SyncToAsync
+def _(session: CommandSession):
+    if session.current_arg_images:
+        session.switch(f'!{GET_IMAGE_METHOD} {session.current_arg}')
+    strippedArgs = session.current_arg_text.strip()
+    if not strippedArgs:
+        session.pause('请输入搜索关键词')
+    keywords = strippedArgs.split(' ', 1)
+    if len(keywords) == 2:
+        page, strippedArgs = keywords
+        if page.isdigit():
+            session.state['page'] = int(page)
+        else:
+            strippedArgs = f'{page} {strippedArgs}'
+    session.state['keyword'] = strippedArgs
+
+
+@on_command(MEMBER_IMAGE_METHOD, aliases=('p站画师', '画师', '搜索画师'))
+@processSession(pluginName=MEMBER_IMAGE_METHOD)
+@WithKeyword('p站画师', '搜索画师')
+@SyncToAsync
+def memberImage(session: CommandSession):
+    memberID = session.get('id')
+    page = session.get_optional('page', 1)
+    session.send(f'开始获取Pixiv用户ID为{memberID}的作品第{page}页')
+    apiGet = pixiv.getMemberIllust(memberID, page)
+    apiParse = parseMultiImage(apiGet)
+    sortResult = sorted(apiParse['result'],
+                        key=lambda x: x['ratio'],
+                        reverse=True)
+    enableR18 = manager.settings(MEMBER_IMAGE_METHOD,
+                                 session.ctx).settings['r-18']
+    messageRepeat = [
+        str(Config.customize.member_repeat).format(**data)
+        for data in sortResult if (not 'R-18' in data['tags']) or enableR18
+    ]
+    fullMessage = str(Config.customize.member_prefix).format(**apiParse)\
+        + ''.join(messageRepeat[:Config.customize.size])\
+        + str(Config.customize.member_suffix).format(**apiParse)
+    return fullMessage
+
+
+@memberImage.args_parser
+@processSession(pluginName=MEMBER_IMAGE_METHOD)
+@SyncToAsync
+def _(session: CommandSession):
+    strippedArgs = session.current_arg_text.strip()
+    if not strippedArgs:
+        session.pause('请输入画师的用户ID')
+    if not strippedArgs.replace(' ','').isdigit() \
+    or len(strippedArgs.split(' ')) > 2:
+        session.pause('您输入的参数不正确')
+    splited = strippedArgs.split(' ', 1)
+    if len(splited) == 2:
+        page, member = splited
+        session.state['page'] = int(page)
+    else:
+        member = strippedArgs
+    session.state['id'] = int(member)
+
+
+@on_command(RANK_IMAGE_METHOD, aliases=('一图', ))
+@processSession(pluginName=RANK_IMAGE_METHOD)
+@SyncToAsync
+def _(session: CommandSession):
+    session.send('开始获取一图')
+    rank = random.choice(['day', 'week', 'month'])
+    apiGet = pixiv.getRank(rank)
+    apiParse = parseMultiImage(apiGet)
+    choiceResult = random.choice(
+        [data for data in apiParse['result'] if data['type'] == 'illust'])
+    imageLinks = [i['large']
+                  for i in choiceResult['download']][:Config.customize.size]
+    images = downloadMutliImage(imageLinks)
+    messageRepeat = [str(MessageSegment.image(images[i])) for i in imageLinks]
+    fullMessage = str(Config.customize.rank_prefix).format(**choiceResult)\
+        + '\n'.join(messageRepeat) + '\n'\
+        + str(Config.customize.rank_suffix).format(**choiceResult)
+    return fullMessage

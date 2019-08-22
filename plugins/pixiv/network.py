@@ -1,5 +1,6 @@
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
+from secrets import token_bytes
 
 import requests
 from nonebot import logger
@@ -20,7 +21,8 @@ def _convertToPNG(imageRes: bytes) -> bytes:
             img.save(writeName, 'PNG')
         with open(writeName, 'rb') as f:
             fileRead = f.read()
-    return fileRead
+    fileHashChanged = fileRead + b'\x00' * 16 + token_bytes(16)
+    return fileHashChanged
 
 
 @CatchRequestsException(prompt='从Pixiv获取接口信息失败')
