@@ -20,7 +20,9 @@ manager.registerPlugin('repeater',
 def _(session: NLPSession):
     groupRate = manager.settings('repeater', ctx=session.ctx).settings['rate']
     randomNum, msgID = randint(0, groupRate - 1), session.ctx['message_id']
-    sessID = session.ctx['group_id']
+    sessID = session.ctx.get('group_id')
+    if not sessID:
+        return
     logger.debug(f'Repeat Rate of Group {sessID} is {(1/groupRate)*100}%,' +
                  f'Now Random Number of message {msgID} is {randomNum}')
     if not randomNum:
