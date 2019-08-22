@@ -10,7 +10,7 @@ from utils.messageProc import processSession
 from utils.pluginManager import manager
 
 manager.registerPlugin('repeater',
-                       defaultStatus=False,
+                       defaultStatus=True,
                        defaultSettings={'rate': 20})
 
 

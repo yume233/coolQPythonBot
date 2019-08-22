@@ -1,0 +1,13 @@
+proxy:
+    enable: false
+    address: 'http://127.0.0.1:1081'
+
+apis:
+    yande: 'https://yande.re/post.json'
+    konachan: 'https://konachan.com/post.json'
+    retries: 5
+
+send:
+    range: 1000
+    default: q
+    size: 3

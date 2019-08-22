@@ -40,6 +40,12 @@ def processSession(function=None,
             enabled = manager.settings(pluginName, ctx=session.ctx).status
         else:
             enabled = True
+        
+        if not enabled:
+            if type(session) == CommandSession:
+                session.finish('此插件已经被禁用')
+            else:
+                return
 
         if type(session) == CommandSession:
             for perKeyword in settings.SESSION_CANCEL_KEYWORD:
@@ -54,11 +60,11 @@ def processSession(function=None,
         try:
             if not isinstance(session, BaseSession): raise BaseBotError
 
-            if not enabled:
-                if type(session) == CommandSession:
-                    raise BotDisabledError('此插件不允许在此处使用')
-                else:
-                    return
+            # if not enabled:
+            #     if type(session) == CommandSession:
+            #         raise BotDisabledError('此插件不允许在此处使用')
+            #     else:
+            #         return
 
             returnResult = await function\
                 (SyncWrapper(session) if convToSync else session, *args,**kwargs)
