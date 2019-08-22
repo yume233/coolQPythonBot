@@ -31,7 +31,7 @@ def _baseGetJSON(params: dict) -> dict:
     r.raise_for_status()
     resp: dict = r.json()
     if resp.get('error'):
-        reason = ''.join([i for _, i in resp['error'].items()])
+        reason = ''.join([str(i) for _, i in resp['error'].items()])
         raise BotRequestError(reason)
     return resp
 

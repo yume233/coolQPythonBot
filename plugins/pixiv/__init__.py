@@ -1,4 +1,5 @@
 import random
+from secrets import token_hex
 
 from nonebot import CommandSession, MessageSegment, on_command
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
@@ -16,12 +17,21 @@ GET_IMAGE_METHOD = nameJoin('pixiv', 'get')
 SEARCH_IMAGE_METHOD = nameJoin('pixiv', 'search')
 MEMBER_IMAGE_METHOD = nameJoin('pixiv', 'member')
 RANK_IMAGE_METHOD = nameJoin('pixiv', 'rank')
+OPERATING_METHOD = nameJoin('pixiv', 'ops')
 POWER_GROUP = (GROUP_ADMIN | SUPERUSER | PRIVATE_FRIEND)
 
 manager.registerPlugin(GET_IMAGE_METHOD, defaultSettings={'r-18': False})
 manager.registerPlugin(SEARCH_IMAGE_METHOD, defaultSettings={'r-18': False})
 manager.registerPlugin(MEMBER_IMAGE_METHOD, defaultSettings={'r-18': False})
 manager.registerPlugin(RANK_IMAGE_METHOD)
+manager.registerPlugin(OPERATING_METHOD)
+
+
+def _checkIsR18(tags: list) -> bool:
+    for i in ('R-18', 'R-18G'):
+        if i in tags:
+            return True
+    return False
 
 
 @on_command(GET_IMAGE_METHOD, aliases=('点图', '获取图片'))
@@ -36,7 +46,7 @@ def getImage(session: CommandSession):
     apiParse = parseSingleImage(apiGet)
     allowR18 = manager.settings(GET_IMAGE_METHOD,
                                 ctx=session.ctx).settings['r-18']
-    if ('R-18' in apiParse['tags']) and not allowR18:
+    if _checkIsR18(apiParse['tags']) and not allowR18:
         raise BotDisabledError('不允许NSFW图片')
     imageURLs = [{
         '大图': p['large'],
@@ -83,7 +93,7 @@ def searchImage(session: CommandSession):
                                  session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.search_repeat).format(**data)
-        for data in sortResult if (not 'R-18' in data['tags']) or enableR18
+        for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
     ]
     fullMessage = str(Config.customize.search_prefix).format(**apiParse)\
         + ''.join(messageRepeat[:Config.customize.size])\
@@ -127,7 +137,7 @@ def memberImage(session: CommandSession):
                                  session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.member_repeat).format(**data)
-        for data in sortResult if (not 'R-18' in data['tags']) or enableR18
+        for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
     ]
     fullMessage = str(Config.customize.member_prefix).format(**apiParse)\
         + ''.join(messageRepeat[:Config.customize.size])\
@@ -172,3 +182,72 @@ def _(session: CommandSession):
         + '\n'.join(messageRepeat) + '\n'\
         + str(Config.customize.rank_suffix).format(**choiceResult)
     return fullMessage
+
+
+@on_command(f'{OPERATING_METHOD}_enable',
+            aliases=('打开R18', '启用R18'),
+            permission=POWER_GROUP)
+@processSession(pluginName=OPERATING_METHOD)
+@SyncToAsync
+def enableR18(session: CommandSession):
+    key = session.get('key')
+    settings = manager.settings(OPERATING_METHOD, ctx=session.ctx)
+    if str(settings.settings.get('key', '')).upper() != str(key).upper():
+        session.finish(f'密钥{key}无法激活该功能')
+    manager.settings(MEMBER_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':True}
+    manager.settings(SEARCH_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':True}
+    manager.settings(GET_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':True}
+    return '封印已成功解除', False
+
+
+@enableR18.args_parser
+@processSession(pluginName=OPERATING_METHOD)
+@SyncToAsync
+def _(session: CommandSession):
+    from re import search
+    strippedArgs = session.current_arg_text.strip()
+    matchObj = search(r'[a-fA-F0-9]{8,40}', strippedArgs)
+    if not matchObj: session.pause('请输入激活密钥')
+    session.state['key'] = str(matchObj.group(0)).upper()
+
+
+@on_command(f'{OPERATING_METHOD}_disable',
+            aliases=('禁用R18', '关闭R18'),
+            permission=POWER_GROUP)
+@processSession(pluginName=OPERATING_METHOD)
+@SyncToAsync
+def disableR18(session: CommandSession):
+    manager.settings(MEMBER_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':False}
+    manager.settings(SEARCH_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':False}
+    manager.settings(GET_IMAGE_METHOD,ctx=session.ctx)\
+        .settings = {'r-18':False}
+    return '强大的力量已被封印', False
+
+
+@on_command(f'{OPERATING_METHOD}_key',
+            aliases=('生成R18密钥', ),
+            permission=SUPERUSER)
+@processSession(pluginName=OPERATING_METHOD)
+@SyncToAsync
+def r18KeyGen(session: CommandSession):
+    key = token_hex(8).upper()
+    manager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {'key': key}
+    return f'密钥生成完毕,为{key}'
+
+
+@on_command(f'{OPERATING_METHOD}_back',
+            aliases=('收回R18密钥', ),
+            permission=SUPERUSER)
+@processSession(pluginName=OPERATING_METHOD)
+@SyncToAsync
+def r18KeyBack(session: CommandSession):
+    oldKey = manager.settings(OPERATING_METHOD, ctx=session.ctx).settings.get(
+        'key', token_hex(8))
+    key = ''.join([chr(ord(i) + 10) for i in list(oldKey)])
+    manager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {'key': key}
+    return f'分发的密钥已被收回'
