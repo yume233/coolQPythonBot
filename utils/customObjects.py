@@ -13,7 +13,7 @@ def convertImageFormat(image: bytes) -> bytes:
         with Image.open(file1) as f:
             f.save(file2, 'BMP')
         with Image.open(file2) as f:
-            f.save(file1, 'PNG')
+            f.save(file1, 'PNG',optimize=True)
         with open(file1, 'rb') as f:
             readData = f.read()
     return readData + b'\x00' * 16 + token_bytes(16)

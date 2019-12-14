@@ -10,7 +10,6 @@ from utils.exception import BotRequestError
 from utils.networkUtils import NetworkUtils
 
 from .config import Config
-from .tmpFile import tmpFile
 
 
 @CatchRequestsException(prompt='从Pixiv获取接口信息失败')

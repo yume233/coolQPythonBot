@@ -1,8 +1,11 @@
-def readConfig():
-    from utils.configsReader import configsReader, touch, filePath
-    configPath = filePath(__file__, 'config.yml')
-    defaultPath = filePath(__file__, 'default.yml')
-    return configsReader(touch(configPath), defaultPath)
+import os
 
+from utils.configsReader import configsReader, copyFileInText
 
-Config = readConfig()
+CONFIG_PATH = 'configs/Image2Illust.yml'
+DEFAULT_PATH = 'configs/default.Image2Illust.yml'
+
+if not os.path.isfile(CONFIG_PATH):
+    copyFileInText(DEFAULT_PATH, CONFIG_PATH)
+
+CONFIG = Config = configsReader(CONFIG_PATH, DEFAULT_PATH)

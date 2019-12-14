@@ -18,10 +18,11 @@ from .pluginManager import manager
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
 
 
-def processSession(function=None,
+def processSession(function: callable = None,
                    *,
                    pluginName: str = '',
                    convToSync: bool = True):
+
     if function is None:
         return partial(processSession,
                        pluginName=pluginName,
@@ -36,18 +37,16 @@ def processSession(function=None,
             if i['type'] == 'text'
         ])
 
-        if pluginName:
-            enabled = manager.settings(pluginName, ctx=session.ctx).status
-        else:
-            enabled = True
-        
+        enabled = manager.settings\
+            (pluginName, ctx=session.ctx).status if pluginName else True
+
         if not enabled:
             if type(session) == CommandSession:
                 session.finish('此插件已经被禁用')
             else:
                 return
 
-        if type(session) == CommandSession:
+        if isinstance(session, CommandSession):
             for perKeyword in settings.SESSION_CANCEL_KEYWORD:
                 if perKeyword in sessionText:
                     session.finish(settings.SESSION_CANCEL_EXPRESSION)
@@ -58,13 +57,10 @@ def processSession(function=None,
                      f'CTX:"{session.ctx}"')
 
         try:
-            if not isinstance(session, BaseSession): raise BaseBotError
-
-            # if not enabled:
-            #     if type(session) == CommandSession:
-            #         raise BotDisabledError('此插件不允许在此处使用')
-            #     else:
-            #         return
+            if not isinstance(session, BaseSession):
+                raise BaseBotError
+            if not enabled and isinstance(session, CommandSession):
+                raise BotDisabledError
 
             returnResult = await function\
                 (SyncWrapper(session) if convToSync else session, *args,**kwargs)
@@ -102,12 +98,11 @@ def processSession(function=None,
             await session.send(f'出现未知错误,追踪ID:{CatchException()},请联系开发者')
 
         if returnResult:
-            if type(returnResult) == tuple:
-                msg, at = returnResult
-            else:
-                msg, at = returnResult, True
-            if at: msg = f'\n{msg}'
-            if settings.DEBUG: msg = f'{msg}(Unstable)'
+            msg,at = returnResult if \
+                isinstance(returnResult,tuple) else (returnResult,True)
+            msg = f'\n{msg}' if at else msg
+            msg += '\n(DEBUG)' if settings.DEBUG else ''
+
             await session.send(msg, at_sender=at)
 
     return wrapper

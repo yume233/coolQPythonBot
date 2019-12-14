@@ -1,16 +1,23 @@
+import os
+
 import requests
 from nonebot import CommandSession, on_command
 
-from utils.configsReader import configsReader, filePath, touch
-from utils.customDecorators import SyncToAsync, CatchRequestsException
+from utils.configsReader import configsReader, copyFileInText
+from utils.customDecorators import CatchRequestsException, SyncToAsync
 from utils.messageProc import processSession
-from utils.pluginManager import manager
 from utils.networkUtils import NetworkUtils
-
-CONFIG_READ = configsReader(touch(filePath(__file__, 'config.yml')),
-                            filePath(__file__, 'default.yml'))
+from utils.pluginManager import manager
 
 manager.registerPlugin('wikipedia')
+
+CONFIG_PATH = 'configs/wikipedia.yml'
+DEFAULT_PATH = 'configs/default.wikipedia.yml'
+
+if not os.path.isfile(CONFIG_PATH):
+    copyFileInText(DEFAULT_PATH, CONFIG_PATH)
+
+CONFIG_READ = Config = configsReader(CONFIG_PATH, DEFAULT_PATH)
 
 
 @CatchRequestsException(prompt='从维基获取数据出错')
@@ -21,25 +28,11 @@ def getWiki(keyword: str) -> dict:
         'format': 'json',
         'uselang': 'zh-hans'
     }
-    # proxyParam = {
-    #     'http': CONFIG_READ.proxy.address,
-    #     'https': CONFIG_READ.proxy.address
-    # } if CONFIG_READ.proxy.enable else {}
     result = requests.get(CONFIG_READ.apis.wiki,
                           params=requestParam,
                           proxies=NetworkUtils.proxy)
     result.raise_for_status()
     return result.json()
-
-
-# @CatchRequestsException(prompt='生成短链接失败')
-# def shortURL(urlList: list) -> dict:
-#     if not urlList:
-#         return {}
-#     requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
-#     result = requests.get(CONFIG_READ.apis.short, params=requestParam,timeout=3)
-#     result.raise_for_status()
-#     return result.json()
 
 
 @on_command('wikipedia', aliases=('维基搜索', '维基'))

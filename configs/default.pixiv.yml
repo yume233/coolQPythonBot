@@ -1,13 +1,11 @@
+#API相关设定
 apis:
-    address: 'https://api.imjad.cn/pixiv/v2'
-    retries: 5
+    address: 'https://api.imjad.cn/pixiv/v2' #API地址，尽量勿动
+    retries: 5 #重试次数
 
-proxy:
-    enable: false
-    address: 'http://127.0.0.1:1081'
-
-customize:
-    size: 3
+#消息回复格式自定义
+customize: 
+    size: 3 #一条消息中最大展示的图片数量
 
     image_prefix: ''
     image_suffix: |

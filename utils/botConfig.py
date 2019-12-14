@@ -90,16 +90,3 @@ class settings:
 
     THREAD_POOL_NUM = CONFIG_READ.get('thread_pool_num', 16)
 
-
-# if not os.path.isfile(CONFIG_DIR):
-#     with open(CONFIG_DIR, 'wb') as f:
-#         safe_dump(
-#             {
-#                 k.lower(): v if type(v) not in {timedelta, set} else
-#                 v.seconds if type(v) != set else list(v)
-#                 for k, v in getSettings().items()
-#             },
-#             f,
-#             encoding='utf-8',
-#             allow_unicode=True,
-#             indent=4)

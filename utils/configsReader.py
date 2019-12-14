@@ -12,20 +12,23 @@ def loadConfigInYAML(path: str) -> dict:
     return ymlLoad if type(ymlLoad) == dict else dict()
 
 
-def filenameQuickChange(file: str, name: str) -> str:
-    path, _ = os.path.split(file)
-    return os.path.join(path, name)
+# def filenameQuickChange(file: str, name: str) -> str:
+#     path, _ = os.path.split(file)
+#     return os.path.join(path, name)
 
+# def touchFile(path: str, newContent: Union[str, bytes] = None) -> None:
+#     if not os.path.isfile(path):
+#         if type(newContent) == bytes:
+#             with open(path, 'wb') as f:
+#                 f.write(newContent)
+#         elif type(newContent) == str:
+#             with open(path, 'wt', encoding='utf-8') as f:
+#                 f.write(newContent)
+#     return path
 
-def touchFile(path: str, newContent: Union[str, bytes] = None) -> None:
-    if not os.path.isfile(path):
-        if type(newContent) == bytes:
-            with open(path, 'wb') as f:
-                f.write(newContent)
-        elif type(newContent) == str:
-            with open(path, 'wt', encoding='utf-8') as f:
-                f.write(newContent)
-    return path
+# touch = touchFile
+# filePath = filenameQuickChange
+# configLoad = loadConfigInYAML
 
 
 def copyFileInText(originPath: str,
@@ -37,17 +40,12 @@ def copyFileInText(originPath: str,
     return totalWrite
 
 
-touch = touchFile
-filePath = filenameQuickChange
-configLoad = loadConfigInYAML
-
-
 class configsReader:
     def __init__(self, configDir: str, defaultDir: str):
         assert os.path.isfile(configDir)
         assert os.path.isfile(defaultDir)
-        self.__config = DictOpreating.enhance(configLoad(configDir))
-        self.__default = DictOpreating.enhance(configLoad(defaultDir))
+        self.__config = DictOpreating.enhance(loadConfigInYAML(configDir))
+        self.__default = DictOpreating.enhance(loadConfigInYAML(defaultDir))
 
     def __getattr__(self, key):
         return self.__config.get(key, self.__default[key])
