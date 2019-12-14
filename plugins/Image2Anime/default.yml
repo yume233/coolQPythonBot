@@ -2,10 +2,6 @@ api:
     address: 'https://trace.moe/api/search'
     retries: 5
 
-proxy:
-    enable: false
-    address: 'http://127.0.0.1:1081'
-
 customize:
     size: 3
     prefix: ''

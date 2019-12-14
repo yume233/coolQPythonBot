@@ -21,6 +21,7 @@ api_root: 'http://127.0.0.1:5700' #使用HTTP请求时的根地址，必填
 host: 127.0.0.1 #反向ws监听地址，建议127.0.0.1
 port: 8080 #反向ws端口
 database_address: sqlite:///database.sqlite #数据库连接地址，可以改成Mysql什么的都行
+thread_pool_num: 64
 
 #apscheduler相关设置，具体请查阅文档
 apscheduler_config:

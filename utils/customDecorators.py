@@ -5,11 +5,12 @@ from time import sleep, time
 from typing import Union
 
 from nonebot import IntentCommand, logger, on_natural_language
-from requests import RequestException, HTTPError
+from requests import HTTPError, RequestException
 
+from .botConfig import settings
 from .exception import BotRequestError, CatchException
 
-_EXECUTOR = ThreadPoolExecutor()
+_EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 _EVENT_LOOP = get_event_loop()
 
 

@@ -1,11 +1,5 @@
-proxy:
-    enable: false
-    address: 'http://127.0.0.1:1081'
-
 apis:
     wiki: 'https://zh.wikipedia.org/w/api.php'
-    short: 'https://api.weibo.com/2/short_url/shorten.json'
-    short_key: #Please create a new file configuration
 
 customize:
     prefix: |

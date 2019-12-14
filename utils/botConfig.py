@@ -26,14 +26,9 @@ def initConfig() -> dict:
 
 CONFIG_READ = initConfig()
 
-# def timeDeltaRead(key, default: timedelta) -> timedelta:
-#     configGet = CONFIG_READ.get(key, 0)
-#     configGet = default if not configGet else timedelta(seconds=configGet)
-#     return configGet
-
 
 def readSecondsAsTimeDelta(key: str, default: timedelta) -> timedelta:
-    configGet: int = CONFIG_READ.get(key,0)
+    configGet: int = CONFIG_READ.get(key, 0)
     return timedelta(seconds=configGet) if configGet else default
 
 
@@ -92,6 +87,8 @@ class settings:
     DATABASE_ADDRESS = CONFIG_READ.get\
         ('database_address','sqlite:///database.sqlite')
     DATABASE_DEBUG = CONFIG_READ.get('database_debug', False)
+
+    THREAD_POOL_NUM = CONFIG_READ.get('thread_pool_num', 16)
 
 
 # if not os.path.isfile(CONFIG_DIR):
