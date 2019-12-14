@@ -5,6 +5,7 @@ from utils.configsReader import configsReader, filePath, touch
 from utils.customDecorators import SyncToAsync, CatchRequestsException
 from utils.messageProc import processSession
 from utils.pluginManager import manager
+from utils.networkUtils import NetworkUtils
 
 CONFIG_READ = configsReader(touch(filePath(__file__, 'config.yml')),
                             filePath(__file__, 'default.yml'))
@@ -20,25 +21,25 @@ def getWiki(keyword: str) -> dict:
         'format': 'json',
         'uselang': 'zh-hans'
     }
-    proxyParam = {
-        'http': CONFIG_READ.proxy.address,
-        'https': CONFIG_READ.proxy.address
-    } if CONFIG_READ.proxy.enable else {}
+    # proxyParam = {
+    #     'http': CONFIG_READ.proxy.address,
+    #     'https': CONFIG_READ.proxy.address
+    # } if CONFIG_READ.proxy.enable else {}
     result = requests.get(CONFIG_READ.apis.wiki,
                           params=requestParam,
-                          proxies=proxyParam)
+                          proxies=NetworkUtils.proxy)
     result.raise_for_status()
     return result.json()
 
 
-@CatchRequestsException(prompt='生成短链接失败')
-def shortURL(urlList: list) -> dict:
-    if not urlList:
-        return {}
-    requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
-    result = requests.get(CONFIG_READ.apis.short, params=requestParam,timeout=3)
-    result.raise_for_status()
-    return result.json()
+# @CatchRequestsException(prompt='生成短链接失败')
+# def shortURL(urlList: list) -> dict:
+#     if not urlList:
+#         return {}
+#     requestParam = {'source': CONFIG_READ.apis.short_key, 'url_long': urlList}
+#     result = requests.get(CONFIG_READ.apis.short, params=requestParam,timeout=3)
+#     result.raise_for_status()
+#     return result.json()
 
 
 @on_command('wikipedia', aliases=('维基搜索', '维基'))
@@ -48,10 +49,7 @@ def wikipedia(session: CommandSession):
     keyword = session.get('keyword')
     session.send(f'开始Wiki搜索:{keyword}')
     _, resultTitles, resultIntros, resultLinks = getWiki(keyword)
-    resultShortLinks = {
-        i['url_long']: i['url_short']
-        for i in shortURL(resultLinks)['urls']
-    }
+    resultShortLinks = NetworkUtils.shortLink(resultLinks)
     finalResult = {'keyword': keyword, 'size': len(resultTitles)}
     finalResult['result'] = [{
         'title': resultTitles[i],

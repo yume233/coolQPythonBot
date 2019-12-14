@@ -5,6 +5,6 @@ proxy:
 shorten:
     address: 'https://s.yami.im/yourls-api.php'
     auth:
-        apikey:
-        username:
+        apikey: #API密钥，如果填写将优先使用
+        username: #API用户名密码
         password:
