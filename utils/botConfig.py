@@ -1,31 +1,53 @@
 import os
 from datetime import timedelta
+from typing import Dict, Tuple
 
 from nonebot import default_config as dc
 from yaml import safe_dump, safe_load
 
-CONFIG_DIR = 'configs/bot.yml'
-if os.path.isfile(CONFIG_DIR):
-    with open(CONFIG_DIR, 'rt', encoding='utf-8') as f:
-        CONFIG_READ: dict = safe_load(f)
-        CONFIG_READ = CONFIG_READ if CONFIG_READ else {}
-else:
-    CONFIG_READ = {}
+CONFIG_DIR = './configs/bot.yml'
+DEFAULT_CONFIG_DIR = './configs/default.bot.yml'
 
 
-def timeDeltaRead(key, default: timedelta) -> timedelta:
-    configGet = CONFIG_READ.get(key, 0)
-    configGet = default if not configGet else timedelta(seconds=configGet)
-    return configGet
+def initConfig() -> dict:
+    if not os.path.isfile(CONFIG_DIR):
+        with open(CONFIG_DIR, 'wb') as _:
+            pass
+    with open(CONFIG_DIR,'rt+',encoding='utf-8') as config,\
+        open(DEFAULT_CONFIG_DIR,'rt',encoding='utf-8') as default:
+        defaultReadText = default.read()
+        configRead: dict = safe_load(config)
+        defaultRead: dict = safe_load(defaultReadText)
+        if not configRead:
+            config.write(defaultReadText)
+            configRead = defaultRead
+    return configRead
 
 
-def getSettings() -> dict:
+CONFIG_READ = initConfig()
+
+# def timeDeltaRead(key, default: timedelta) -> timedelta:
+#     configGet = CONFIG_READ.get(key, 0)
+#     configGet = default if not configGet else timedelta(seconds=configGet)
+#     return configGet
+
+
+def readSecondsAsTimeDelta(key: str, default: timedelta) -> timedelta:
+    configGet: int = CONFIG_READ.get(key,0)
+    return timedelta(seconds=configGet) if configGet else default
+
+
+def convertSettingsToDict() -> dict:
     return {
         k: getattr(settings, k)
         for k in sorted(
             filter(lambda x: x.isupper() and not x.startswith('_'),
                    dir(settings)))
     }
+
+
+timeDeltaRead = readSecondsAsTimeDelta
+getSettings = convertSettingsToDict
 
 
 class settings:
@@ -72,15 +94,15 @@ class settings:
     DATABASE_DEBUG = CONFIG_READ.get('database_debug', False)
 
 
-if not os.path.isfile(CONFIG_DIR):
-    with open(CONFIG_DIR, 'wb') as f:
-        safe_dump(
-            {
-                k.lower(): v if type(v) not in {timedelta, set} else
-                v.seconds if type(v) != set else list(v)
-                for k, v in getSettings().items()
-            },
-            f,
-            encoding='utf-8',
-            allow_unicode=True,
-            indent=4)
+# if not os.path.isfile(CONFIG_DIR):
+#     with open(CONFIG_DIR, 'wb') as f:
+#         safe_dump(
+#             {
+#                 k.lower(): v if type(v) not in {timedelta, set} else
+#                 v.seconds if type(v) != set else list(v)
+#                 for k, v in getSettings().items()
+#             },
+#             f,
+#             encoding='utf-8',
+#             allow_unicode=True,
+#             indent=4)

@@ -1,0 +1,10 @@
+proxy:
+    enable: false
+    address: 'http://127.0.0.1:1081'
+
+shorten:
+    address: 'https://s.yami.im/yourls-api.php'
+    auth:
+        apikey:
+        username:
+        password:
