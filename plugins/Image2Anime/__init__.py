@@ -23,7 +23,7 @@ def animeSearch(session: CommandSession):
     if imageSize >= 1024**2:
         raise BotProgramError('图片大小超过限制,必须小于1MiB,' +
                               f'您的图片大小为{imageSize/1024**2}MiB')
-    searchResult = whatanimeUpload(b64encode(imageRes))
+    searchResult = whatanimeUpload(b64encode(imageRes).decode())
     messageRepeat = [
         str(Config.customize.repeat).format(**perAnime)
         for perAnime in searchResult['docs']
