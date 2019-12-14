@@ -107,6 +107,7 @@ def processSession(function=None,
             else:
                 msg, at = returnResult, True
             if at: msg = f'\n{msg}'
+            if settings.DEBUG: msg = f'{msg}(Unstable)'
             await session.send(msg, at_sender=at)
 
     return wrapper

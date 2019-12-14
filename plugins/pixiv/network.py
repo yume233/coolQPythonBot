@@ -1,28 +1,16 @@
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
-from secrets import token_bytes
 
 import requests
 from nonebot import logger
-from PIL import Image
 
 from utils.customDecorators import CatchRequestsException
+from utils.customObjects import convertImageFormat
 from utils.exception import BotRequestError
+from utils.networkUtils import NetworkUtils
 
 from .config import Config
 from .tmpFile import tmpFile
-
-
-def _convertToPNG(imageRes: bytes) -> bytes:
-    with tmpFile() as readName, tmpFile() as writeName:
-        with open(readName, 'wb') as f:
-            f.write(imageRes)
-        with Image.open(readName) as img:
-            img.save(writeName, 'PNG')
-        with open(writeName, 'rb') as f:
-            fileRead = f.read()
-    fileHashChanged = fileRead + b'\x00' * 16 + token_bytes(16)
-    return fileHashChanged
 
 
 @CatchRequestsException(prompt='从Pixiv获取接口信息失败')
@@ -39,13 +27,12 @@ def _baseGetJSON(params: dict) -> dict:
 @CatchRequestsException(prompt='下载图片失败', retries=Config.apis.retries)
 def downloadImage(url: str) -> str:
     headers = {'Referer': 'https://www.pixiv.net'}
-    proxies = {
-        'http': Config.proxy.address,
-        'https': Config.proxy.address
-    } if Config.proxy.enable else {}
-    r = requests.get(url, headers=headers, timeout=(6, 12), proxies=proxies)
+    r = requests.get(url,
+                     headers=headers,
+                     timeout=(6, 12),
+                     proxies=NetworkUtils.proxy)
     r.raise_for_status()
-    pngImage = _convertToPNG(r.content)
+    pngImage = convertImageFormat(r.content)
     return f'base64://{b64encode(pngImage).decode()}'
 
 

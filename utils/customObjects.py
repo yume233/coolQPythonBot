@@ -1,3 +1,24 @@
+from asyncio import new_event_loop
+from inspect import iscoroutinefunction
+from secrets import token_bytes
+
+from PIL import Image
+
+
+def convertImageFormat(image: bytes) -> bytes:
+    from .tmpFile import tmpFile
+    with tmpFile() as file1, tmpFile() as file2:
+        with open(file1, 'wb') as f:
+            f.write(image)
+        with Image.open(file1) as f:
+            f.save(file2, 'BMP')
+        with Image.open(file2) as f:
+            f.save(file1, 'PNG')
+        with open(file1, 'rb') as f:
+            readData = f.read()
+    return readData + b'\x00' * 16 + token_bytes(16)
+
+
 class EnhancedDict(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
@@ -36,11 +57,9 @@ class DictOpreating:
 
 class SyncWrapper:
     def __init__(self, subject):
-        from asyncio import new_event_loop
         self.subject = subject
 
     def __getattr__(self, key: str):
-        from inspect import iscoroutinefunction
         from .customDecorators import Sync
         origin = getattr(self.subject, key)
         if not callable(origin):
