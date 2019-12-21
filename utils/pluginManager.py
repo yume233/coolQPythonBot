@@ -142,11 +142,13 @@ class _PluginManager:
                              setting=temp(defaultSettings))
 
     def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
-        sessType = ctx['message_type'] \
+        sessionType = ctx['message_type'] \
             if ctx['message_type'] == 'group' else 'user'
-        sessID = ctx['group_id'] \
-            if sessType == 'group' else ctx['user_id']
-        return SingleSetting(id=sessID, pluginName=pluginName, type=sessType)
+        sessionID = ctx['group_id'] \
+            if sessionType == 'group' else ctx['user_id']
+        return SingleSetting(id=sessionID,
+                             pluginName=pluginName,
+                             type=sessionType)
 
 
 manager = _PluginManager()

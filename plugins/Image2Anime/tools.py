@@ -1,8 +1,11 @@
 import requests
+from PIL import Image
 
 from utils.customDecorators import CatchRequestsException
 from utils.exception import BotProgramError
 from utils.networkUtils import NetworkUtils
+from utils.tmpFile import tmpFile
+from base64 import b64encode
 
 from .config import Config
 
@@ -16,16 +19,15 @@ def imageDownload(url: str):
 
 
 @CatchRequestsException(prompt='上传文件出错', retries=Config.api.retries)
-def whatanimeUpload(file: str) -> dict:
-    if len(file) >= 1024**2:
-        raise BotProgramError('您发送的图片大小超过限制')
+def whatanimeUpload(file: bytes) -> dict:
+    fileEncoded = b64encode(file).decode()
     params = {
         'url': Config.api.address,
         'headers': {
             'Content-Type': 'application/json'
         },
         'json': {
-            'image': file
+            'image': fileEncoded
         },
         'timeout': (3, 21),
         'proxies': NetworkUtils.proxy
@@ -33,3 +35,23 @@ def whatanimeUpload(file: str) -> dict:
     data = requests.post(**params)
     data.raise_for_status()
     return data.json()
+
+
+def processGIF(image: bytes) -> bytes:
+    with tmpFile(ext='.gif') as file1, tmpFile(ext='.png') as file2:
+        with open(file1, 'wb') as f:
+            f.write(image)
+        with Image.open(file1) as f:
+            f.save(file2, 'PNG')
+        with open(file2, 'rb') as f:
+            imageRead: bytes = f.read()
+    return imageRead
+
+
+def determineImageType(image: bytes) -> str:
+    with tmpFile() as filename:
+        with open(filename, 'wb') as f:
+            f.write(image)
+        with Image.open(filename) as f:
+            imageType: str = f.format
+    return imageType.upper()

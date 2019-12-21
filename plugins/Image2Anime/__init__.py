@@ -1,13 +1,13 @@
 from nonebot import CommandSession, on_command
-from base64 import b64encode
 
 from utils.customDecorators import SyncToAsync, WithKeyword
+from utils.exception import BotProgramError
 from utils.messageProc import processSession
 from utils.pluginManager import manager
-from utils.exception import BotProgramError
 
 from .config import Config
-from .network import imageDownload, whatanimeUpload
+from .tools import (determineImageType, imageDownload, processGIF,
+                    whatanimeUpload)
 
 manager.registerPlugin('anime_search')
 
@@ -22,8 +22,11 @@ def animeSearch(session: CommandSession):
     imageRes, imageSize = imageDownload(imageLink)
     if imageSize >= 1024**2:
         raise BotProgramError('图片大小超过限制,必须小于1MiB,' +
-                              f'您的图片大小为{imageSize/1024**2}MiB')
-    searchResult = whatanimeUpload(b64encode(imageRes).decode())
+                              f'您的图片大小为{round(imageSize/1024**2,3)}MiB')
+    if determineImageType(imageRes) == 'GIF':
+        session.send('检测到GIF图片格式,自动截取第一帧上传')
+        imageRes = processGIF(imageRes)
+    searchResult = whatanimeUpload(imageRes)
     messageRepeat = [
         str(Config.customize.repeat).format(**perAnime)
         for perAnime in searchResult['docs']
