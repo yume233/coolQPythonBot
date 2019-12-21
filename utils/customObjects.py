@@ -5,7 +5,21 @@ from secrets import token_bytes
 from PIL import Image
 
 
-def convertImageFormat(image: bytes) -> bytes:
+def convertImageFormat(image: bytes,quality:int=80) -> bytes:
+    """Convert picture format to solve the problem of unrecognizable pictures
+    
+    Parameters
+    ----------
+    image : bytes
+        Read out the bytes of the image
+    quality : int, optional
+        Image compression quality, by default 80
+    
+    Returns
+    -------
+    bytes
+        Returns the converted picture bytes
+    """    
     from .tmpFile import tmpFile
     with tmpFile() as file1, tmpFile() as file2:
         with open(file1, 'wb') as f:
@@ -13,10 +27,10 @@ def convertImageFormat(image: bytes) -> bytes:
         with Image.open(file1) as f:
             f.save(file2, 'BMP')
         with Image.open(file2) as f:
-            f.save(file1, 'PNG',optimize=True)
+            f.save(file1, 'PNG', optimize=True, quality=quality)
         with open(file1, 'rb') as f:
             readData = f.read()
-    return readData + b'\x00' * 16 + token_bytes(16)
+    return readData
 
 
 class EnhancedDict(dict):

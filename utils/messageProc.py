@@ -3,8 +3,8 @@ from time import time
 from traceback import format_exc
 from typing import List, Union
 
-from nonebot import (CommandSession, NLPSession, NoticeSession, RequestSession,
-                     logger)
+from nonebot import (
+    CommandSession, NLPSession, NoticeSession, RequestSession, logger)
 from nonebot.command import SwitchException, _FinishException, _PauseException
 from nonebot.session import BaseSession
 

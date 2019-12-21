@@ -1,11 +1,14 @@
+import os
+
 import nonebot
 from colorama import init as colorInit
 from nonebot import logger
 
 from utils import initialization
-from utils.botConfig import getSettings, settings
+from utils.botConfig import convertSettingsToDict, settings
 
 colorInit()
+os.chdir(os.path.split(__file__)[0])
 
 COPYRIGHT = '\033[0;37;1m' + r'''
                      _  _____ ______         _    _                   ______         _   
@@ -26,5 +29,5 @@ if __name__ == "__main__":
     nonebot.init(settings)
     nonebot.load_plugins('plugins', 'plugins')
     initialization.start(nonebot.get_bot())
-    logger.debug(f'Settings:{getSettings()}')
+    logger.debug(f'Settings:{convertSettingsToDict()}')
     nonebot.run()

@@ -9,17 +9,13 @@ from utils.exception import BotRequestError
 from utils.messageProc import processSession
 from utils.pluginManager import manager
 
-import os
-
-from utils.configsReader import configsReader, copyFileInText
-
 CONFIG_PATH = 'configs/hitokoto.yml'
 DEFAULT_PATH = 'configs/default.hitokoto.yml'
 
 if not os.path.isfile(CONFIG_PATH):
     copyFileInText(DEFAULT_PATH, CONFIG_PATH)
 
-CONFIG_READ = Config = configsReader(CONFIG_PATH, DEFAULT_PATH)
+CONFIG_READ = configsReader(CONFIG_PATH, DEFAULT_PATH)
 
 manager.registerPlugin('hitokoto')
 

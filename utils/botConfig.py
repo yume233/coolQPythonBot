@@ -10,6 +10,13 @@ DEFAULT_CONFIG_DIR = './configs/default.bot.yml'
 
 
 def initConfig() -> dict:
+    """Initialize configuration variables
+
+    Returns
+    -------
+    dict
+        [description]
+    """
     if not os.path.isfile(CONFIG_DIR):
         with open(CONFIG_DIR, 'wb') as _:
             pass
@@ -28,21 +35,38 @@ CONFIG_READ = initConfig()
 
 
 def readSecondsAsTimeDelta(key: str, default: timedelta) -> timedelta:
+    """Read the seconds in the configuration file as a `timedelta` object
+
+    Parameters
+    ----------
+    key : str
+        Key names in the configuration file
+    default : timedelta
+        If not found, the default value
+
+    Returns
+    -------
+    timedelta
+        [description]
+    """
     configGet: int = CONFIG_READ.get(key, 0)
     return timedelta(seconds=configGet) if configGet else default
 
 
 def convertSettingsToDict() -> dict:
+    """Converting the `settings` object to a `dict`
+
+    Returns
+    -------
+    dict
+        [description]
+    """
     return {
         k: getattr(settings, k)
         for k in sorted(
             filter(lambda x: x.isupper() and not x.startswith('_'),
                    dir(settings)))
     }
-
-
-timeDeltaRead = readSecondsAsTimeDelta
-getSettings = convertSettingsToDict
 
 
 class settings:
@@ -59,9 +83,9 @@ class settings:
     COMMAND_START = CONFIG_READ.get('command_start', dc.COMMAND_START)
     COMMAND_SEP = CONFIG_READ.get('command_sep', dc.COMMAND_SEP)
 
-    SESSION_EXPIRE_TIMEOUT = timeDeltaRead\
+    SESSION_EXPIRE_TIMEOUT = readSecondsAsTimeDelta\
         ('session_expire_timeout',dc.SESSION_EXPIRE_TIMEOUT)
-    SESSION_RUN_TIMEOUT = timeDeltaRead\
+    SESSION_RUN_TIMEOUT = readSecondsAsTimeDelta\
         ('session_run_timeout',dc.SESSION_RUN_TIMEOUT)
     SESSION_RUNNING_EXPRESSION = CONFIG_READ.get\
         ('session_running_expression',dc.SESSION_RUNNING_EXPRESSION)
@@ -90,3 +114,16 @@ class settings:
 
     THREAD_POOL_NUM = CONFIG_READ.get('thread_pool_num', 16)
 
+
+# if not os.path.isfile(CONFIG_DIR):
+#     with open(CONFIG_DIR, 'wb') as f:
+#         safe_dump(
+#             {
+#                 k.lower(): v if type(v) not in {timedelta, set} else
+#                 v.seconds if type(v) != set else list(v)
+#                 for k, v in getSettings().items()
+#             },
+#             f,
+#             encoding='utf-8',
+#             allow_unicode=True,
+#             indent=4)

@@ -15,6 +15,8 @@ _EVENT_LOOP = get_event_loop()
 
 
 def Timeit(function):
+    """Decorator for timing a function
+    """
     @wraps(function)
     def wrapper(*args, **kwargs):
         t = time() * 1000
@@ -30,7 +32,9 @@ def Timeit(function):
     return wrapper
 
 
-def Async(function):
+def SyncToAsync(function):
+    """Decorator to convert synchronous functions to asynchronous functions
+    """    
     @wraps(function)
     def wrapper(*args, **kwargs):
         @Timeit
@@ -43,7 +47,9 @@ def Async(function):
     return wrapper
 
 
-def Sync(function):
+def AsyncToSync(function):
+    """Decorator to convert asynchronous functions to synchronous functions
+    """    
     @wraps(function)
     @Timeit
     def wrapper(*args, **kwargs):
@@ -57,13 +63,24 @@ def Sync(function):
     return wrapper
 
 
-SyncToAsync = Async
-AsyncToSync = Sync
+Async = SyncToAsync
+Sync = AsyncToSync
 
 
 def WithKeyword(keywords: Union[str, tuple],
                 command: str,
                 confidence: Union[float, int] = 80.0):
+    """Decorator, set keywords for commands
+    
+    Parameters
+    ----------
+    keywords : Union[str, tuple]
+        Keyword of the trigger command, which can be one or more
+    command : str
+        Command name
+    confidence : Union[float, int], optional
+        Confidence is used to identify the degree of ambiguity (unit:%), by default 80.0
+    """    
     def decorator(function):
         getKeyword = keywords if type(keywords) == tuple else (keywords, )
 
@@ -84,6 +101,20 @@ def CatchRequestsException(function=None,
                            *,
                            prompt: str = None,
                            retries: int = 1):
+    """Decorator, catch exceptions from `requests` library
+    
+    Parameters
+    ----------
+    prompt : str, optional
+        Prompt for error, do not prompt if empty, by default None
+    retries : int, optional
+        number of retries, by default 1
+    
+    Raises
+    ------
+    BotRequestError
+        An exception was thrown after the robot network request was caught.
+    """    
     if function is None:
         return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
@@ -97,7 +128,6 @@ def CatchRequestsException(function=None,
                 traceID = CatchException()
                 logger.debug(
                     f'Request Function {function} Error Occured:{error}')
-                #if isinstance(error, HTTPError): break
         raise BotRequestError(prompt, traceID)
 
     return wrapper

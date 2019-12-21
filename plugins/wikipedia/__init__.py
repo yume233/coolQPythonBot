@@ -8,6 +8,7 @@ from utils.customDecorators import CatchRequestsException, SyncToAsync
 from utils.messageProc import processSession
 from utils.networkUtils import NetworkUtils
 from utils.pluginManager import manager
+from utils.networkUtils import NetworkUtils
 
 manager.registerPlugin('wikipedia')
 
