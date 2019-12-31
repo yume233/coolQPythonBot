@@ -20,8 +20,8 @@ def catch(session: CommandSession):
 
 
 @catch.args_parser
-async def _(sesion: CommandSession):
-    strippedArgs = sesion.current_arg_text.strip()
+async def _(session: CommandSession):
+    strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
-        sesion.pause('请输入错误追踪ID')
-    sesion.state['id'] = strippedArgs
+        session.pause('请输入错误追踪ID')
+    session.state['id'] = strippedArgs

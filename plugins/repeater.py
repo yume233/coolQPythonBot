@@ -23,8 +23,9 @@ def _(session: NLPSession):
     sessID = session.ctx.get('group_id')
     if not sessID:
         return
-    logger.debug(f'Repeat Rate of Group {sessID} is {(1/groupRate)*100}%,' +
-                 f'Now Random Number of message {msgID} is {randomNum}')
+    logger.debug(
+        f'Chat {sessID} has a repeat probability of {(1/groupRate)*100}%.' +
+        f'The random number of the current session {msgID} is {randomNum}.')
     if not randomNum:
         return session.msg, False
 
