@@ -227,7 +227,6 @@ class _database:
         '''
         localSession: Session = self.originSession()
         queryResult: Iterator[Plugins] = localSession.query(Plugins)
-        i: Plugins
         returnList = {
             i.plugin_name: {
                 'settings': loads(i.plugin_settings),

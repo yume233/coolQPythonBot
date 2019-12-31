@@ -11,11 +11,11 @@ from .config import Config
 
 
 @CatchRequestsException(prompt='下载用户发出图片失败')
-def imageDownload(url: str):
+def imageDownload(url: str)->bytes:
     data = requests.get(url, timeout=(3, 6))
     data.raise_for_status()
     dataBytes = data.content
-    return dataBytes, len(dataBytes)
+    return dataBytes
 
 
 @CatchRequestsException(prompt='上传文件出错', retries=Config.api.retries)

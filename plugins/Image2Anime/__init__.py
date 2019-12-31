@@ -19,13 +19,13 @@ manager.registerPlugin('anime_search')
 def animeSearch(session: CommandSession):
     imageLink = session.get('image')
     session.send('开始以图搜番')
-    imageRes, imageSize = imageDownload(imageLink)
-    if imageSize >= 1024**2:
-        raise BotProgramError('图片大小超过限制,必须小于1MiB,' +
-                              f'您的图片大小为{round(imageSize/1024**2,3)}MiB')
+    imageRes = imageDownload(imageLink)
     if determineImageType(imageRes) == 'GIF':
         session.send('检测到GIF图片格式,自动截取第一帧上传')
         imageRes = processGIF(imageRes)
+    if len(imageRes) >= 1024**2:
+        raise BotProgramError('图片大小超过限制,必须小于1MiB,' +
+                              f'您的图片大小为{round(len(imageRes)/1024**2,3)}MiB')
     searchResult = whatanimeUpload(imageRes)
     messageRepeat = [
         str(Config.customize.repeat).format(**perAnime)
