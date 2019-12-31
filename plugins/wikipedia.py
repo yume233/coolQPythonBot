@@ -4,13 +4,12 @@ import requests
 from nonebot import CommandSession, on_command
 
 from utils.configsReader import configsReader, copyFileInText
-from utils.customDecorators import CatchRequestsException, SyncToAsync
-from utils.messageProc import processSession
-from utils.networkUtils import NetworkUtils
-from utils.pluginManager import manager
-from utils.networkUtils import NetworkUtils
+from utils.decorators import CatchRequestsException, SyncToAsync
+from utils.message import processSession
+from utils.network import NetworkUtils
+from utils.manager import PluginManager
 
-manager.registerPlugin('wikipedia')
+PluginManager.registerPlugin('wikipedia')
 
 CONFIG_PATH = 'configs/wikipedia.yml'
 DEFAULT_PATH = 'configs/default.wikipedia.yml'

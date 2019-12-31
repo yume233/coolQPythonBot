@@ -1,15 +1,15 @@
 from nonebot import CommandSession, on_command
 
-from utils.customDecorators import SyncToAsync, WithKeyword
+from utils.decorators import SyncToAsync, WithKeyword
 from utils.exception import BotProgramError
-from utils.messageProc import processSession
-from utils.pluginManager import manager
+from utils.manager import PluginManager
+from utils.message import processSession
 
 from .config import Config
 from .tools import (determineImageType, imageDownload, processGIF,
                     whatanimeUpload)
 
-manager.registerPlugin('anime_search')
+PluginManager.registerPlugin('anime_search')
 
 
 @on_command('anime_search', aliases=('以图搜番', '搜番', '以图识番剧'))

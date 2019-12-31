@@ -4,9 +4,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 import requests
 
-from utils.customDecorators import CatchRequestsException
-from utils.customObjects import convertImageFormat
-from utils.networkUtils import NetworkUtils
+from utils.decorators import CatchRequestsException
+from utils.network import NetworkUtils
+from utils.objects import convertImageFormat
 
 from .config import Config
 

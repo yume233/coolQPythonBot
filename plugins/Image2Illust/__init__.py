@@ -1,15 +1,15 @@
 from nonebot import CommandSession, on_command
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
-from utils.customDecorators import SyncToAsync, WithKeyword
-from utils.messageProc import processSession
-from utils.pluginManager import manager
+from utils.decorators import SyncToAsync, WithKeyword
+from utils.manager import PluginManager
+from utils.message import processSession
 
 from .config import Config
 from .network import searchImage
 from .parse import getCorrectInfo
 
-manager.registerPlugin('illust_search', defaultStatus=False)
+PluginManager.registerPlugin('illust_search', defaultStatus=False)
 
 
 @on_command('illust_search', aliases=('以图搜图', '搜图'))
@@ -47,7 +47,7 @@ def _(session: CommandSession):
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
-    manager.settings('illust_search', ctx=session.ctx).status = True
+    PluginManager.settings('illust_search', ctx=session.ctx).status = True
     return '搜图功能已启用', False
 
 
@@ -57,5 +57,5 @@ def _(session: CommandSession):
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
-    manager.settings('illust_search', ctx=session.ctx).status = False
+    PluginManager.settings('illust_search', ctx=session.ctx).status = False
     return '搜图功能已禁用', False

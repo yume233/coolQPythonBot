@@ -3,7 +3,7 @@ from typing import Union
 
 import yaml
 
-from .customObjects import DictOpreating
+from .objects import DictOperating
 
 
 def loadConfigInYAML(path: str) -> dict:
@@ -86,14 +86,14 @@ class configsReader:
         """
         assert os.path.isfile(configDir)
         assert os.path.isfile(defaultDir)
-        self.__config = DictOpreating.enhance(loadConfigInYAML(configDir))
-        self.__default = DictOpreating.enhance(loadConfigInYAML(defaultDir))
+        self.__config = DictOperating.enhance(loadConfigInYAML(configDir))
+        self.__default = DictOperating.enhance(loadConfigInYAML(defaultDir))
 
     def __getattr__(self, key):
         return self.__config.get(key, self.__default[key])
 
     def __dict__(self):
         return {
-            key: DictOpreating.weaken(self.__getattr__(key))
+            key: DictOperating.weaken(self.__getattr__(key))
             for key in self.__default
         }

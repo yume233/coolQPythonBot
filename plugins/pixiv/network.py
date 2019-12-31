@@ -4,10 +4,10 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import requests
 from nonebot import logger
 
-from utils.customDecorators import CatchRequestsException
-from utils.customObjects import convertImageFormat
+from utils.decorators import CatchRequestsException
 from utils.exception import BotRequestError
-from utils.networkUtils import NetworkUtils
+from utils.network import NetworkUtils
+from utils.objects import convertImageFormat
 
 from .config import Config
 

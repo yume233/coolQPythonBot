@@ -1,11 +1,12 @@
+from base64 import b64encode
+
 import requests
 from PIL import Image
 
-from utils.customDecorators import CatchRequestsException
+from utils.decorators import CatchRequestsException
 from utils.exception import BotProgramError
-from utils.networkUtils import NetworkUtils
+from utils.network import NetworkUtils
 from utils.tmpFile import tmpFile
-from base64 import b64encode
 
 from .config import Config
 

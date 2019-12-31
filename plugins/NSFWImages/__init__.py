@@ -4,9 +4,9 @@ from secrets import token_hex
 from nonebot import CommandSession, MessageSegment, on_command
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
-from utils.customDecorators import SyncToAsync, WithKeyword
-from utils.messageProc import processSession
-from utils.pluginManager import manager, nameJoin
+from utils.decorators import SyncToAsync, WithKeyword
+from utils.manager import PluginManager, nameJoin
+from utils.message import processSession
 
 from .config import Config
 from .network import downloadImage, downloadMultiImage, getImageList
@@ -15,8 +15,8 @@ __plugin_name__ = 'NSFWImages'
 OPERATING_METHOD = nameJoin(__plugin_name__, 'ops')
 POWER_GROUP = (GROUP_ADMIN | PRIVATE_FRIEND | SUPERUSER)
 
-manager.registerPlugin(__plugin_name__, defaultStatus=False)
-manager.registerPlugin(OPERATING_METHOD)
+PluginManager.registerPlugin(__plugin_name__, defaultStatus=False)
+PluginManager.registerPlugin(OPERATING_METHOD)
 
 
 @on_command(__plugin_name__, aliases=('setu', '涩图', '色图'))
@@ -25,17 +25,17 @@ manager.registerPlugin(OPERATING_METHOD)
 @SyncToAsync
 def NSFWImage(session: CommandSession):
     rank: str = session.get_optional('rank', Config.send.default)
-    picnum: int = session.get_optional('num', 1)
-    picnum = picnum if picnum <= Config.send.size else Config.send.size
-    session.send(f'{rank.upper()}级涩图加载中,将连续发送{picnum}张')
+    pictureCount: int = session.get_optional('num', 1)
+    pictureCount = pictureCount if pictureCount <= Config.send.size else Config.send.size
+    session.send(f'{rank.upper()}级涩图加载中,将连续发送{pictureCount}张')
     imageList = getImageList()
     assert imageList
     inRule = [i for i in imageList if i['rating'].upper() in rank.upper()]
-    if len(inRule) <= picnum:
+    if len(inRule) <= pictureCount:
         imageList = [i['sample_url'] for i in inRule]
     else:
         imageList = []
-        for _ in range(picnum):
+        for _ in range(pictureCount):
             choiceResult = random.choice(inRule)
             imageList.append(choiceResult['sample_url'])
             inRule.remove(choiceResult)
@@ -51,11 +51,11 @@ def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         return
-    splitedArgs = strippedArgs.split(' ')
-    if len(splitedArgs) == 1:
-        session.state['rank'] = str(splitedArgs[0])
-    elif len(splitedArgs) >= 2:
-        rank, num = splitedArgs[:2]
+    splicedArgs = strippedArgs.split(' ')
+    if len(splicedArgs) == 1:
+        session.state['rank'] = str(splicedArgs[0])
+    elif len(splicedArgs) >= 2:
+        rank, num = splicedArgs[:2]
         session.state['rank'] = rank.upper()
         if num.isdigit(): session.state['num'] = int(num)
 
@@ -67,10 +67,10 @@ def _(session: CommandSession):
 @SyncToAsync
 def enable(session: CommandSession):
     key: str = session.get('key')
-    realKey: str = manager.settings(pluginName=OPERATING_METHOD,
+    realKey: str = PluginManager.settings(pluginName=OPERATING_METHOD,
                                     ctx=session.ctx).settings.get('key', '')
     if key.upper() == realKey.upper():
-        manager.settings(pluginName=__plugin_name__,
+        PluginManager.settings(pluginName=__plugin_name__,
                          ctx=session.ctx).status = True
         return '涩图功能已启用', False
     else:
@@ -94,7 +94,8 @@ def _(session: CommandSession):
 @processSession(pluginName=OPERATING_METHOD)
 @SyncToAsync
 def _(session: CommandSession):
-    manager.settings(pluginName=__plugin_name__, ctx=session.ctx).status = False
+    PluginManager.settings(pluginName=__plugin_name__,
+                     ctx=session.ctx).status = False
     return '涩图功能已禁用'
 
 
@@ -105,7 +106,7 @@ def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     key = token_hex(8).upper()
-    manager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
+    PluginManager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
         'key': key
     }
     return f'涩图密钥已经生成,为{key}'
@@ -117,12 +118,12 @@ def _(session: CommandSession):
 @processSession(pluginName=OPERATING_METHOD)
 @SyncToAsync
 def _(session: CommandSession):
-    getKey = manager.settings(pluginName=OPERATING_METHOD,
+    getKey = PluginManager.settings(pluginName=OPERATING_METHOD,
                               ctx=session.ctx).settings.get(
                                   'key',
                                   token_hex(8).upper())
     key = ''.join([chr(ord(i) + 10) for i in list(getKey)])
-    manager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
+    PluginManager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
         'key': key
     }
     return f'涩图密钥已被回收'

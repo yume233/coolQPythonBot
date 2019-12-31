@@ -1,8 +1,9 @@
-from utils.database import database
-from nonebot import on_command, CommandSession
-from utils.customDecorators import SyncToAsync
-from utils.messageProc import processSession
+from nonebot import CommandSession, on_command
 from nonebot.permission import SUPERUSER
+
+from utils.database import database
+from utils.decorators import SyncToAsync
+from utils.message import processSession
 
 
 @on_command('bug_catch', aliases=('追踪', '跟踪'), permission=SUPERUSER)

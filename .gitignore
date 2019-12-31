@@ -1,6 +1,6 @@
 #Custom ignore
 .vscode/
-*.json
+data/*
 *.yml
 *.sqlite*
 test*

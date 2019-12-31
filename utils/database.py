@@ -7,8 +7,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from .botConfig import settings
-from .customObjects import EnhancedDict
 from .exception import BotNotFoundError
+from .objects import EnhancedDict
 
 Base = declarative_base()
 

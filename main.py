@@ -2,7 +2,6 @@ import nonebot
 from colorama import init as colorInit
 from nonebot import logger
 
-from utils import initialization
 from utils.botConfig import convertSettingsToDict, settings
 
 colorInit()
@@ -25,6 +24,5 @@ if __name__ == "__main__":
     print(COPYRIGHT)
     nonebot.init(settings)
     nonebot.load_plugins('plugins', 'plugins')
-    initialization.start(nonebot.get_bot())
     logger.debug(f'The robot is currently set to:{convertSettingsToDict()}')
     nonebot.run()

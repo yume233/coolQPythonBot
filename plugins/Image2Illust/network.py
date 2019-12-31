@@ -2,8 +2,8 @@ from typing import Dict, Iterable
 
 import requests
 
-from utils.customDecorators import CatchRequestsException
-from utils.networkUtils import NetworkUtils
+from utils.decorators import CatchRequestsException
+from utils.network import NetworkUtils
 
 from .config import Config
 
