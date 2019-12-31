@@ -34,7 +34,7 @@ def Timeit(function):
 
 def SyncToAsync(function):
     """Decorator to convert synchronous functions to asynchronous functions
-    """    
+    """
     @wraps(function)
     def wrapper(*args, **kwargs):
         @Timeit
@@ -49,7 +49,7 @@ def SyncToAsync(function):
 
 def AsyncToSync(function):
     """Decorator to convert asynchronous functions to synchronous functions
-    """    
+    """
     @wraps(function)
     @Timeit
     def wrapper(*args, **kwargs):
@@ -80,7 +80,7 @@ def WithKeyword(keywords: Union[str, tuple],
         Command name
     confidence : Union[float, int], optional
         Confidence is used to identify the degree of ambiguity (unit:%), by default 80.0
-    """    
+    """
     def decorator(function):
         getKeyword = keywords if type(keywords) == tuple else (keywords, )
 
@@ -114,7 +114,7 @@ def CatchRequestsException(function=None,
     ------
     BotRequestError
         An exception was thrown after the robot network request was caught.
-    """    
+    """
     if function is None:
         return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
@@ -127,7 +127,7 @@ def CatchRequestsException(function=None,
             except RequestException as error:
                 traceID = CatchException()
                 logger.debug(
-                    f'Request Function {function} Error Occured:{error}')
+                    f'The requested function {function} has an error {error}.')
         raise BotRequestError(prompt, traceID)
 
     return wrapper

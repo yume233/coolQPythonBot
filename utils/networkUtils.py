@@ -16,9 +16,8 @@ class _NetworkUtils:
     def __init__(self):
         if not isFileExist(CONFIG_DIR):
             copyFileInText(DEFAULT_CONFIG_DIR, CONFIG_DIR)
-            logger.warning('Shortlink API not configured yet.')
+            logger.warning('Short link API is not configured.')
         self.configObject = configsReader(CONFIG_DIR, DEFAULT_CONFIG_DIR)
-        logger.debug(f'Network configs loaded:{self.configObject}')
 
     @property
     def proxy(self) -> dict:

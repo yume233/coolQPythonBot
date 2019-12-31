@@ -52,7 +52,7 @@ def _checker(function):
         if _MODIFED:
             if _CACHE: SettingsIO.write(_CACHE)
             _CACHE = SettingsIO.read()
-            logger.debug(f'Plugin Configure Updated:{_CACHE}')
+            logger.debug(f'Plugin configuration has been updated:{_CACHE}')
             _MODIFED = False
         return function(*args, **kwargs)
 
@@ -124,8 +124,8 @@ class _PluginManager:
                 }
             }
         })
-        logger.debug(f'Register new plugin:{pluginName},' +
-                     f'settings:{defaultSettings},status:{defaultStatus}')
+        logger.debug(f'Register a new plugin:{pluginName},' +
+                     f'settings={defaultSettings},status={defaultStatus}')
 
     def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
         sessionType = \

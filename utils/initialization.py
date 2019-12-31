@@ -8,7 +8,7 @@ from .database import database
 def start(bot: NoneBot):
     @bot.asgi.before_serving
     async def _():
-        logger.info('Start initialization Users and Groups')
+        logger.info('User and group initialization phase begins.')
         bot: NoneBot = get_bot()
         groupList = [(i['group_id'], i['group_name'])
                      for i in await bot.get_group_list()]
@@ -31,7 +31,8 @@ def start(bot: NoneBot):
                     'name': username,
                     'group': [perMember]
                 }
-        logger.debug(f'Users Info Initialized,Total:{len(userDict)}')
+        logger.debug('User and group data collection is complete,' +
+                     f' a total of {len(userDict)} users.')
         database.batchWriteUser([
             database.writeUser(userID=userID,
                                username=userInfo['name'],
@@ -39,4 +40,4 @@ def start(bot: NoneBot):
                                _inBatch=True)
             for userID, userInfo in userDict.items()
         ])
-        logger.debug(f'Initialization finished!')
+        logger.debug(f'The initialization phase is complete.')

@@ -26,5 +26,5 @@ if __name__ == "__main__":
     nonebot.init(settings)
     nonebot.load_plugins('plugins', 'plugins')
     initialization.start(nonebot.get_bot())
-    logger.debug(f'Settings:{convertSettingsToDict()}')
+    logger.debug(f'The robot is currently set to:{convertSettingsToDict()}')
     nonebot.run()
