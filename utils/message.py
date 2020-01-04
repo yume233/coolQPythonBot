@@ -3,15 +3,16 @@ from time import time
 from traceback import format_exc
 from typing import List, Union
 
-from nonebot import (CommandSession, NLPSession, NoticeSession, RequestSession,
-                     logger)
+from nonebot import (
+    CommandSession, NLPSession, NoticeSession, RequestSession, logger)
 from nonebot.command import SwitchException, _FinishException, _PauseException
 from nonebot.session import BaseSession
 
 from .botConfig import settings
-from .database import database
 from .decorators import Timeit
-from .exception import *
+from .exception import (BaseBotError, BotDisabledError, BotMessageError,
+                        BotNetworkError, BotNotFoundError, BotPermissionError,
+                        BotProgramError, BotRequestError, CatchException)
 from .manager import PluginManager
 from .objects import SyncWrapper
 

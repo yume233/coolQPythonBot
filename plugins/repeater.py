@@ -10,15 +10,16 @@ from utils.objects import SyncWrapper
 from utils.manager import PluginManager
 
 PluginManager.registerPlugin('repeater',
-                       defaultStatus=True,
-                       defaultSettings={'rate': 20})
+                             defaultStatus=True,
+                             defaultSettings={'rate': 20})
 
 
 @on_natural_language(only_short_message=True, permission=GROUP_MEMBER)
 @processSession(pluginName='repeater')
 @SyncToAsync
 def _(session: NLPSession):
-    groupRate = PluginManager.settings('repeater', ctx=session.ctx).settings['rate']
+    groupRate = PluginManager.settings('repeater',
+                                       ctx=session.ctx).settings['rate']
     randomNum, msgID = randint(0, groupRate - 1), session.ctx['message_id']
     groupID = session.ctx.get('group_id')
     if not groupID:
@@ -36,14 +37,13 @@ def _(session: NLPSession):
 @processSession
 @SyncToAsync
 def repeatSetter(session: CommandSession):
-    getRate = session.get_optional('rate', False)
-    groupID = session.ctx['group_id']
     getSettings = PluginManager.settings('repeater', ctx=session.ctx)
+    getRate = session.get_optional('rate', False)
+    getRate = getRate if getRate else getSettings.settings['rate']
+    groupID = session.ctx['group_id']
     if not getSettings.status: getSettings.status = True
-    getSettings.settings = {
-        'rate': getRate if getRate else getSettings.settings['rate']
-    }
-    return f'群{groupID}复读概率已被设置为{round(1/getRate,6)*100}%'
+    getSettings.settings = {'rate': getRate}
+    return f'群{groupID}复读概率已被设置为{round(1/getRate,4)*100}%'
 
 
 @repeatSetter.args_parser

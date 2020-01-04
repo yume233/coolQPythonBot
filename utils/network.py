@@ -4,23 +4,24 @@ from typing import Dict, List
 import requests
 from nonebot import logger
 
-from .configsReader import configsReader, copyFileInText, loadConfigInYAML
+from . import UtilsConfig
 from .decorators import CatchRequestsException
 from .exception import BotNotFoundError
-
-CONFIG_DIR = './configs/network.yml'
-DEFAULT_CONFIG_DIR = './configs/default.network.yml'
 
 
 class _NetworkUtils:
     def __init__(self):
-        if not isFileExist(CONFIG_DIR):
-            copyFileInText(DEFAULT_CONFIG_DIR, CONFIG_DIR)
-            logger.warning('Short link API is not configured.')
-        self.configObject = configsReader(CONFIG_DIR, DEFAULT_CONFIG_DIR)
+        self.configObject = UtilsConfig.network
 
     @property
     def proxy(self) -> dict:
+        """Used to get the global network proxy address
+        
+        Returns
+        -------
+        dict
+            Comply with the acceptable proxy address format for requests
+        """
         proxySettings: dict = self.configObject.proxy
         if proxySettings['enable']:
             proxyAddr = proxySettings['address']
@@ -34,6 +35,23 @@ class _NetworkUtils:
         return retValue
 
     def shortLink(self, links: List[str]) -> Dict[str, str]:
+        """Short link function to generate short links
+        
+        Parameters
+        ----------
+        links : List[str]
+            A list of URLs to be shortened
+        
+        Returns
+        -------
+        Dict[str, str]
+            Back to dictionary type, original link: short link
+        
+        Raises
+        ------
+        BotNotFoundError
+            Throws when short link API settings are not written in the configuration file
+        """
         @CatchRequestsException(prompt='短链接因为网络连接原因生成失败', retries=3)
         def requestShortLink(link: str, params: dict) -> Dict[str, dict]:
             r = requests.get(url=link, params=params)

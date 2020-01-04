@@ -1,7 +1,7 @@
 from nonebot import CommandSession, on_command
 from nonebot.permission import SUPERUSER
 
-from utils.database import database
+from utils.exception import readExceptions
 from utils.decorators import SyncToAsync
 from utils.message import processSession
 
@@ -10,13 +10,11 @@ from utils.message import processSession
 @processSession
 @SyncToAsync
 def catch(session: CommandSession):
-    id = session.get('id')
-    data = database.getException(id)
+    stackID: str = session.get('id')
     returnData = '''
-    追踪ID:{trace_id}
-    错误编码:{error_id}
-    出错时间戳:{time}
-    错误堆栈:\n{stack}'''.format(**data)
+    追踪ID:{stack_id}
+    出错时间:{time_format}(时间戳{time})
+    错误堆栈:\n{stack}'''.format(**readExceptions(stackID.upper()))
     return returnData
 
 

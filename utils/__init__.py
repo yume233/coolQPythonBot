@@ -1,13 +1,21 @@
-#                      _  _____ ______         _    _                   ______         _   
-#                     | ||  _  || ___ \       | |  | |                  | ___ \       | |  
-#   ___   ___    ___  | || | | || |_/ / _   _ | |_ | |__    ___   _ __  | |_/ /  ___  | |_ 
-#  / __| / _ \  / _ \ | || | | ||  __/ | | | || __|| '_ \  / _ \ | '_ \ | ___ \ / _ \ | __|
-# | (__ | (_) || (_) || |\ \/' /| |    | |_| || |_ | | | || (_) || | | || |_/ /| (_) || |_ 
-#  \___| \___/  \___/ |_| \_/\_\\_|     \__, | \__||_| |_| \___/ |_| |_|\____/  \___/  \__|
-#                                        __/ |                                             
-#                                       |___/                                              
+import os
+from yaml import safe_load
+from typing import Any
 
-# Copyright © 2019 mnixry,All Rights Reserved
-# Project: https://github.com/mnixry/coolQPythonBot
+UTILS_CONFIG_DIR = './configs/utils.yml'
+UTILS_DEFAULT_DIR = './configs/default.utils.yml'
 
-# Utils Moudle
+
+def _initUtils():
+    if not os.path.exists('./data'):
+        os.mkdir('./data')
+
+
+def _utilsConfigReader() -> Any:
+    from .configsReader import configsReader, copyFileInText
+    if not os.path.isfile(UTILS_CONFIG_DIR):
+        copyFileInText(UTILS_DEFAULT_DIR, UTILS_CONFIG_DIR)
+    return configsReader(UTILS_CONFIG_DIR, UTILS_DEFAULT_DIR)
+
+_initUtils()
+UtilsConfig = _utilsConfigReader()
