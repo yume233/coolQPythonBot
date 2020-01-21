@@ -127,6 +127,10 @@ class _PluginManager:
         logger.debug(f'Register a new plugin:{pluginName},' +
                      f'settings={defaultSettings},status={defaultStatus}')
 
+    def settingsSpecifyGroup(self, pluginName: str,
+                             groupID: int) -> SingleSetting:
+        return SingleSetting(id=groupID, pluginName=pluginName, type='group')
+
     def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
         sessionType = \
             ctx['message_type'] if ctx['message_type'] == 'group' else 'user'

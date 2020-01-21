@@ -6,12 +6,12 @@ from nonebot import NoneBot, get_bot
 from PIL import Image
 
 
-def callModuleAPI(method: str, *args, **kwargs):
+def callModuleAPI(method: str, params: dict = {}):
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
     AsyncInterface = botObject.__getattr__(method)
     SyncInterface = AsyncToSync(AsyncInterface)
-    return SyncInterface(*args, **kwargs)
+    return SyncInterface(**params)
 
 
 def convertImageFormat(image: bytes, quality: int = 80) -> bytes:

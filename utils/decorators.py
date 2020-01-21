@@ -23,10 +23,11 @@ def Timeit(function):
         try:
             returnData = function(*args, **kwargs)
         except:
-            logger.debug(f'Function {function} cost {time()*1000-t}ms')
             raise
-
-        logger.debug(f'Function {function} cost {time()*1000-t}ms')
+        finally:
+            logger.debug(
+                f'Function {function.__name__} cost {time()*1000-t}ms.' +
+                f'args={str(args)[:100]},kwargs={str(kwargs)[:100]}')
         return returnData
 
     return wrapper
