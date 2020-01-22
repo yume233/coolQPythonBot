@@ -1,4 +1,5 @@
 import random
+from time import localtime
 from secrets import token_hex
 
 from nonebot import CommandSession, MessageSegment, on_command
@@ -13,18 +14,24 @@ from .config import Config
 from .network import downloadImage, downloadMutliImage, pixiv
 from .parse import parseMultiImage, parseSingleImage
 
-GET_IMAGE_METHOD = nameJoin('pixiv', 'get')
-SEARCH_IMAGE_METHOD = nameJoin('pixiv', 'search')
-MEMBER_IMAGE_METHOD = nameJoin('pixiv', 'member')
-RANK_IMAGE_METHOD = nameJoin('pixiv', 'rank')
-OPERATING_METHOD = nameJoin('pixiv', 'ops')
+__plugin_name__ = 'pixiv'
+
+GET_IMAGE_METHOD = nameJoin(__plugin_name__, 'get')
+SEARCH_IMAGE_METHOD = nameJoin(__plugin_name__, 'search')
+MEMBER_IMAGE_METHOD = nameJoin(__plugin_name__, 'member')
+RANK_IMAGE_METHOD = nameJoin(__plugin_name__, 'rank')
+OPERATING_METHOD = nameJoin(__plugin_name__, 'ops')
 POWER_GROUP = (GROUP_ADMIN | SUPERUSER | PRIVATE_FRIEND)
 
 PluginManager.registerPlugin(GET_IMAGE_METHOD, defaultSettings={'r-18': False})
-PluginManager.registerPlugin(SEARCH_IMAGE_METHOD, defaultSettings={'r-18': False})
-PluginManager.registerPlugin(MEMBER_IMAGE_METHOD, defaultSettings={'r-18': False})
+PluginManager.registerPlugin(SEARCH_IMAGE_METHOD,
+                             defaultSettings={'r-18': False})
+PluginManager.registerPlugin(MEMBER_IMAGE_METHOD,
+                             defaultSettings={'r-18': False})
 PluginManager.registerPlugin(RANK_IMAGE_METHOD)
 PluginManager.registerPlugin(OPERATING_METHOD)
+
+_RANK_CACHE = {}
 
 
 def _checkIsR18(tags: list) -> bool:
@@ -45,9 +52,9 @@ def getImage(session: CommandSession):
     apiGet = pixiv.getImageDetail(imageID)
     apiParse = parseSingleImage(apiGet)
     allowR18 = PluginManager.settings(GET_IMAGE_METHOD,
-                                ctx=session.ctx).settings['r-18']
+                                      ctx=session.ctx).settings['r-18']
     if _checkIsR18(apiParse['tags']) and not allowR18:
-        raise BotDisabledError('不允许NSFW图片')
+        raise BotDisabledError('NSFW图片已被禁用')
     imageURLs = [{
         '大图': p['large'],
         '小图': p['medium'],
@@ -90,7 +97,7 @@ def searchImage(session: CommandSession):
                         key=lambda x: x['ratio'],
                         reverse=True)
     enableR18 = PluginManager.settings(SEARCH_IMAGE_METHOD,
-                                 session.ctx).settings['r-18']
+                                       session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.search_repeat).format(**data)
         for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
@@ -134,7 +141,7 @@ def memberImage(session: CommandSession):
                         key=lambda x: x['ratio'],
                         reverse=True)
     enableR18 = PluginManager.settings(MEMBER_IMAGE_METHOD,
-                                 session.ctx).settings['r-18']
+                                       session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.member_repeat).format(**data)
         for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
@@ -168,10 +175,15 @@ def _(session: CommandSession):
 @processSession(pluginName=RANK_IMAGE_METHOD)
 @SyncToAsync
 def _(session: CommandSession):
+    global _RANK_CACHE
     session.send('开始获取一图')
     rank = random.choice(['day', 'week', 'month'])
-    apiGet = pixiv.getRank(rank)
-    apiParse = parseMultiImage(apiGet)
+    if localtime().tm_hour >= 12:
+        apiGet = pixiv.getRank(rank)
+        apiParse = parseMultiImage(apiGet)
+        _RANK_CACHE[rank] = apiParse
+    else:
+        apiParse = _RANK_CACHE[random.choice(_RANK_CACHE)]
     choiceResult = random.choice(
         [data for data in apiParse['result'] if data['type'] == 'illust'])
     imageLinks = [i['large']
@@ -236,7 +248,9 @@ def disableR18(session: CommandSession):
 @SyncToAsync
 def r18KeyGen(session: CommandSession):
     key = token_hex(8).upper()
-    PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {'key': key}
+    PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {
+        'key': key
+    }
     return f'密钥生成完毕,为{key}'
 
 
@@ -246,8 +260,11 @@ def r18KeyGen(session: CommandSession):
 @processSession(pluginName=OPERATING_METHOD)
 @SyncToAsync
 def r18KeyBack(session: CommandSession):
-    oldKey = PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings.get(
-        'key', token_hex(8))
+    oldKey = PluginManager.settings(OPERATING_METHOD,
+                                    ctx=session.ctx).settings.get(
+                                        'key', token_hex(8))
     key = ''.join([chr(ord(i) + 10) for i in list(oldKey)])
-    PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {'key': key}
+    PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {
+        'key': key
+    }
     return f'分发的密钥已被收回'

@@ -1,0 +1,14 @@
+api:
+    hitokoto: "https://v1.hitokoto.cn/"
+    image: "https://cn.bing.com/HPImageArchive.aspx"
+    thread: 8
+
+custom:
+    time:
+        hours: 8
+    format: |
+        今天是{date}
+        {image}
+        {hitokoto}-{hitokoto_from}
+        ======
+        Image by bing

@@ -1,31 +1,41 @@
-import random
-import time
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import date
 from urllib.parse import urljoin
+from itertools import cycle
 
 import requests
 from nonebot import CommandSession, MessageSegment, on_command, scheduler, logger
-from nonebot.permission import GROUP_ADMIN, SUPERUSER
+from nonebot.permission import GROUP_ADMIN, SUPERUSER, GROUP_MEMBER
 
 from utils.decorators import CatchRequestsException, SyncToAsync
 from utils.manager import PluginManager
 from utils.message import processSession
+from utils.configsReader import configsReader, copyFileInText
 from utils.objects import callModuleAPI, convertImageFormat
+from os.path import isfile
 
 __plugin_name__ = 'time_reminder'
 
 PluginManager.registerPlugin(__plugin_name__)
 POWER_GROUP = GROUP_ADMIN | SUPERUSER
+CONFIG_DIR = './configs/greeting.yml'
+DEFAULT_DIR = './configs/default.greeting.yml'
+
+if not isfile(CONFIG_DIR):
+    copyFileInText(DEFAULT_DIR, CONFIG_DIR)
+CONFIG = configsReader(CONFIG_DIR, DEFAULT_DIR)
+_IMAGE_LIST_CACHE = None
 
 
 class daily:
     @staticmethod
-    def image() -> bytes:
+    def image() -> dict:
+        global _IMAGE_LIST_CACHE
+
         @CatchRequestsException
         def requestAPI():
-            dataGet = requests.get('https://cn.bing.com/HPImageArchive.aspx',
+            dataGet = requests.get(CONFIG.api.image,
                                    params={
                                        'format': 'js',
                                        'n': 10
@@ -40,58 +50,67 @@ class daily:
             dataGet.raise_for_status()
             return convertImageFormat(dataGet.content)
 
-        return getImage(random.choice(requestAPI()['images'])['url'])
+        if not _IMAGE_LIST_CACHE:
+            _IMAGE_LIST_CACHE = cycle(requestAPI()['images'])
+        apiChoice = next(_IMAGE_LIST_CACHE)
+        retData = {
+            'source': apiChoice['copyright'],
+            'source_link': apiChoice['copyrightlink'],
+            'image': getImage(apiChoice['url']),
+            'image_link': urljoin('https://cn.bing.com', apiChoice['url'])
+        }
+        return retData
 
     @staticmethod
-    def hitokoto() -> str:
+    def hitokoto() -> dict:
         @CatchRequestsException(retries=3)
         def requestAPI():
-            dataGet = requests.get('https://v1.hitokoto.cn/')
+            dataGet = requests.get(CONFIG.api.hitokoto)
             dataGet.raise_for_status()
             return dataGet.json()
 
-        return '{hitokoto}——{from}'.format(**requestAPI())
+        return requestAPI()
 
 
 def timeTelling(*_) -> str:
-    imageEncoded = f'base64://{b64encode(daily.image()).decode()}'
-    message = f'{date.today()}\n' + f'{MessageSegment.image(imageEncoded)}\n' + f'{daily.hitokoto()}'
-    return message
+    imageData = daily.image()
+    imageEncoded = f'base64://{b64encode(imageData["image"]).decode()}'
+    hitokotoGet = daily.hitokoto()
+    messageData = {
+        'hitokoto': hitokotoGet['hitokoto'],
+        'hitokoto_from': hitokotoGet['from'],
+        'image': MessageSegment.image(imageEncoded),
+        'image_from': imageData['source'],
+        'date': date.today()
+    }
+    return str(CONFIG.custom.format).format(**messageData)
 
 
 def batchSend():
-    batchExecutor = ThreadPoolExecutor(8)
-    tellingSet = list(
-        batchExecutor.map(timeTelling, [tuple() for _ in range(10)]))
-    for groupID in [i['group_id'] for i in callModuleAPI('get_group_list')]:
-        if not PluginManager.settingsSpecifyGroup(__plugin_name__,groupID).status:
-            continue
-        callModuleAPI('send_msg',
-                      params={
-                          'group_id': groupID,
-                          'message': random.choice(tellingSet)
-                      })
+    executor = ThreadPoolExecutor(CONFIG.api.thread)
+    groupsList = [
+        i['group_id'] for i in callModuleAPI('get_group_list')
+        if PluginManager.settingsSpecifyGroup(__plugin_name__, i).status
+    ]
+    sendList = cycle(executor.map(timeTelling, [tuple() for _ in groupsList]))
+    for groupID in groupsList:
+        sendParams = {'group_id': groupID, 'message': next(sendList)}
+        callModuleAPI('send_msg', params=sendParams)
 
 
 @scheduler.scheduled_job('cron', day='*')
 @SyncToAsync
 def scheduledTiming():
+    global _IMAGE_LIST_CACHE
+    _IMAGE_LIST_CACHE = None
     batchSend()
 
 
-@on_command('test_greeting', aliases=('测试问好', ), permission=SUPERUSER)
+@on_command('test_greeting', aliases=('今日一言', ), permission=GROUP_MEMBER)
 @processSession()
 @SyncToAsync
 def _(session: CommandSession):
-    return timeTelling(), False
-
-
-@on_command('test_greeting_batch', aliases=('测试问好群发', ), permission=SUPERUSER)
-@processSession()
-@SyncToAsync
-def _(session: CommandSession):
-    batchSend()
-    return '测试完成'
+    return timeTelling(), True
 
 
 @on_command('enable_greeting',
@@ -112,3 +131,11 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.ctx).status = False
     return '每日问好已禁用'
+
+
+@on_command('test_greeting_batch', aliases=('测试问好群发', ), permission=SUPERUSER)
+@processSession()
+@SyncToAsync
+def _(session: CommandSession):
+    batchSend()
+    return '测试完成'
