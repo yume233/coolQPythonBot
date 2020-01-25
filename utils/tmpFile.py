@@ -28,6 +28,11 @@ from uuid import uuid4
 # Tmp File
 ################################################################################
 
+TEMP_DIR = './data/temp'
+
+if not exists(TEMP_DIR):
+    mkdir(TEMP_DIR)
+
 
 class tmpFile(object):
     '''
@@ -55,9 +60,9 @@ class tmpFile(object):
 
     __slots__ = ('__tmpFileName', )
 
-    def __init__(self, ext='', path='./'):
+    def __init__(self, ext='.tmp', path=TEMP_DIR):
 
-        self.__tmpFileName = abspath(join(path, str(uuid4()) + ext))
+        self.__tmpFileName = abspath(join(path, uuid4().hex + ext))
 
     def __enter__(self):
 
@@ -97,9 +102,9 @@ class tmpFolder(object):
 
     __slots__ = ('__tmpFolderName', )
 
-    def __init__(self, path='./'):
+    def __init__(self, path=TEMP_DIR):
 
-        self.__tmpFolderName = abspath(join(path, str(uuid4())))
+        self.__tmpFolderName = abspath(join(path, uuid4().hex))
 
     def __enter__(self):
 

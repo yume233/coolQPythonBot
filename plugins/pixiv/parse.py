@@ -1,8 +1,18 @@
 from nonebot import MessageSegment
 
+from .network import Executor, downloadImage, mosaicImage
 
-def parseSingleImage(data: dict) -> dict:
+
+def _checkIsR18(tags: list) -> bool:
+    for i in ('R-18', 'R-18G'):
+        if i in tags:
+            return True
+    return False
+
+
+def parseSingleImage(data: dict, mosaicR18: bool = True) -> dict:
     illustData = data['illust']
+
     if illustData['page_count'] == 1:
         dwlLinks = [{
             'large':
@@ -18,8 +28,10 @@ def parseSingleImage(data: dict) -> dict:
         dwlLinks = [
             perLink['image_urls'] for perLink in illustData['meta_pages']
         ]
+
     hotRatio = (illustData['total_bookmarks'] /
                 illustData['total_view']) if illustData['total_view'] else 0
+
     returnData = {
         'id': illustData['id'],
         'title': illustData['title'],
@@ -36,14 +48,29 @@ def parseSingleImage(data: dict) -> dict:
         'ratio': hotRatio,
         'type': illustData['type']
     }
+
+    r18Status = _checkIsR18(returnData['tags'])
+    previewDownload = str(
+        MessageSegment.image(
+            downloadImage(returnData['preview_link'],
+                          mosaic=(mosaicR18 and r18Status))))
+
+    returnData.update({'r-18': r18Status, 'preview': previewDownload})
     return returnData
 
 
-def parseMultiImage(data: dict) -> dict:
+def parseMultiImage(data: dict, mosaicR18: bool = True) -> dict:
     returnData = {
         'size':
         len(data['illusts']),
         'result':
-        [parseSingleImage({'illust': perData}) for perData in data['illusts']]
+        list(
+            Executor.map(lambda x: parseSingleImage(**x),
+                         [{
+                             'data': {
+                                 'illust': perData
+                             },
+                             'mosaicR18': mosaicR18
+                         } for perData in data['illusts']]))
     }
     return returnData

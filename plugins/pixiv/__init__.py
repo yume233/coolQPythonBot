@@ -34,33 +34,26 @@ PluginManager.registerPlugin(OPERATING_METHOD)
 _RANK_CACHE = {}
 
 
-def _checkIsR18(tags: list) -> bool:
-    for i in ('R-18', 'R-18G'):
-        if i in tags:
-            return True
-    return False
-
-
 @on_command(GET_IMAGE_METHOD, aliases=('点图', '获取图片'))
 @processSession(pluginName=GET_IMAGE_METHOD)
 @WithKeyword('p站点图', command=GET_IMAGE_METHOD)
 @SyncToAsync
 def getImage(session: CommandSession):
+    allowR18 = PluginManager.settings(GET_IMAGE_METHOD,
+                                      ctx=session.ctx).settings['r-18']
     imageID = session.get('id')
     imageResloution = session.get_optional('res', '大图')
     session.send(f'开始获取Pixiv ID为{imageID}的{imageResloution}')
     apiGet = pixiv.getImageDetail(imageID)
-    apiParse = parseSingleImage(apiGet)
-    allowR18 = PluginManager.settings(GET_IMAGE_METHOD,
-                                      ctx=session.ctx).settings['r-18']
-    if _checkIsR18(apiParse['tags']) and not allowR18:
-        raise BotDisabledError('NSFW图片已被禁用')
+    apiParse = parseSingleImage(apiGet, mosaicR18=not allowR18)
     imageURLs = [{
         '大图': p['large'],
         '小图': p['medium'],
         '原图': p['original']
     }[imageResloution] for p in apiParse['download']][:Config.customize.size]
-    imageDownloaded = downloadMutliImage(imageURLs)
+    imageDownloaded = downloadMutliImage(imageURLs,
+                                         mosaic=((not allowR18)
+                                                 and apiParse['r-18']))
     images = [str(MessageSegment.image(imageDownloaded[i])) for i in imageURLs]
     repeatMessage = '\n'.join(images)
     finalMessage = str(Config.customize.image_prefix).format(**apiParse)\
@@ -88,19 +81,19 @@ def _(session: CommandSession):
 @WithKeyword('p站搜图', command=SEARCH_IMAGE_METHOD)
 @SyncToAsync
 def searchImage(session: CommandSession):
+    enableR18 = PluginManager.settings(SEARCH_IMAGE_METHOD,
+                                       session.ctx).settings['r-18']
     keywords = session.get('keyword')
     page = session.get_optional('page', 1)
     session.send(f'开始搜索"{keywords}"的第{page}页')
     apiGet = pixiv.searchIllust(keyword=keywords, page=page)
-    apiParse = parseMultiImage(apiGet)
+    apiParse = parseMultiImage(apiGet, mosaicR18=not enableR18)
     sortResult = sorted(apiParse['result'],
                         key=lambda x: x['ratio'],
                         reverse=True)
-    enableR18 = PluginManager.settings(SEARCH_IMAGE_METHOD,
-                                       session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.search_repeat).format(**data)
-        for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
+        for data in sortResult
     ]
     fullMessage = str(Config.customize.search_prefix).format(**apiParse)\
         + ''.join(messageRepeat[:Config.customize.size])\
@@ -133,18 +126,18 @@ def _(session: CommandSession):
 @SyncToAsync
 def memberImage(session: CommandSession):
     memberID = session.get('id')
+    enableR18 = PluginManager.settings(MEMBER_IMAGE_METHOD,
+                                       session.ctx).settings['r-18']
     page = session.get_optional('page', 1)
     session.send(f'开始获取Pixiv用户ID为{memberID}的作品第{page}页')
     apiGet = pixiv.getMemberIllust(memberID, page)
-    apiParse = parseMultiImage(apiGet)
+    apiParse = parseMultiImage(apiGet, mosaicR18=not enableR18)
     sortResult = sorted(apiParse['result'],
                         key=lambda x: x['ratio'],
                         reverse=True)
-    enableR18 = PluginManager.settings(MEMBER_IMAGE_METHOD,
-                                       session.ctx).settings['r-18']
     messageRepeat = [
         str(Config.customize.member_repeat).format(**data)
-        for data in sortResult if (not _checkIsR18(data['tags'])) or enableR18
+        for data in sortResult
     ]
     fullMessage = str(Config.customize.member_prefix).format(**apiParse)\
         + ''.join(messageRepeat[:Config.customize.size])\
@@ -177,13 +170,11 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     global _RANK_CACHE
     session.send('开始获取一图')
-    rank = random.choice(['day', 'week', 'month'])
     if localtime().tm_hour >= 12:
-        apiGet = pixiv.getRank(rank)
-        apiParse = parseMultiImage(apiGet)
-        _RANK_CACHE[rank] = apiParse
-    else:
-        apiParse = _RANK_CACHE[random.choice(_RANK_CACHE)]
+        randomRank = random.choice(['day', 'week', 'month'])
+        apiGet = pixiv.getRank(randomRank)
+        _RANK_CACHE[randomRank] = parseMultiImage(apiGet)
+    apiParse = _RANK_CACHE[random.choice(list(_RANK_CACHE.keys()))]
     choiceResult = random.choice(
         [data for data in apiParse['result'] if data['type'] == 'illust'])
     imageLinks = [i['large']

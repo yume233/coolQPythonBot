@@ -1,15 +1,22 @@
+import os
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Dict, List, Tuple
 
 import requests
 from nonebot import logger
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from utils.decorators import CatchRequestsException
 from utils.exception import BotRequestError
 from utils.network import NetworkUtils
 from utils.objects import convertImageFormat
+from utils.tmpFile import tmpFile
+from utils.botConfig import settings
 
 from .config import Config
+
+Executor = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 
 
 @CatchRequestsException(prompt='从Pixiv获取接口信息失败')
@@ -24,21 +31,60 @@ def _baseGetJSON(params: dict) -> dict:
 
 
 @CatchRequestsException(prompt='下载图片失败', retries=Config.apis.retries)
-def downloadImage(url: str) -> str:
+def downloadImage(url: str, mosaic: bool = False) -> str:
     headers = {'Referer': 'https://www.pixiv.net'}
     r = requests.get(url,
                      headers=headers,
                      timeout=(6, 12),
                      proxies=NetworkUtils.proxy)
     r.raise_for_status()
-    pngImage = convertImageFormat(r.content)
+    pngImage = convertImageFormat(r.content) if not mosaic else mosaicImage(
+        r.content)
     return f'base64://{b64encode(pngImage).decode()}'
 
 
-def downloadMutliImage(urls: list) -> dict:
-    threadPool = ThreadPoolExecutor()
-    resultList = list(threadPool.map(downloadImage, urls))
-    return {urls[i]: resultList[i] for i in range(len(urls))}
+def textAlign(img: bytes,
+              text: str,
+              font: str = './data/font.otf',
+              size: int = 100,
+              color: str = '#FF0000') -> bytes:
+    with tmpFile() as tf:
+        with open(tf, 'wb') as f:
+            f.write(img)
+        with Image.open(tf) as im:
+            imageFont = ImageFont.truetype(font=font, size=size)
+            imageWidth, imageHeight = im.size
+            textWidth, textHeight = imageFont.getsize(text)
+            imageDraw = ImageDraw.Draw(im)
+            textCoordinate = [(imageWidth - textWidth) / 2,
+                              (imageHeight - textHeight) / 2]
+            imageDraw.text(xy=textCoordinate,
+                           text=text,
+                           fill=color,
+                           font=imageFont)
+            im.save(tf, 'PNG')
+        with open(tf, 'rb') as f:
+            fileRead = f.read()
+    return fileRead
+
+
+def mosaicImage(img: bytes) -> bytes:
+    with tmpFile() as tf:
+        with open(tf, 'wb') as f:
+            f.write(img)
+        with Image.open(tf) as im:
+            blured = im.filter(ImageFilter.GaussianBlur(radius=10))
+            blured.save(tf, 'PNG')
+        with open(tf, 'rb') as f:
+            fileRead = f.read()
+    imageWithText = textAlign(fileRead, 'R-18')
+    return convertImageFormat(imageWithText)
+
+
+def downloadMutliImage(urls: list, mosaic: bool = False) -> Dict[str, bytes]:
+    download = Executor.map(lambda x: downloadImage(*x),
+                            [(i, mosaic) for i in urls])
+    return dict(zip(urls, download))
 
 
 class pixiv:
