@@ -1,7 +1,7 @@
 import json
 from functools import wraps
 from os.path import isfile as isFileExist
-from typing import Any, List
+from typing import Any, List, Optional
 
 from nonebot import logger
 
@@ -13,17 +13,19 @@ _CACHE = {}
 _MODIFED = True
 
 
-class SettingsIO:
+class _SettingsIO:
+    @property
     @staticmethod
-    def read() -> dict:
+    def data() -> dict:
         if not isFileExist(SETTING_DIR):
             return {}
         with open(SETTING_DIR, 'rt', encoding='utf-8') as f:
             fileRead = f.read()
         return json.loads(fileRead)
 
+    @data.setter
     @staticmethod
-    def write(data: dict) -> int:
+    def data(data: dict) -> int:
         dumpedData = json.dumps(
             data, ensure_ascii=False, sort_keys=True,
             indent=4) if settings.DEBUG else json.dumps(data)
@@ -32,7 +34,19 @@ class SettingsIO:
         return writeBytes
 
 
-def nameJoin(pluginName: str, *methodsName) -> str:
+def nameJoin(pluginName: str, *methodsName: str) -> str:
+    """Splice plugin name
+    
+    Parameters
+    ----------
+    pluginName : str
+        Plugin name
+    
+    Returns
+    -------
+    str
+        Name of the completed plug-in
+    """
     def cleanDot(name: str) -> str:
         if name.startswith('.'):
             name = name[1:]
@@ -50,8 +64,8 @@ def _checker(function):
     def wrapper(*args, **kwargs):
         global _MODIFED, _CACHE
         if _MODIFED:
-            if _CACHE: SettingsIO.write(_CACHE)
-            _CACHE = SettingsIO.read()
+            if _CACHE: _SettingsIO.data = _CACHE
+            _CACHE = _SettingsIO.data
             logger.debug(f'Plugin configuration has been updated:{_CACHE}')
             _MODIFED = False
         return function(*args, **kwargs)
@@ -60,14 +74,22 @@ def _checker(function):
 
 
 class SingleSetting(object):
-    def __init__(self, id: int, pluginName: str, type: str = 'group'):
-        '''
-        type choices: `group` or `user`
-        '''
+    def __init__(self, pluginName: str, type: str, id: Optional[int] = None):
+        """Get settings for a plugin
+        
+        Parameters
+        ----------
+        pluginName : str
+            Plugin name
+        type : str
+            Location type, select group or user
+        id : Optional[int], optional
+            The ID of the selected type, 
+            the default value is called if it is empty
+        """
         assert type in ('group', 'user')
-        self.id = str(id)
-        self.name = str(pluginName)
-        self.type = str(type)
+        self.name, self.type = pluginName, type
+        self.id = str(id) if id != None else 'default'
 
     @property
     @_checker
@@ -98,10 +120,21 @@ class SingleSetting(object):
 
 class _PluginManager:
     @_checker
-    def registerPlugin(self,
-                       pluginName: str,
-                       defaultStatus: bool = True,
-                       defaultSettings: Any = {}):
+    def __call__(self,
+                 pluginName: str,
+                 defaultStatus: Optional[bool] = True,
+                 defaultSettings: Optional[Any] = {}):
+        """Register a plugin
+        
+        Parameters
+        ----------
+        pluginName : str
+            Plugin name
+        defaultStatus : Optional[bool], optional
+            Enabled by default, by default True
+        defaultSettings : Optional[Any], optional
+            Empty by default, by default {}
+        """
         global _MODIFED, _CACHE
         if _CACHE.get(pluginName):
             inCacheDefault = _CACHE[pluginName]['settings']['default']
@@ -127,25 +160,55 @@ class _PluginManager:
         logger.debug(f'Register a new plugin:{pluginName},' +
                      f'settings={defaultSettings},status={defaultStatus}')
 
-    def settingsSpecifyGroup(self, pluginName: str,
-                             groupID: int) -> SingleSetting:
-        return SingleSetting(id=groupID, pluginName=pluginName, type='group')
+    registerPlugin = __call__
+
+    def _getSettings(self,
+                     pluginName: str,
+                     type: str,
+                     id: Optional[int] = None):
+        """Get settings for a certain plugin
+        
+        Parameters
+        ----------
+        pluginName : str
+            Plugin name
+        type : str
+            Location type, select group or user
+        id : Optional[int], optional
+            The ID of the selected type, 
+            the default value is called if it is empty
+        
+        Returns
+        -------
+        SingleSetting
+            Plugin settings object
+        """
+        return SingleSetting(pluginName=pluginName, type=type, id=id)
 
     def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
-        sessionType = \
-            ctx['message_type'] if ctx['message_type'] == 'group' else 'user'
-        sessionID = \
-            ctx['group_id'] if sessionType == 'group' else ctx['user_id']
-        return SingleSetting(id=sessionID,
-                             pluginName=pluginName,
-                             type=sessionType)
+        """Get plugin settings automatically based on the provided `ctx` value
+        
+        Parameters
+        ----------
+        pluginName : str
+            Plugin name
+        ctx : dict
+            ctx content
+        
+        Returns
+        -------
+        SingleSetting
+            Plug-in setting object
+        """
+        settingsArgs = {'pluginName': pluginName}
+        settingsArgs.update({
+            'type': 'group',
+            'id': ctx['group_id']
+        } if ctx['message_type'] == 'group' else {
+            'type': 'user',
+            'id': ctx['user_id']
+        })
+        return self._getSettings(**settingsArgs)
 
-
-try:
-    if not isFileExist(SETTING_DIR):
-        from .database import database
-        SettingsIO.write(database.listPlugin())
-except ImportError:
-    logger.debug('Loading old plugin configuration from database failed')
 
 PluginManager = _PluginManager()

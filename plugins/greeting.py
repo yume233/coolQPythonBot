@@ -1,19 +1,20 @@
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import date
-from urllib.parse import urljoin
 from itertools import cycle
+from os.path import isfile
+from urllib.parse import urljoin
 
 import requests
-from nonebot import CommandSession, MessageSegment, on_command, scheduler, logger
-from nonebot.permission import GROUP_ADMIN, SUPERUSER, GROUP_MEMBER
+from nonebot import (CommandSession, MessageSegment, logger, on_command,
+                     scheduler)
+from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 
+from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import CatchRequestsException, SyncToAsync
 from utils.manager import PluginManager
 from utils.message import processSession
-from utils.configsReader import configsReader, copyFileInText
 from utils.objects import callModuleAPI, convertImageFormat
-from os.path import isfile
 
 __plugin_name__ = 'time_reminder'
 
@@ -89,8 +90,8 @@ def timeTelling(*_) -> str:
 def batchSend():
     executor = ThreadPoolExecutor(CONFIG.api.thread)
     groupsList = [
-        i['group_id'] for i in callModuleAPI('get_group_list')
-        if PluginManager.settingsSpecifyGroup(__plugin_name__, i).status
+        i['group_id'] for i in callModuleAPI('get_group_list') if
+        PluginManager._getSettings(__plugin_name__, type='group', id=i).status
     ]
     sendList = cycle(executor.map(timeTelling, [tuple() for _ in groupsList]))
     for groupID in groupsList:
