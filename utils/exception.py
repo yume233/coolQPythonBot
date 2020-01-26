@@ -6,7 +6,7 @@ from traceback import format_exc
 
 from nonebot import logger
 
-STORE_EXCEPTION_DIR = './data/exceptions'
+STORE_EXCEPTION_DIR = './data/errors'
 
 if not os.path.exists(STORE_EXCEPTION_DIR):
     os.mkdir(STORE_EXCEPTION_DIR)
