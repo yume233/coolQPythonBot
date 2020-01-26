@@ -2,6 +2,7 @@ import json
 from functools import wraps
 from os.path import isfile as isFileExist
 from typing import Any, List, Optional
+from copy import deepcopy
 
 from nonebot import logger
 
@@ -14,18 +15,16 @@ _MODIFED = True
 
 
 class _SettingsIO:
-    @property
     @staticmethod
-    def data() -> dict:
+    def read() -> dict:
         if not isFileExist(SETTING_DIR):
             return {}
         with open(SETTING_DIR, 'rt', encoding='utf-8') as f:
             fileRead = f.read()
         return json.loads(fileRead)
 
-    @data.setter
     @staticmethod
-    def data(data: dict) -> int:
+    def write(data: dict) -> int:
         dumpedData = json.dumps(
             data, ensure_ascii=False, sort_keys=True,
             indent=4) if settings.DEBUG else json.dumps(data)
@@ -64,8 +63,8 @@ def _checker(function):
     def wrapper(*args, **kwargs):
         global _MODIFED, _CACHE
         if _MODIFED:
-            if _CACHE: _SettingsIO.data = _CACHE
-            _CACHE = _SettingsIO.data
+            if _CACHE: _SettingsIO.write(_CACHE)
+            _CACHE = _SettingsIO.read()
             logger.debug(f'Plugin configuration has been updated:{_CACHE}')
             _MODIFED = False
         return function(*args, **kwargs)
