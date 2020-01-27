@@ -8,7 +8,7 @@ from nonebot import IntentCommand, logger, on_natural_language
 from requests import HTTPError, RequestException
 
 from .botConfig import settings
-from .exception import BotRequestError, CatchException
+from .exception import BotRequestError, ExceptionProcess
 
 _EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 _EVENT_LOOP = get_event_loop()
@@ -126,7 +126,7 @@ def CatchRequestsException(function=None,
             try:
                 return function(*args, **kwargs)
             except RequestException as error:
-                traceID = CatchException()
+                traceID = ExceptionProcess.catch()
                 logger.debug(
                     f'The requested function {function} has an error {error}.')
         raise BotRequestError(prompt, traceID)

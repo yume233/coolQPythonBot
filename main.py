@@ -2,7 +2,7 @@ from time import time
 
 from colorama import init as colorInit
 
-from utils.exception import CatchException
+from utils.exception import ExceptionProcess
 
 colorInit()
 
@@ -33,4 +33,4 @@ if __name__ == "__main__":
     finally:
         nonebot.logger.fatal(
             'The program encountered a fatal error and exited unexpectedly.' +
-            f' Tracking ID: {CatchException()}')
+            f' Tracking ID: {ExceptionProcess.catch()}')

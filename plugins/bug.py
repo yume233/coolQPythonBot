@@ -1,8 +1,8 @@
 from nonebot import CommandSession, on_command
 from nonebot.permission import SUPERUSER
 
-from utils.exception import readExceptions
 from utils.decorators import SyncToAsync
+from utils.exception import ExceptionProcess
 from utils.message import processSession
 
 
@@ -14,7 +14,7 @@ def catch(session: CommandSession):
     returnData = '''
     追踪ID:{stack_id}
     出错时间:{time_format}(时间戳{time})
-    错误堆栈:\n{stack}'''.format(**readExceptions(stackID.upper()))
+    错误堆栈:\n{stack}'''.format(**ExceptionProcess.read(stackID.upper()))
     return returnData
 
 

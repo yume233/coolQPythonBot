@@ -1,17 +1,96 @@
-from asyncio import new_event_loop
-from inspect import iscoroutinefunction
-from secrets import token_bytes
+from typing import Awaitable, Optional
 
 from nonebot import NoneBot, get_bot
 from PIL import Image
 
 
-def callModuleAPI(method: str, params: dict = {}):
+class EnhancedDict(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
+class DictOperating:
+    @staticmethod
+    def enhance(origin: dict) -> EnhancedDict:
+        """Recursively convert all elements in a 
+        dictionary into an enhanced dictionary
+        
+        Parameters
+        ----------
+        origin : dict
+            Original dictionary object
+        
+        Returns
+        -------
+        EnhancedDict
+            Recursively enhanced dictionary object
+        """
+        def change(old: dict):
+            return EnhancedDict({
+                k: (EnhancedDict(change(v)) if isinstance(v, dict) else v)
+                for k, v in old.items()
+            })
+
+        return change(origin) if isinstance(origin, dict) else origin
+
+    @staticmethod
+    def weaken(origin: EnhancedDict) -> dict:
+        """Weaken the enhanced dictionary into a normal dictionary
+        
+        Parameters
+        ----------
+        origin : EnhancedDict
+            Original enhanced dictionary
+        
+        Returns
+        -------
+        dict
+            Ordinary dictionary object
+        """
+        def change(old: EnhancedDict):
+            return {
+                k: (dict(change(v)) if isinstance(v, EnhancedDict) else v)
+                for k, v in old.items()
+            }
+
+        return change(origin) if isinstance(origin, EnhancedDict) else origin
+
+
+class SyncWrapper:
+    def __init__(self, subject):
+        from .decorators import AsyncToSync
+        self._subject = subject
+        self._sync = AsyncToSync
+
+    def __getattr__(self, key: str):
+        originAttr = getattr(self._subject, key)
+        if isinstance(originAttr, Awaitable):
+            return self._sync(originAttr)
+        else:
+            return originAttr
+
+
+def callModuleAPI(method: str, params: Optional[dict] = {}):
+    """Call CQHTTP's underlying API
+    
+    Parameters
+    ----------
+    method : str
+        The name of the method to call
+    params : Optional[dict], optional
+        Additional parameters for the call, by default {}
+    
+    Returns
+    -------
+    Callable
+        The function that called the method
+    """
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
-    AsyncInterface = botObject.__getattr__(method)
-    SyncInterface = AsyncToSync(AsyncInterface)
-    return SyncInterface(**params)
+    AsyncAPIMethod = getattr(botObject, name=method)
+    assert AsyncInterface
+    return AsyncToSync(AsyncAPIMethod)(**params)
 
 
 def convertImageFormat(image: bytes, quality: int = 80) -> bytes:
@@ -40,54 +119,3 @@ def convertImageFormat(image: bytes, quality: int = 80) -> bytes:
         with open(file1, 'rb') as f:
             readData = f.read()
     return readData
-
-
-class EnhancedDict(dict):
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-
-class DictOperating:
-    @staticmethod
-    def enhance(origin: dict) -> EnhancedDict:
-        if type(origin) != dict:
-            return origin
-
-        def change(old: dict):
-            new = EnhancedDict()
-            for key, value in old.items():
-                new[key] = \
-                    EnhancedDict(change(value)) if type(value) == dict else value
-            return new
-
-        return change(origin)
-
-    @staticmethod
-    def weaken(origin: EnhancedDict) -> dict:
-        if type(origin) != EnhancedDict:
-            return origin
-
-        def change(old: EnhancedDict):
-            new = dict()
-            for key, value in old.items():
-                new[key] = \
-                    dict(change(value)) if type(value) == EnhancedDict else value
-            return new
-
-        return change(origin)
-
-
-class SyncWrapper:
-    def __init__(self, subject):
-        self.subject = subject
-
-    def __getattr__(self, key: str):
-        from .decorators import Sync
-        origin = getattr(self.subject, key)
-        if not callable(origin):
-            return origin
-        if not iscoroutinefunction(origin):
-            return origin
-        else:
-            return Sync(origin)

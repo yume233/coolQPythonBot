@@ -6,7 +6,7 @@ from nonebot.log import logger
 from feedparser import FeedParserDict
 from feedparser import parse as parseFeed
 
-from utils.exception import BotProgramError, CatchException
+from utils.exception import BotProgramError,ExceptionProcess
 
 
 def _parseTime(timeList: Iterable[int]) -> float:
@@ -21,7 +21,7 @@ def _avoidKeyError(function: Callable) -> Callable:
             return function(*args, **kwargs)
         except (KeyError, AttributeError):
             raise BotProgramError(reason='处理RSS订阅数据失败:缺失关键数据',
-                                  trace=CatchException())
+                                  trace=ExceptionProcess.catch())
 
     return wrapper
 
