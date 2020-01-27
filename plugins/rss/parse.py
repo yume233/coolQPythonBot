@@ -1,6 +1,7 @@
 from functools import wraps
 from time import mktime, struct_time
 from typing import Callable, Iterable
+from nonebot.log import logger
 
 from feedparser import FeedParserDict
 from feedparser import parse as parseFeed
@@ -14,19 +15,15 @@ def _parseTime(timeList: Iterable[int]) -> float:
 
 
 def _avoidKeyError(function: Callable) -> Callable:
-    @wraps
+    @wraps(function)
     def wrapper(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except KeyError:
+        except (KeyError, AttributeError):
             raise BotProgramError(reason='处理RSS订阅数据失败:缺失关键数据',
                                   trace=CatchException())
 
     return wrapper
-
-
-def _cleanNoneKey(data: dict) -> dict:
-    return {i: data[i] for i in data.keys() if data[i] != None}
 
 
 @_avoidKeyError
@@ -57,7 +54,10 @@ def rssParser(feed: str) -> dict:
         traceID = CatchException()
         raise BotProgramError(reason='处理RSS订阅数据失败', trace=traceID)
 
-    feedInfo: dict = parsedData.get('feed')
+    logger.debug(
+        f'The RSS feed information is as follows: {str(parsedData)[:100]}...')
+
+    feedInfo: dict = parsedData.feed
     returnInfo = {
         'title': feedInfo['title'],
         'subtitle': feedInfo.get('subtitle'),
@@ -70,9 +70,9 @@ def rssParser(feed: str) -> dict:
     }
 
     feedContent: dict
-    feedContents = [_cleanNoneKey({
+    feedContents = [{
         'title': feedContent['title'],
-        'link': feedContent.get['link'],
+        'link': feedContent['link'],
         'id': feedContent.get('id'),
         'published': feedContent.get('published'),
         'published_stamp': \
@@ -81,7 +81,12 @@ def rssParser(feed: str) -> dict:
         'all_author': \
             '/'.join(i['name'] for i in feedContent.get('authors',[])),
         'summary': feedContent.get('summary')
-    }) for feedContent in parsedData.entires]
+    } for feedContent in parsedData.entries]
 
-    returnInfo.update({'content': feedContents})
-    return _cleanNoneKey(returnInfo)
+    feedContents.sort(key=lambda x: x['published_stamp'], reverse=True)
+
+    returnInfo.update({
+        'content': feedContents,
+        'size': len(feedContents),
+    })
+    return returnInfo

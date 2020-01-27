@@ -9,10 +9,3 @@ def downloadFeed(url: str) -> str:
     r = requests.get(url, proxies=NetworkUtils.proxy, timeout=6)
     r.raise_for_status()
     return r.text.strip()
-
-class _feedReader:
-    def __init__(self,thread:int=32):
-        self._executor = ThreadPoolExecutor(thread)
-    
-    def __call__(self):
-        pass

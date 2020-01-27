@@ -38,6 +38,10 @@ class BotNotFoundError(BotProgramError):
     pass
 
 
+class BotExistError(BotProgramError):
+    pass
+
+
 class BotRequestError(BotNetworkError):
     pass
 

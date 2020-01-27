@@ -1,0 +1,21 @@
+customize:
+    size: 3
+
+    subscribe_prefix: |
+        RSS订阅源:{title}-{subtitle}
+        RSS链接:{link}
+        最后更新:{last_update}
+        RSS版本:{version}
+
+    subscribe_repeat: |
+        ----------
+        标题:{title}
+        地址:{link}
+        发布时间:{published}
+        作者:{author}({all_author})
+        摘要:{summary}
+
+    subscribe_suffix: |
+        ===============
+        共获取到{size}条订阅
+        订阅ID:{token}

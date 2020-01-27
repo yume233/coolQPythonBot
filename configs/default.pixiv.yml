@@ -1,20 +1,20 @@
 #API相关设定
 apis:
-    address: 'https://api.imjad.cn/pixiv/v2' #API地址，尽量勿动
+    address: "https://api.imjad.cn/pixiv/v2" #API地址，尽量勿动
     retries: 5 #重试次数
 
 #消息回复格式自定义
-customize: 
+customize:
     size: 3 #一条消息中最大展示的图片数量
 
-    image_prefix: ''
+    image_prefix: ""
     image_suffix: |
         =========
         作者:{author},ID:{author_id}
         图片共{size}张
         Powered by imjad API
 
-    search_prefix: ''
+    search_prefix: ""
     search_repeat: |
         ---------
         {preview}
@@ -25,7 +25,7 @@ customize:
         此页共有{size}个结果
         Powered by imjad API
 
-    member_prefix: ''
+    member_prefix: ""
     member_repeat: |
         ---------
         {preview}
@@ -34,7 +34,7 @@ customize:
         =========
         此页共有{size}个结果
         Powered by imjad API
-    
+
     rank_prefix: |
         "{title}"-{id}
     rank_suffix: |

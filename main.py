@@ -22,15 +22,15 @@ Project: https://github.com/mnixry/coolQPythonBot
 
 if __name__ == "__main__":
     print(COPYRIGHT)
-    from nonebot import logger
+    import nonebot
     from app import app
     startTime = time()
     try:
-        app.run()
+        nonebot.run()
     except KeyboardInterrupt:
-        logger.fatal('Program stopped due to user termination.' +
+        nonebot.logger.fatal('Program stopped due to user termination.' +
                      f'Uptime:{round(time() - startTime,3)}s')
     finally:
-        logger.fatal(
+        nonebot.logger.fatal(
             'The program encountered a fatal error and exited unexpectedly.' +
             f' Tracking ID: {CatchException()}')
