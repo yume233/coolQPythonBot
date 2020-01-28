@@ -1,6 +1,6 @@
 import json
 import os
-from time import time as timeNow
+import time
 from secrets import token_hex
 from traceback import format_exc
 from typing import Optional
@@ -64,7 +64,7 @@ class ExceptionProcess:
         str
             Exception ID
         """
-        trace = ExceptionProcess.store(exceptionTime=timeNow(),
+        trace = ExceptionProcess.store(exceptionTime=time.time(),
                                        exceptionStack=format_exc())
         return trace.upper()
 

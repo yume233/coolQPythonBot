@@ -93,19 +93,19 @@ class SingleSetting(object):
     @property
     @_checker
     def settings(self) -> Any:
-        return _CACHE[self.name]['settings'][self.type]\
-            .get(self.id, _CACHE[self.name]['settings']['default'])
+        return deepcopy(_CACHE[self.name]['settings'][self.type].get(
+            self.id, _CACHE[self.name]['settings']['default']))
 
     @property
     @_checker
     def status(self) -> bool:
-        return _CACHE[self.name]['status'][self.type]\
-            .get(self.id, _CACHE[self.name]['status']['default'])
+        return deepcopy(_CACHE[self.name]['status'][self.type].get(
+            self.id, _CACHE[self.name]['status']['default']))
 
     @settings.setter
     def settings(self, value):
         if value == self.settings: return
-        global _MODIFED
+        global _MODIFED, _CACHE
         _MODIFED = True
         _CACHE[self.name]['settings'][self.type][self.id] = value
 

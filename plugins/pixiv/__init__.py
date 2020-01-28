@@ -174,7 +174,7 @@ def _(session: CommandSession):
         randomRank = random.choice(['day', 'week', 'month'])
         apiGet = pixiv.getRank(randomRank)
         _RANK_CACHE[randomRank] = parseMultiImage(apiGet)
-    apiParse = _RANK_CACHE[random.choice(list(_RANK_CACHE.keys()))]
+    apiParse = _RANK_CACHE[random.choice(list(_RANK_CACHE))]
     choiceResult = random.choice(
         [data for data in apiParse['result'] if data['type'] == 'illust'])
     imageLinks = [i['large']

@@ -1,17 +1,25 @@
+from binascii import crc32
 from functools import wraps
+from hashlib import sha1
 from time import mktime, struct_time
 from typing import Callable, Iterable
-from nonebot.log import logger
 
 from feedparser import FeedParserDict
 from feedparser import parse as parseFeed
+from nonebot.log import logger
 
-from utils.exception import BotProgramError,ExceptionProcess
+from utils.exception import BotProgramError, ExceptionProcess
 
 
 def _parseTime(timeList: Iterable[int]) -> float:
     timeStructure = struct_time(tuple(timeList))
     return mktime(timeStructure)
+
+
+def _generateToken(link: str) -> str:
+    shaLink = sha1(link.encode()).hexdigest()
+    crc32Sha = f'{crc32(shaLink.encode()):x}'
+    return crc32Sha.upper()
 
 
 def _avoidKeyError(function: Callable) -> Callable:
@@ -66,7 +74,8 @@ def rssParser(feed: str) -> dict:
         'last_update_stamp': _parseTime(feedInfo.get('updated_parsed')),
         'published': feedInfo.get('published'),
         'published_stamp': _parseTime(feedInfo.get('published_parsed')),
-        'version': parsedData.get('version')
+        'version': parsedData.get('version'),
+        'token': _generateToken(feedInfo['link'])
     }
 
     feedContent: dict

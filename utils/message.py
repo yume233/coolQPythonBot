@@ -3,6 +3,7 @@ from typing import Callable, Optional, Union
 
 from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
 from nonebot.command import SwitchException, _FinishException, _PauseException
+from nonebot.command.argfilter.extractors import extract_text
 from nonebot.log import logger
 from nonebot.session import BaseSession
 
@@ -49,10 +50,7 @@ def processSession(function: Callable = None,
     @Timeit
     @_messageSender
     async def wrapper(session: UnionSession, *args, **kwargs):
-        sessionText = ''.join([
-            i['data']['text'] for i in session.ctx['message']
-            if i['type'] == 'text'
-        ])
+        sessionText = extract_text(session.ctx)
 
         enabled = PluginManager.settings(
             pluginName=pluginName,

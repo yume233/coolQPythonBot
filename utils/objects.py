@@ -1,4 +1,5 @@
-from typing import Awaitable, Optional
+from typing import  Optional
+from inspect import iscoroutinefunction
 
 from nonebot import NoneBot, get_bot
 from PIL import Image
@@ -65,7 +66,7 @@ class SyncWrapper:
 
     def __getattr__(self, key: str):
         originAttr = getattr(self._subject, key)
-        if isinstance(originAttr, Awaitable):
+        if iscoroutinefunction(originAttr):
             return self._sync(originAttr)
         else:
             return originAttr
@@ -88,8 +89,8 @@ def callModuleAPI(method: str, params: Optional[dict] = {}):
     """
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
-    AsyncAPIMethod = getattr(botObject, name=method)
-    assert AsyncInterface
+    AsyncAPIMethod = botObject.__getattr__(item=method)
+    assert AsyncAPIMethod
     return AsyncToSync(AsyncAPIMethod)(**params)
 
 
