@@ -9,12 +9,14 @@ from .config import Config
 from .network import searchImage
 from .parse import getCorrectInfo
 
-PluginManager.registerPlugin('illust_search', defaultStatus=False)
+__plugin_name__ = 'illust_search'
+
+PluginManager.registerPlugin(__plugin_name__, defaultStatus=False)
 
 
-@on_command('illust_search', aliases=('以图搜图', '搜图'))
-@processSession(pluginName='illust_search')
-@WithKeyword('以图搜图', command='illust_search')
+@on_command(__plugin_name__, aliases=('以图搜图', '搜图'))
+@processSession(pluginName=__plugin_name__)
+@WithKeyword('以图搜图', command=__plugin_name__)
 @SyncToAsync
 def illustSearch(session: CommandSession):
     imageURL = session.get('image')
@@ -32,7 +34,7 @@ def illustSearch(session: CommandSession):
 
 
 @illustSearch.args_parser
-@processSession(pluginName='illust_search')
+@processSession(pluginName=__plugin_name__)
 @SyncToAsync
 def _(session: CommandSession):
     if session.current_arg_images:
@@ -47,7 +49,7 @@ def _(session: CommandSession):
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
-    PluginManager.settings('illust_search', ctx=session.ctx).status = True
+    PluginManager.settings(__plugin_name__, ctx=session.ctx).status = True
     return '搜图功能已启用', False
 
 
@@ -57,5 +59,5 @@ def _(session: CommandSession):
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
-    PluginManager.settings('illust_search', ctx=session.ctx).status = False
+    PluginManager.settings(__plugin_name__, ctx=session.ctx).status = False
     return '搜图功能已禁用', False

@@ -9,12 +9,14 @@ from .config import Config
 from .tools import (determineImageType, imageDownload, processGIF,
                     whatanimeUpload)
 
-PluginManager.registerPlugin('anime_search')
+__plugin_name__ = 'anime_search'
+
+PluginManager.registerPlugin(__plugin_name__)
 
 
-@on_command('anime_search', aliases=('以图搜番', '搜番', '以图识番剧'))
-@processSession(pluginName='anime_search')
-@WithKeyword(keywords=('以图搜番', '以图识番'), command='anime_search')
+@on_command(__plugin_name__, aliases=('以图搜番', '搜番', '以图识番剧'))
+@processSession(pluginName=__plugin_name__)
+@WithKeyword(keywords=('以图搜番', '以图识番'), command=__plugin_name__)
 @SyncToAsync
 def animeSearch(session: CommandSession):
     imageLink = session.get('image')

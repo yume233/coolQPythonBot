@@ -9,6 +9,8 @@ from utils.exception import BotRequestError
 from utils.message import processSession
 from utils.manager import PluginManager
 
+__plugin_name = 'hitokoto'
+
 CONFIG_PATH = 'configs/hitokoto.yml'
 DEFAULT_PATH = 'configs/default.hitokoto.yml'
 
@@ -17,12 +19,12 @@ if not os.path.isfile(CONFIG_PATH):
 
 CONFIG_READ = configsReader(CONFIG_PATH, DEFAULT_PATH)
 
-PluginManager.registerPlugin('hitokoto')
+PluginManager.registerPlugin(__plugin_name__)
 
 
-@on_command('hitokoto', aliases=('一言', ))
-@processSession(pluginName='hitokoto')
-@WithKeyword(('一言哥', '来句一言'), 'hitokoto')
+@on_command(__plugin_name__, aliases=('一言', ))
+@processSession(pluginName=__plugin_name__)
+@WithKeyword(('一言哥', '来句一言'), __plugin_name__)
 @Async
 def hitokoto(session: CommandSession):
     try:

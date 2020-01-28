@@ -2,8 +2,10 @@ from functools import partial, wraps
 from typing import Callable, Optional, Union
 
 from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
-from nonebot.command import SwitchException, _FinishException, _PauseException
+from nonebot.command import (SwitchException, ValidateError, _FinishException,
+                             _PauseException)
 from nonebot.command.argfilter.extractors import extract_text
+from nonebot.command.argfilter.controllers import handle_cancellation
 from nonebot.log import logger
 from nonebot.session import BaseSession
 
@@ -17,6 +19,7 @@ from .manager import PluginManager
 from .objects import SyncWrapper
 
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
+logger = logger.getChild('message')
 
 
 def _messageSender(function: Callable) -> Callable:
@@ -50,25 +53,19 @@ def processSession(function: Callable = None,
     @Timeit
     @_messageSender
     async def wrapper(session: UnionSession, *args, **kwargs):
-        sessionText = extract_text(session.ctx)
+        assert not isinstance(session, BaseSession)
+        if isinstance(session, CommandSession): handle_cancellation(session)
 
         enabled = PluginManager.settings(
             pluginName=pluginName,
             ctx=session.ctx).status if pluginName else True
 
-        if isinstance(session, CommandSession):
-            for perKeyword in settings.SESSION_CANCEL_KEYWORD:
-                if perKeyword in sessionText:
-                    session.finish(settings.SESSION_CANCEL_EXPRESSION)
-
         logger.debug(f'Session Class:{type(session).__name__},' +
                      f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{sessionText}",' + f'Enabled:{enabled},' +
-                     f'CTX:"{session.ctx}"')
+                     f'Message Text:"{extract_text(session.ctx)}",' +
+                     f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
 
         try:
-            if not isinstance(session, BaseSession):
-                raise BaseBotError
             if not enabled:
                 if isinstance(session, CommandSession): raise BotDisabledError
                 else: return
@@ -77,7 +74,8 @@ def processSession(function: Callable = None,
 
             return await function(session, *args, **kwargs)
 
-        except (_FinishException, _PauseException, SwitchException):
+        except (_FinishException, _PauseException, SwitchException,
+                ValidateError):
             raise
         except BotDisabledError as e:
             if not e.trace: e.trace = ExceptionProcess.catch()

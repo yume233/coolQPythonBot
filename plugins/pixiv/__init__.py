@@ -1,14 +1,16 @@
 import random
-from time import localtime
 from secrets import token_hex
+from time import localtime
+from typing import List
 
 from nonebot import CommandSession, MessageSegment, on_command
+from nonebot.command.argfilter.extractors import extract_numbers, extract_text
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
 from utils.decorators import SyncToAsync, WithKeyword
 from utils.exception import BotDisabledError
-from utils.message import processSession
 from utils.manager import PluginManager, nameJoin
+from utils.message import processSession
 
 from .config import Config
 from .network import downloadImage, downloadMutliImage, pixiv
@@ -39,18 +41,15 @@ _RANK_CACHE = {}
 @WithKeyword('p站点图', command=GET_IMAGE_METHOD)
 @SyncToAsync
 def getImage(session: CommandSession):
-    allowR18 = PluginManager.settings(GET_IMAGE_METHOD,
-                                      ctx=session.ctx).settings['r-18']
-    imageID = session.get('id')
-    imageResloution = session.get_optional('res', '大图')
+    allowR18: bool = PluginManager.settings(GET_IMAGE_METHOD,
+                                            ctx=session.ctx).settings['r-18']
+    imageID: int = session.get('id')
+    imageResloution: str = session.get_optional('res', 'large')
     session.send(f'开始获取Pixiv ID为{imageID}的{imageResloution}')
     apiGet = pixiv.getImageDetail(imageID)
     apiParse = parseSingleImage(apiGet, mosaicR18=not allowR18)
-    imageURLs = [{
-        '大图': p['large'],
-        '小图': p['medium'],
-        '原图': p['original']
-    }[imageResloution] for p in apiParse['download']][:Config.customize.size]
+    imageURLs = [p[imageResloution]
+                 for p in apiParse['download']][:Config.customize.size]
     imageDownloaded = downloadMutliImage(imageURLs,
                                          mosaic=((not allowR18)
                                                  and apiParse['r-18']))
@@ -66,14 +65,20 @@ def getImage(session: CommandSession):
 @processSession(pluginName=GET_IMAGE_METHOD)
 @SyncToAsync
 def _(session: CommandSession):
-    strippedArgs = session.current_arg_text.strip()
-    digits = ''.join([i for i in list(strippedArgs) if i.isdigit()])
-    texts = ''.join(i for i in list(strippedArgs) if i not in list(digits))
-    if not (strippedArgs and digits):
+    numberArgs = extract_numbers(session.current_arg_text)
+    textArgs = extract_text(session.current_arg_text)
+    if not numberArgs:
         session.pause('请输入p站图片ID')
-    session.state['id'] = int(digits)
-    if texts:
-        session.state['res'] = texts.replace(' ', '')
+    session.state['id'] = int(numberArgs[0])
+    keywordChoice = {
+        '大图': 'large',
+        '小图': 'medium',
+        '原图': 'original',
+    }
+    for key, value in keywordChoice:
+        if key in textArgs:
+            session.state['res'] = value
+            break
 
 
 @on_command(SEARCH_IMAGE_METHOD, aliases=('p站搜图', '搜索图片'))
@@ -110,14 +115,12 @@ def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         session.pause('请输入搜索关键词')
-    keywords = strippedArgs.split(' ', 1)
-    if len(keywords) == 2:
-        page, strippedArgs = keywords
-        if page.isdigit():
-            session.state['page'] = int(page)
-        else:
-            strippedArgs = f'{page} {strippedArgs}'
-    session.state['keyword'] = strippedArgs
+    keywords: List[str] = strippedArgs.split(' ')
+    if len(keywords) >= 2:
+        if keywords[0].isdigit():
+            session.state['page'] = int(keywords[0])
+            keywords.pop(0)
+    session.state['keyword'] = ' '.join(keywords)
 
 
 @on_command(MEMBER_IMAGE_METHOD, aliases=('p站画师', '画师', '搜索画师'))
@@ -152,16 +155,11 @@ def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         session.pause('请输入画师的用户ID')
-    if not strippedArgs.replace(' ','').isdigit() \
-    or len(strippedArgs.split(' ')) > 2:
+    numberArgs = extract_numbers(session.current_arg_text)
+    if len(numberArgs) > 2:
         session.pause('您输入的参数不正确')
-    spliced = strippedArgs.split(' ', 1)
-    if len(spliced) == 2:
-        page, member = spliced
-        session.state['page'] = int(page)
-    else:
-        member = strippedArgs
-    session.state['id'] = int(member)
+    page, member = numberArgs if len(numberArgs) == 2 else 1, numberArgs[0]
+    session.state['page'], session.state['id'] = int(page), int(member)
 
 
 @on_command(RANK_IMAGE_METHOD, aliases=('一图', ))

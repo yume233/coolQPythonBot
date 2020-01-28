@@ -2,6 +2,7 @@ import random
 from secrets import token_hex
 
 from nonebot import CommandSession, MessageSegment, on_command
+from nonebot.command.argfilter.extractors import extract_numbers
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
 from utils.decorators import SyncToAsync, WithKeyword
@@ -51,14 +52,17 @@ def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         return
+    numberArgs = extract_numbers(strippedArgs)
     splicedArgs = strippedArgs.split(' ')
-    if len(splicedArgs) == 1:
-        session.state['rank'] = str(splicedArgs[0])
-    elif len(splicedArgs) >= 2:
-        rank, num = splicedArgs[:2]
-        session.state['rank'] = rank.upper()
-        if num.isdigit(): session.state['num'] = int(num)
-
+    if numberArgs:
+        session.state['num'] = int(numberArgs[0])
+    for perArg in splicedArgs:
+        if not perArg.isalpha(): continue
+        rankList = ['S', 'Q', 'E']
+        avaliableRank = ''.join(
+            [rank for rank in rankList if rank.upper() in perArg])
+    if avaliableRank:
+        session.state['rank'] = avaliableRank
 
 @on_command(f'{OPERATING_METHOD}_enable',
             aliases=('启用涩图', '打开涩图'),
@@ -68,10 +72,11 @@ def _(session: CommandSession):
 def enable(session: CommandSession):
     key: str = session.get('key')
     realKey: str = PluginManager.settings(pluginName=OPERATING_METHOD,
-                                    ctx=session.ctx).settings.get('key', '')
+                                          ctx=session.ctx).settings.get(
+                                              'key', '')
     if key.upper() == realKey.upper():
         PluginManager.settings(pluginName=__plugin_name__,
-                         ctx=session.ctx).status = True
+                               ctx=session.ctx).status = True
         return '涩图功能已启用', False
     else:
         return '此激活密钥无效', False
@@ -95,7 +100,7 @@ def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     PluginManager.settings(pluginName=__plugin_name__,
-                     ctx=session.ctx).status = False
+                           ctx=session.ctx).status = False
     return '涩图功能已禁用'
 
 
@@ -106,9 +111,10 @@ def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     key = token_hex(8).upper()
-    PluginManager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
-        'key': key
-    }
+    PluginManager.settings(pluginName=OPERATING_METHOD,
+                           ctx=session.ctx).settings = {
+                               'key': key
+                           }
     return f'涩图密钥已经生成,为{key}'
 
 
@@ -119,11 +125,12 @@ def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     getKey = PluginManager.settings(pluginName=OPERATING_METHOD,
-                              ctx=session.ctx).settings.get(
-                                  'key',
-                                  token_hex(8).upper())
+                                    ctx=session.ctx).settings.get(
+                                        'key',
+                                        token_hex(8).upper())
     key = ''.join([chr(ord(i) + 10) for i in list(getKey)])
-    PluginManager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
-        'key': key
-    }
+    PluginManager.settings(pluginName=OPERATING_METHOD,
+                           ctx=session.ctx).settings = {
+                               'key': key
+                           }
     return f'涩图密钥已被回收'

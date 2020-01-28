@@ -9,7 +9,9 @@ from utils.message import processSession
 from utils.network import NetworkUtils
 from utils.manager import PluginManager
 
-PluginManager.registerPlugin('wikipedia')
+__plugin_name__ = 'wikipedia'
+
+PluginManager.registerPlugin(__plugin_name__)
 
 CONFIG_PATH = 'configs/wikipedia.yml'
 DEFAULT_PATH = 'configs/default.wikipedia.yml'
@@ -35,8 +37,8 @@ def getWiki(keyword: str) -> dict:
     return result.json()
 
 
-@on_command('wikipedia', aliases=('维基搜索', '维基'))
-@processSession(pluginName='wikipedia')
+@on_command(__plugin_name__, aliases=('维基搜索', '维基'))
+@processSession(pluginName=__plugin_name__)
 @SyncToAsync
 def wikipedia(session: CommandSession):
     keyword = session.get('keyword')

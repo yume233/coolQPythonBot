@@ -9,16 +9,18 @@ from utils.message import processSession
 from utils.objects import SyncWrapper
 from utils.manager import PluginManager
 
-PluginManager.registerPlugin('repeater',
+__plugin_name__ = 'repeater'
+
+PluginManager.registerPlugin(__plugin_name__,
                              defaultStatus=True,
                              defaultSettings={'rate': 20})
 
 
 @on_natural_language(only_short_message=True, permission=GROUP_MEMBER)
-@processSession(pluginName='repeater')
+@processSession(pluginName=__plugin_name__)
 @SyncToAsync
 def _(session: NLPSession):
-    groupRate = PluginManager.settings('repeater',
+    groupRate = PluginManager.settings(__plugin_name__,
                                        ctx=session.ctx).settings['rate']
     randomNum, msgID = randint(0, groupRate - 1), session.ctx['message_id']
     groupID = session.ctx.get('group_id')
@@ -37,7 +39,7 @@ def _(session: NLPSession):
 @processSession
 @SyncToAsync
 def repeatSetter(session: CommandSession):
-    getSettings = PluginManager.settings('repeater', ctx=session.ctx)
+    getSettings = PluginManager.settings(__plugin_name__, ctx=session.ctx)
     getRate = session.get_optional('rate', False)
     getRate = getRate if getRate else getSettings.settings['rate']
     groupID = session.ctx['group_id']
@@ -64,6 +66,6 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     session: CommandSession = SyncWrapper(session)
     groupID = session.ctx['group_id']
-    getSettings = PluginManager.settings('repeater', ctx=session.ctx)
+    getSettings = PluginManager.settings(__plugin_name__, ctx=session.ctx)
     getSettings.status = False
     session.send(f'群{groupID}复读已经关闭')

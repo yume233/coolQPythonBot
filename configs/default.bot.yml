@@ -33,7 +33,6 @@ max_validation_failures: 3 #最大验证失败次数
 too_many_validation_failures_expression: 您输入错误太多次啦，如需重试，请重新触发本功能 #达到最大失败次数时的回复
 nickname: [''] #机器人昵称，建议设置为空
 session_cancel_expression: 好的 #用户控制会话提前结束回复，填空为不回复
-session_cancel_keyword: ['结束'] #用户提前结束会话标志关键词
 session_expire_timeout: 300 #用户会话超时设置，单位为秒
 session_run_timeout: null #会话运行超时设置，单位为秒，设空为不计超时
 session_running_expression: 您有命令正在执行，请稍后再试 #当用户发出下一指令时上一会话仍在运行时提示
