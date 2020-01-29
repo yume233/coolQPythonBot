@@ -53,7 +53,8 @@ def processSession(function: Callable = None,
     @_messageSender
     async def wrapper(session: UnionSession, *args, **kwargs):
         assert isinstance(session, BaseSession)
-        if isinstance(session, CommandSession): handle_cancellation(session)
+
+        sessionMessage = extract_text(session.ctx['message'])
 
         enabled = PluginManager.settings(
             pluginName=pluginName,
@@ -61,8 +62,12 @@ def processSession(function: Callable = None,
 
         logger.debug(f'Session Class:{type(session).__name__},' +
                      f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{extract_text(session.ctx["message"])}",' +
+                     f'Message Text:"{sessionMessage}",' +
                      f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
+
+        if isinstance(session, CommandSession):
+            cancelController = handle_cancellation(session)
+            cancelController(sessionMessage)
 
         try:
             if not enabled:
