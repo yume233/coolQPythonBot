@@ -1,9 +1,12 @@
 apis:
-    yande: 'https://yande.re/post.json'
-    konachan: 'https://konachan.com/post.json'
+    addresses: 
+        - 'https://yande.re/post.json'
+        - 'https://konachan.com/post.json'
+        - 'https://danbooru.donmai.us/posts.json'
     retries: 5
 
 send:
     range: 1000
     default: q
     size: 3
+

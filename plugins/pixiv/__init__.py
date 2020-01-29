@@ -13,8 +13,8 @@ from utils.manager import PluginManager, nameJoin
 from utils.message import processSession
 
 from .config import Config
-from .network import downloadImage, downloadMutliImage, pixiv
 from .parse import parseMultiImage, parseSingleImage
+from .tools import downloadImage, downloadMutliImage, pixiv
 
 __plugin_name__ = 'pixiv'
 

@@ -28,20 +28,15 @@ def NSFWImage(session: CommandSession):
     rank: str = session.get_optional('rank', Config.send.default)
     pictureCount: int = session.get_optional('num', 1)
     pictureCount = pictureCount if pictureCount <= Config.send.size else Config.send.size
-    session.send(f'{rank.upper()}级涩图加载中,将连续发送{pictureCount}张')
+    session.send(f'{rank.upper()}级涩图加载中,将连续发送最多{pictureCount}张')
     imageList = getImageList()
     assert imageList
-    inRule = [i for i in imageList if i['rating'].upper() in rank.upper()]
-    if len(inRule) <= pictureCount:
-        imageList = [i['sample_url'] for i in inRule]
-    else:
-        imageList = []
-        for _ in range(pictureCount):
-            choiceResult = random.choice(inRule)
-            imageList.append(choiceResult['sample_url'])
-            inRule.remove(choiceResult)
+    imageList = [
+        i['sample_url'] for i in random.shuffle(
+            [i for i in imageList if i['rating'].upper() in rank.upper()])
+    ][:pictureCount]
     images = downloadMultiImage(imageList)
-    imageRes = [str(MessageSegment.image(i)) for _, i in images.items()]
+    imageRes = [str(MessageSegment.image(i)) for i in images.values()]
     return '\n'.join(imageRes)
 
 
@@ -63,6 +58,7 @@ def _(session: CommandSession):
             [rank for rank in rankList if rank.upper() in perArg])
     if avaliableRank:
         session.state['rank'] = avaliableRank
+
 
 @on_command(f'{OPERATING_METHOD}_enable',
             aliases=('启用涩图', '打开涩图'),

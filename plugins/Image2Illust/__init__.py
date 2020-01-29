@@ -6,8 +6,7 @@ from utils.manager import PluginManager
 from utils.message import processSession
 
 from .config import Config
-from .network import searchImage
-from .parse import getCorrectInfo
+from .parse import getCorrectInfo, searchImage
 
 __plugin_name__ = 'illust_search'
 

@@ -1,26 +1,36 @@
+from re import compile as compileRegexp
+from typing import Any, Dict, Optional
 from urllib.parse import urljoin, urlparse
 
+import requests
 from lxml import etree
 from nonebot import MessageSegment, logger
 
-from .config import Config
-from .network import shortLink
+from utils.decorators import CatchRequestsException
+from utils.network import NetworkUtils
 
-_ASCII2D_PARSE = urlparse(Config.apis.ascii2d)
+from .config import Config
+
 ASCII2D_ADDRESS = f'{_ASCII2D_PARSE.scheme}://{_ASCII2D_PARSE.netloc}/'
 
-
-def _url2param(url: str) -> dict:
-    paramString = urlparse(url).query
-    param = {}
-    for perQuery in paramString.split('&'):
-        if len(perQuery.split('=')) < 2: continue
-        key, value = perQuery.split('=', 1)
-        param[key] = value
-    return param
+_ASCII2D_PARSE = urlparse(Config.apis.ascii2d)
+_MATCH_NUMBER = compileRegexp(r'\d{4,20}')
 
 
-def getCorrectInfo(originData: str) -> dict:
+@CatchRequestsException(prompt='搜索图片失败', retries=Config.apis.retries)
+def searchImage(imageURL: str) -> str:
+    fullURL = str(Config.apis.ascii2d) + imageURL
+    getResult = requests.get(fullURL, timeout=6, proxies=NetworkUtils.proxy)
+    getResult.raise_for_status()
+    return getResult.text
+
+
+def _getNumbers(match: str) -> Optional[int]:
+    searchResult = _MATCH_NUMBER.search(match)
+    return None if not searchResult else int(searchResult.group(1))
+
+
+def getCorrectInfo(originData: str) -> Dict[str, Any]:
     subjectList = []
     for perSubject in etree.HTML(originData).xpath\
     ('//div[@class="row item-box"][position()>1]'):
@@ -35,9 +45,10 @@ def getCorrectInfo(originData: str) -> dict:
             'title': imageTitle,
             'link_source': imageLink,
             'source': urlparse(imageLink).netloc,
-            'id': _url2param(imageLink).get('illust_id', '')
+            'id': _getNumbers(imageLink)
         })
-    shortedLink = shortLink([i['link_source'] for i in subjectList])
+    shortedLink = NetworkUtils.shortLink(
+        [i['link_source'] for i in subjectList])
     returnDict = {'size': len(subjectList), 'subject': []}
     for perSubject in subjectList:
         perSubject.update({

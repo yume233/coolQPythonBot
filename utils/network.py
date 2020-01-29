@@ -1,3 +1,4 @@
+from copy import deepcopy
 from os.path import isfile as isFileExist
 from typing import Dict, List
 
@@ -14,7 +15,7 @@ class _NetworkUtils:
         self.configObject = UtilsConfig.network
 
     @property
-    def proxy(self) -> dict:
+    def proxy(self) -> Dict[str, str]:
         """Used to get the global network proxy address
         
         Returns
@@ -23,16 +24,12 @@ class _NetworkUtils:
             Comply with the acceptable proxy address format for requests
         """
         proxySettings: dict = self.configObject.proxy
-        if proxySettings['enable']:
-            proxyAddr = proxySettings['address']
-            retValue = {
-                'http': proxyAddr,
-                'https': proxyAddr,
-                'ftp': proxyAddr
-            }
-        else:
-            retValue = {}
-        return retValue
+        retValue = {
+            'http': proxySettings['address'],
+            'https': proxySettings['address'],
+            'ftp': proxySettings['address']
+        } if proxySettings['enable'] else {}
+        return deepcopy(retValue)
 
     def shortLink(self, links: List[str]) -> Dict[str, str]:
         """Short link function to generate short links
@@ -69,7 +66,10 @@ class _NetworkUtils:
             }
         else:
             raise BotNotFoundError('短链接API配置文件未填写')
-        fullParam: dict = {'action': 'bulkshortener', 'urls[]': links}
+        fullParam: dict = {
+            'action': 'bulkshortener',
+            'urls[]': links,
+        }
         fullParam.update(authParam)
         responseData = requestShortLink(shortenSettings['address'], fullParam)
         retDict = {}
