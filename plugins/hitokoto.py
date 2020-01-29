@@ -9,7 +9,7 @@ from utils.exception import BotRequestError
 from utils.message import processSession
 from utils.manager import PluginManager
 
-__plugin_name = 'hitokoto'
+__plugin_name__ = 'hitokoto'
 
 CONFIG_PATH = 'configs/hitokoto.yml'
 DEFAULT_PATH = 'configs/default.hitokoto.yml'

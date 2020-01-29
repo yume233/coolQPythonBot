@@ -19,7 +19,7 @@ def _getLogName():
     return os.path.join(LOG_DIR, f'{date}.log')
 
 
-def _initApp() -> Quart:
+def initApp() -> Quart:
     assert nonebot.scheduler
     _logFormatter = Formatter(
         '[%(asctime)s %(name)s] %(levelname)s: %(message)s')
@@ -31,6 +31,3 @@ def _initApp() -> Quart:
     nonebot.logger.debug(
         f'The robot is currently configured as: {convertSettingsToDict()}')
     return nonebot.get_bot().asgi
-
-
-app = _initApp()

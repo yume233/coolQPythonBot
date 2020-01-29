@@ -100,8 +100,6 @@ class settings:
     TOO_MANY_VALIDATION_FAILURES_EXPRESSION = CONFIG_READ.get\
         ('too_many_validation_failures_expression',dc.TOO_MANY_VALIDATION_FAILURES_EXPRESSION)
 
-    SESSION_CANCEL_KEYWORD = CONFIG_READ.get\
-        ('session_cancel_keyword',('结束',))
     SESSION_CANCEL_EXPRESSION = CONFIG_READ.get\
         ('session_cancel_expression',dc.SESSION_CANCEL_EXPRESSION)
 

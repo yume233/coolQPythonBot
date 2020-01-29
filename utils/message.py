@@ -19,7 +19,6 @@ from .manager import PluginManager
 from .objects import SyncWrapper
 
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
-logger = logger.getChild('message')
 
 
 def _messageSender(function: Callable) -> Callable:
@@ -53,7 +52,7 @@ def processSession(function: Callable = None,
     @Timeit
     @_messageSender
     async def wrapper(session: UnionSession, *args, **kwargs):
-        assert not isinstance(session, BaseSession)
+        assert isinstance(session, BaseSession)
         if isinstance(session, CommandSession): handle_cancellation(session)
 
         enabled = PluginManager.settings(
@@ -62,7 +61,7 @@ def processSession(function: Callable = None,
 
         logger.debug(f'Session Class:{type(session).__name__},' +
                      f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{extract_text(session.ctx)}",' +
+                     f'Message Text:"{extract_text(session.ctx["message"])}",' +
                      f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
 
         try:
