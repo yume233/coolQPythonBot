@@ -1,5 +1,6 @@
 import random
 from secrets import token_hex
+from typing import Any, Dict, List
 
 from nonebot import CommandSession, MessageSegment, on_command
 from nonebot.command.argfilter.extractors import extract_numbers
@@ -28,16 +29,16 @@ def NSFWImage(session: CommandSession):
     rank: str = session.get_optional('rank', Config.send.default)
     pictureCount: int = session.get_optional('num', 1)
     pictureCount = pictureCount if pictureCount <= Config.send.size else Config.send.size
-    session.send(f'{rank.upper()}级涩图加载中,将连续发送最多{pictureCount}张')
-    imageList = getImageList()
-    assert imageList
-    imageList = [
-        i['sample_url'] for i in random.shuffle(
-            [i for i in imageList if i['rating'].upper() in rank.upper()])
-    ][:pictureCount]
-    images = downloadMultiImage(imageList)
-    imageRes = [str(MessageSegment.image(i)) for i in images.values()]
-    return '\n'.join(imageRes)
+    session.send(f'{rank.upper()}级涩图加载中,将发送最多{pictureCount}张')
+    imageInfoList: List[Dict[str, Any]] = getImageList()
+    imageList: List[str] = [
+        i.get('sample_url', i.get('file_url')) for i in imageInfoList
+        if i['rating'].upper() in rank.upper()
+    ]
+    random.shuffle(imageList)
+    images = downloadMultiImage([i for i in imageList if i][:pictureCount])
+    imageSent = [str(MessageSegment.image(i)) for i in images.values()]
+    return '\n'.join(imageSent) + f'\n共筛选出{len(imageList)}张图片'
 
 
 @NSFWImage.args_parser
@@ -45,19 +46,13 @@ def NSFWImage(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
-    if not strippedArgs:
-        return
     numberArgs = extract_numbers(strippedArgs)
-    splicedArgs = strippedArgs.split(' ')
-    if numberArgs:
-        session.state['num'] = int(numberArgs[0])
-    for perArg in splicedArgs:
-        if not perArg.isalpha(): continue
-        rankList = ['S', 'Q', 'E']
-        avaliableRank = ''.join(
-            [rank for rank in rankList if rank.upper() in perArg])
+    avaliableRank = ''.join(
+        set(i for i in strippedArgs if i.upper() in ['S', 'Q', 'E']))
     if avaliableRank:
         session.state['rank'] = avaliableRank
+    if numberArgs:
+        session.state['num'] = int(numberArgs[0])
 
 
 @on_command(f'{OPERATING_METHOD}_enable',

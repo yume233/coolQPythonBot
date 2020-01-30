@@ -11,10 +11,9 @@ from utils.network import NetworkUtils
 
 from .config import Config
 
-ASCII2D_ADDRESS = f'{_ASCII2D_PARSE.scheme}://{_ASCII2D_PARSE.netloc}/'
-
 _ASCII2D_PARSE = urlparse(Config.apis.ascii2d)
 _MATCH_NUMBER = compileRegexp(r'\d{4,20}')
+_ASCII2D_ADDRESS = f'{_ASCII2D_PARSE.scheme}://{_ASCII2D_PARSE.netloc}/'
 
 
 @CatchRequestsException(prompt='搜索图片失败', retries=Config.apis.retries)
@@ -27,14 +26,14 @@ def searchImage(imageURL: str) -> str:
 
 def _getNumbers(match: str) -> Optional[int]:
     searchResult = _MATCH_NUMBER.search(match)
-    return None if not searchResult else int(searchResult.group(1))
+    return None if not searchResult else int(searchResult.group())
 
 
 def getCorrectInfo(originData: str) -> Dict[str, Any]:
     subjectList = []
     for perSubject in etree.HTML(originData).xpath\
     ('//div[@class="row item-box"][position()>1]'):
-        previewLink = urljoin(ASCII2D_ADDRESS,
+        previewLink = urljoin(_ASCII2D_ADDRESS,
                               perSubject.xpath('.//div/img/@src')[0])
         imageTitle = perSubject.xpath('.//a[@rel][1]/text()')
         imageTitle = imageTitle[0] if imageTitle else '获取失败'

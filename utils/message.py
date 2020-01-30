@@ -54,7 +54,7 @@ def processSession(function: Callable = None,
     async def wrapper(session: UnionSession, *args, **kwargs):
         assert isinstance(session, BaseSession)
 
-        sessionMessage = extract_text(session.ctx['message'])
+        sessionMessage:str = extract_text(session.ctx['message'])
 
         enabled = PluginManager.settings(
             pluginName=pluginName,
@@ -62,7 +62,7 @@ def processSession(function: Callable = None,
 
         logger.debug(f'Session Class:{type(session).__name__},' +
                      f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{sessionMessage}",' +
+                     f'Message Text:"{sessionMessage.__repr__()}",' +
                      f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
 
         if isinstance(session, CommandSession):

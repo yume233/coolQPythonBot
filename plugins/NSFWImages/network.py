@@ -8,27 +8,24 @@ import requests
 from utils.botConfig import settings
 from utils.decorators import CatchRequestsException
 from utils.network import NetworkUtils
+from utils.objects import convertImageFormat
 
 from .config import Config
 
 _EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 
 
-def getImageList() -> list:
-    @CatchRequestsException(prompt='获取图片列表出错')
-    def _getImageList(address: str) -> List[Dict[str, Any]]:
-        params = {'limit': 100, 'page': random.randint(1, Config.send.range)}
-        getData = requests.get(url=address,
-                               params=params,
-                               proxies=NetworkUtils.proxy,
-                               timeout=(3, 21))
-        getData.raise_for_status()
-        return getData.json()
 
-    resultList = []
-    for perResult in _EXECUTOR.map(_getImageList, Config.apis.addresses):
-        resultList.extend(perResult)
-    return resultList
+@CatchRequestsException(prompt='获取图片列表出错')
+def getImageList() -> List[Dict[str, Any]]:
+    params = {'limit': 100, 'page': random.randint(1, Config.send.range)}
+    address = random.choice(Config.apis.addresses)
+    getData = requests.get(url=address,
+                            params=params,
+                            proxies=NetworkUtils.proxy,
+                            timeout=6)
+    getData.raise_for_status()
+    return getData.json()
 
 
 @CatchRequestsException(prompt='下载图片失败', retries=Config.apis.retries)

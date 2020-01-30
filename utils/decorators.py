@@ -2,7 +2,7 @@ from asyncio import Task, get_event_loop, set_event_loop
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
 from time import sleep, time
-from typing import Union
+from typing import Callable, Optional, Union
 
 from nonebot import IntentCommand, logger, on_natural_language
 from requests import HTTPError, RequestException
@@ -14,7 +14,7 @@ _EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 _EVENT_LOOP = get_event_loop()
 
 
-def Timeit(function):
+def Timeit(function: Callable):
     """Decorator for timing a function
     """
     @wraps(function)
@@ -26,33 +26,35 @@ def Timeit(function):
             raise
         finally:
             logger.debug(
-                f'Function {function.__name__} cost {time()*1000-t}ms.' +
-                f'args={str(args)[:100]},kwargs={str(kwargs)[:100]}')
+                f'Function {function.__qualname__} cost {round(time()*1000-t,3)}ms.'
+                + f'args={str(args)[:100]}...,kwargs={str(kwargs)[:100]}...')
         return returnData
 
     return wrapper
 
 
-def SyncToAsync(function):
+def SyncToAsync(function: Callable):
     """Decorator to convert synchronous functions to asynchronous functions
     """
+    function = Timeit(function)
+
     @wraps(function)
-    def wrapper(*args, **kwargs):
-        @Timeit
+    async def wrapper(*args, **kwargs):
         def runner():
             set_event_loop(_EVENT_LOOP)
             return function(*args, **kwargs)
 
-        return _EVENT_LOOP.run_in_executor(_EXECUTOR, runner)
+        return await _EVENT_LOOP.run_in_executor(_EXECUTOR, runner)
 
     return wrapper
 
 
-def AsyncToSync(function):
+def AsyncToSync(function: Callable):
     """Decorator to convert asynchronous functions to synchronous functions
     """
+    function = Timeit(function)
+
     @wraps(function)
-    @Timeit
     def wrapper(*args, **kwargs):
         task: Task = _EVENT_LOOP.create_task(function(*args, **kwargs))
         while not task.done():
@@ -70,7 +72,7 @@ Sync = AsyncToSync
 
 def WithKeyword(keywords: Union[str, tuple],
                 command: str,
-                confidence: Union[float, int] = 80.0):
+                confidence: Optional[Union[float, int]] = 80.0):
     """Decorator, set keywords for commands
     
     Parameters
@@ -82,8 +84,8 @@ def WithKeyword(keywords: Union[str, tuple],
     confidence : Union[float, int], optional
         Confidence is used to identify the degree of ambiguity (unit:%), by default 80.0
     """
-    def decorator(function):
-        getKeyword = keywords if type(keywords) == tuple else (keywords, )
+    def decorator(function: Callable):
+        getKeyword = keywords if isinstance(keywords, tuple) else (keywords, )
 
         @on_natural_language(keywords=getKeyword)
         async def _(session):
@@ -98,10 +100,10 @@ def WithKeyword(keywords: Union[str, tuple],
     return decorator
 
 
-def CatchRequestsException(function=None,
+def CatchRequestsException(function: Callable = None,
                            *,
-                           prompt: str = None,
-                           retries: int = 1):
+                           prompt: Optional[str] = None,
+                           retries: Optional[int] = None):
     """Decorator, catch exceptions from `requests` library
     
     Parameters
@@ -120,15 +122,19 @@ def CatchRequestsException(function=None,
         return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
     @wraps(function)
-    @Timeit
     def wrapper(*args, **kwargs):
-        for _ in range(retries):
+        nonlocal function
+        functionName = type(function).__qualname__
+        function = Timeit(function)
+        for _ in range(retries if retries else 1):
             try:
                 return function(*args, **kwargs)
             except RequestException as error:
                 traceID = ExceptionProcess.catch()
-                logger.debug(
-                    f'The requested function {function} has an error {error}.')
+                logger.debug(f'Function {functionName} encountered' +
+                             f'a network request error: "{error}"')
+                if isinstance(error, HTTPError):
+                    break
         raise BotRequestError(prompt, traceID)
 
     return wrapper
