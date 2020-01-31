@@ -31,7 +31,7 @@ def _messageSender(function: Callable) -> Callable:
             replyData, atSender = returnData, True
         else:
             return
-        if atSender: replyData = f'\n{replyData}'
+        if atSender: replyData = '\n' + replyData
         if settings.DEBUG: replyData += '\n(DEBUG)'
         await session.send(replyData, at_sender=atSender)
 
@@ -54,7 +54,7 @@ def processSession(function: Callable = None,
     async def wrapper(session: UnionSession, *args, **kwargs):
         assert isinstance(session, BaseSession)
 
-        sessionMessage:str = extract_text(session.ctx['message'])
+        sessionMessage: str = extract_text(session.ctx['message'])
 
         enabled = PluginManager.settings(
             pluginName=pluginName,
@@ -111,6 +111,7 @@ def processSession(function: Callable = None,
         except AssertionError as e:
             return f'程序抛出断言,原因:{e},追踪ID:{ExceptionProcess.catch()}'
         except:
+            if not isinstance(session, CommandSession): return
             if settings.DEBUG: raise
             return f'出现未知错误,追踪ID:{ExceptionProcess.catch()},请联系开发者'
 

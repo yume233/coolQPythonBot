@@ -14,6 +14,15 @@ _EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 _EVENT_LOOP = get_event_loop()
 
 
+def _getFunctionName(function: Callable) -> str:
+    if hasattr(function, __qualname__):
+        return function.__qualname__
+    elif hasattr(function, __name__):
+        return function.__name__
+    else:
+        return function.__repr__()
+
+
 def Timeit(function: Callable):
     """Decorator for timing a function
     """
@@ -25,9 +34,10 @@ def Timeit(function: Callable):
         except:
             raise
         finally:
+            functionName = _getFunctionName(function)
             logger.debug(
-                f'Function {function.__qualname__} cost {round(time()*1000-t,3)}ms.'
-                + f'args={str(args)[:100]}...,kwargs={str(kwargs)[:100]}...')
+                f'Function {functionName} cost {round(time()*1000-t,3)}ms.' +
+                f'args={str(args)[:100]}...,kwargs={str(kwargs)[:100]}...')
         return returnData
 
     return wrapper
@@ -44,7 +54,7 @@ def SyncToAsync(function: Callable):
             set_event_loop(_EVENT_LOOP)
             return function(*args, **kwargs)
 
-        return await _EVENT_LOOP.run_in_executor(_EXECUTOR, runner)
+        return await get_event_loop().run_in_executor(_EXECUTOR, runner)
 
     return wrapper
 
@@ -124,7 +134,7 @@ def CatchRequestsException(function: Callable = None,
     @wraps(function)
     def wrapper(*args, **kwargs):
         nonlocal function
-        functionName = type(function).__qualname__
+        functionName = _getFunctionName(function)
         function = Timeit(function)
         for _ in range(retries if retries else 1):
             try:

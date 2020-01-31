@@ -16,7 +16,7 @@ COPYRIGHT = '\033[0;37;1m' + r'''
                                        __/ |                                             
                                       |___/                                              
 
-Copyright © 2019 mnixry,All Rights Reserved
+Copyright © 2019-2020 mnixry,All Rights Reserved
 Project: https://github.com/mnixry/coolQPythonBot
 =================================================''' + '\033[0m'
 
