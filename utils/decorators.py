@@ -34,8 +34,9 @@ def Timeit(function: Callable):
             returnData = function(*args, **kwargs)
         finally:
             runningCost = (time() * 1000) - startTime
-            logger.debug(f'Function {functionName} cost {runningCost:.3f}ms.' +
-                         f'args={args:.100s}...,kwargs={kwargs:.100s}...')
+            logger.debug(
+                f'Function {functionName} cost {runningCost:.3f}ms.' +
+                f'args={str(args):.100s}...,kwargs={str(kwargs):.100s}...')
         return returnData
 
     return wrapper
