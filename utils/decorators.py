@@ -15,9 +15,9 @@ _EVENT_LOOP = get_event_loop()
 
 
 def _getFunctionName(function: Callable) -> str:
-    if hasattr(function, __qualname__):
+    if hasattr(function, '__qualname__'):
         return function.__qualname__
-    elif hasattr(function, __name__):
+    elif hasattr(function, '__name__'):
         return function.__name__
     else:
         return function.__repr__()
