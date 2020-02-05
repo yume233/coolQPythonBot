@@ -11,6 +11,7 @@ from .parse import getCorrectInfo, searchImage
 __plugin_name__ = 'illust_search'
 
 PluginManager.registerPlugin(__plugin_name__, defaultStatus=False)
+POWER_GROUP = GROUP_ADMIN | SUPERUSER | PRIVATE_FRIEND
 
 
 @on_command(__plugin_name__, aliases=('以图搜图', '搜图'))
@@ -44,7 +45,7 @@ def _(session: CommandSession):
 
 @on_command('illust_search_enable',
             aliases=('启用搜图', '打开以图搜图'),
-            permission=GROUP_ADMIN | SUPERUSER | PRIVATE_FRIEND)
+            permission=POWER_GROUP)
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
@@ -54,7 +55,7 @@ def _(session: CommandSession):
 
 @on_command('illust_search_disable',
             aliases=('禁用搜图', '关闭以图搜图'),
-            permission=GROUP_ADMIN | SUPERUSER | PRIVATE_FRIEND)
+            permission=POWER_GROUP)
 @processSession
 @SyncToAsync
 def _(session: CommandSession):

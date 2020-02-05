@@ -28,16 +28,14 @@ def Timeit(function: Callable):
     """
     @wraps(function)
     def wrapper(*args, **kwargs):
-        t = time() * 1000
+        functionName = _getFunctionName(function)
+        startTime = time() * 1000
         try:
             returnData = function(*args, **kwargs)
-        except:
-            raise
         finally:
-            functionName = _getFunctionName(function)
-            logger.debug(
-                f'Function {functionName} cost {round(time()*1000-t,3)}ms.' +
-                f'args={str(args)[:100]}...,kwargs={str(kwargs)[:100]}...')
+            runningCost = (time() * 1000) - startTime
+            logger.debug(f'Function {functionName} cost {runningCost:.3f}ms.' +
+                         f'args={args:.100s}...,kwargs={kwargs:.100s}...')
         return returnData
 
     return wrapper
@@ -131,11 +129,11 @@ def CatchRequestsException(function: Callable = None,
     if function is None:
         return partial(CatchRequestsException, prompt=prompt, retries=retries)
 
+    functionName = _getFunctionName(function)
+    function = Timeit(function)
+
     @wraps(function)
     def wrapper(*args, **kwargs):
-        nonlocal function
-        functionName = _getFunctionName(function)
-        function = Timeit(function)
         for _ in range(retries if retries else 1):
             try:
                 return function(*args, **kwargs)

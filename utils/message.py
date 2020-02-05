@@ -62,7 +62,7 @@ def processSession(function: Callable = None,
 
         logger.debug(f'Session Class:{type(session).__name__},' +
                      f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{sessionMessage.__repr__()}",' +
+                     f'Message Text:"{sessionMessage:r}",' +
                      f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
 
         if isinstance(session, CommandSession):

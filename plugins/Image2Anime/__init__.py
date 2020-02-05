@@ -27,7 +27,7 @@ def animeSearch(session: CommandSession):
         imageRes = processGIF(imageRes)
     if len(imageRes) >= 1024**2:
         raise BotProgramError('图片大小超过限制,必须小于1MiB,' +
-                              f'您的图片大小为{round(len(imageRes)/1024**2,3)}MiB')
+                              f'您的图片大小为{len(imageRes)/1024**2:.3f}MiB')
     searchResult = whatanimeUpload(imageRes)
     messageRepeat = [
         str(Config.customize.repeat).format(**perAnime)
