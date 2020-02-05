@@ -3,6 +3,8 @@
 
 > 基于酷Q+CQHTTP的多功能QQ机器人
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/55fe934189a74bf392bfbb301dfc33d4)](https://www.codacy.com/manual/mnixry/coolQPythonBot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mnixry/coolQPythonBot&amp;utm_campaign=Badge_Grade)
+
 ---
 
 ## **介绍**  *Introduce*
