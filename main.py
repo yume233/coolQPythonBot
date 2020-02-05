@@ -16,7 +16,7 @@ COPYRIGHT = '\033[0;37;1m' + r'''
                                        __/ |                                             
                                       |___/                                              
 
-Copyright © 2019 mnixry,All Rights Reserved
+Copyright © 2019-2020 mnixry,All Rights Reserved
 Project: https://github.com/mnixry/coolQPythonBot
 =================================================''' + '\033[0m'
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         nonebot.run()
     except KeyboardInterrupt:
         nonebot.logger.fatal('Program stopped due to user termination.' +
-                             f'Uptime:{round(time() - startTime,3)}s')
+                             f'Uptime:{time() - startTime:.3f}s')
     finally:
         nonebot.logger.fatal(
             'The program encountered a fatal error and exited unexpectedly.' +

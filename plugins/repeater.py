@@ -27,7 +27,7 @@ def _(session: NLPSession):
     if not groupID:
         return
     logger.debug(
-        f'Chat {groupID} has a repeat probability of {(1/groupRate)*100}%.' +
+        f'Chat {groupID} has a repeat probability of {1/groupRate:.3%}.' +
         f'The random number of the current session {msgID} is {randomNum}.')
     if not randomNum:
         return session.msg, False
@@ -45,7 +45,7 @@ def repeatSetter(session: CommandSession):
     groupID = session.ctx['group_id']
     if not getSettings.status: getSettings.status = True
     getSettings.settings = {'rate': getRate}
-    return f'群{groupID}复读概率已被设置为{round(1/getRate,4)*100}%'
+    return f'群{groupID}复读概率已被设置为{1/getRate:.3%}'
 
 
 @repeatSetter.args_parser
@@ -55,7 +55,7 @@ def _(session: CommandSession):
     if session.current_arg_text.strip().isdigit():
         rate = int(session.current_arg_text.strip())
         if rate <= 0:
-            session.finish('无效的复读概率值,应为一个有效的正整数')
+            session.finish('无效的复读概率值,应为一个正整数')
         session.state['rate'] = rate
 
 

@@ -5,6 +5,7 @@ from itertools import cycle
 from os.path import isfile
 from urllib.parse import urljoin
 
+import apscheduler
 import requests
 from nonebot import (CommandSession, MessageSegment, logger, on_command,
                      scheduler)

@@ -36,7 +36,7 @@ def getCorrectInfo(originData: str) -> Dict[str, Any]:
         previewLink = urljoin(_ASCII2D_ADDRESS,
                               perSubject.xpath('.//div/img/@src')[0])
         imageTitle = perSubject.xpath('.//a[@rel][1]/text()')
-        imageTitle = imageTitle[0] if imageTitle else '获取失败'
+        imageTitle = imageTitle[0] if imageTitle else None
         imageLink = perSubject.xpath('.//a[@rel][1]/@href')
         imageLink = imageLink[0] if imageLink else previewLink
         subjectList.append({
