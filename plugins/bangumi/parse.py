@@ -1,7 +1,9 @@
+from typing import Any, Dict, Generator, List, Optional
+
 import requests
-from typing import List, Optional, Any, Dict, Generator
-from utils.decorators import catchRequestsException
-from utils.exceptions import BotProgramError, BotNotFoundError
+
+from utils.decorators import CatchRequestsException
+from utils.exception import BotNotFoundError, BotProgramError
 
 BASE_URL = 'https://bangumi.moe'
 
@@ -17,7 +19,7 @@ class _baseRequest:
         return r.json()
 
     @staticmethod
-    @catchRequestsException(prompt='从番组获取数据失败', retries=3)
+    @CatchRequestsException(prompt='从番组获取数据失败', retries=3)
     def POST(url: str,
              data: Optional[Dict[str, Any]] = {},
              headers: Optional[Dict[str, str]] = {}) -> Any:
@@ -65,15 +67,16 @@ def _getCorrectName(subject: Dict[str, Any]) -> str:
 
 
 class parseBangumi:
+    @staticmethod
     def page(pageNumber: Optional[int] = 1) -> Dict[str, Any]:
         dataGet = _bangumi.page(pageNumber)
         perSubject: Dict[str, Any]
         subjectData = [{
             'id': perSubject['_id'],
             'name': perSubject['title'],
-            'tags': persubject['tag_ids'],
-            'magnet': persubject['magnet'],
-            'hash': persubject['infoHash'],
+            'tags': perSubject['tag_ids'],
+            'magnet': perSubject['magnet'],
+            'hash': perSubject['infoHash'],
             'link': f'{BASE_URL}/torrent/{perSubject["_id"]}'
         } for perSubject in dataGet['torrents']]
         retData = {
@@ -83,6 +86,7 @@ class parseBangumi:
         }
         return retData
 
+    @staticmethod
     def tags(query: str) -> List[Dict[str, Any]]:
         dataGet = _bangumi.searchTags(query)
         perSubject: Dict[str, Any]
@@ -93,6 +97,7 @@ class parseBangumi:
         } for perSubject in dataGet]
         return retData
 
+    @staticmethod
     def search(tags: List[str],
                page: Optional[int] = 1) -> List[Dict[str, Any]]:
         dataGet = _bangumi.searchBangumis(tags, page)
@@ -100,15 +105,15 @@ class parseBangumi:
         subjectData = [{
             'id': perSubject['_id'],
             'name': perSubject['title'],
-            'tags': persubject['tag_ids'],
-            'magnet': persubject['magnet'],
-            'hash': persubject['infoHash'],
+            'tags': perSubject['tag_ids'],
+            'magnet': perSubject['magnet'],
+            'hash': perSubject['infoHash'],
             'link': f'{BASE_URL}/torrent/{perSubject["_id"]}'
         } for perSubject in dataGet['torrents']]
         retData = {
-            'total_page':dataGet['page_count'],
-            'total_size':dataGet['count'],
-            'size':len(subjectData)
-            'subjects':subjectData
+            'total_page': dataGet['page_count'],
+            'total_size': dataGet['count'],
+            'size': len(subjectData),
+            'subjects': subjectData
         }
         return retData

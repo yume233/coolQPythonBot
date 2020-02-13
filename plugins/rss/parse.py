@@ -59,7 +59,7 @@ def rssParser(feed: str) -> dict:
         if parsedData.get('bozo') != 0:
             raise parsedData['bozo_exception']
     except:
-        traceID = CatchException()
+        traceID = ExceptionProcess.catch()
         raise BotProgramError(reason='处理RSS订阅数据失败', trace=traceID)
 
     logger.debug(
