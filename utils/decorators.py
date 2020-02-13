@@ -1,17 +1,19 @@
-from asyncio import Task, get_event_loop, set_event_loop
+from asyncio import get_running_loop, run_coroutine_threadsafe
+from concurrent.futures import Future
+from concurrent.futures import wait as waitFuture
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
 from time import sleep, time
-from typing import Callable, Optional, Union
+from typing import Awaitable, Callable, Optional, Union
 
-from nonebot import IntentCommand, logger, on_natural_language
+from nonebot import IntentCommand, logger, on_natural_language, get_bot
 from requests import HTTPError, RequestException
 
 from .botConfig import settings
 from .exception import BotRequestError, ExceptionProcess
 
-_EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
-_EVENT_LOOP = get_event_loop()
+_EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM,
+                               thread_name_prefix='BotThreadPool')
 
 
 def _getFunctionName(function: Callable) -> str:
@@ -31,13 +33,12 @@ def Timeit(function: Callable):
         functionName = _getFunctionName(function)
         startTime = time() * 1000
         try:
-            returnData = function(*args, **kwargs)
+            return function(*args, **kwargs)
         finally:
             runningCost = (time() * 1000) - startTime
             logger.debug(
                 f'Function {functionName} cost {runningCost:.3f}ms.' +
                 f'args={str(args):.100s}...,kwargs={str(kwargs):.100s}...')
-        return returnData
 
     return wrapper
 
@@ -48,12 +49,10 @@ def SyncToAsync(function: Callable):
     function = Timeit(function)
 
     @wraps(function)
-    async def wrapper(*args, **kwargs):
-        def runner():
-            set_event_loop(_EVENT_LOOP)
-            return function(*args, **kwargs)
-
-        return await get_event_loop().run_in_executor(_EXECUTOR, runner)
+    def wrapper(*args, **kwargs):
+        loop = get_bot().loop
+        runner: Callable = lambda: function(*args, **kwargs)
+        return loop.run_in_executor(_EXECUTOR, runner)
 
     return wrapper
 
@@ -65,12 +64,12 @@ def AsyncToSync(function: Callable):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        task: Task = _EVENT_LOOP.create_task(function(*args, **kwargs))
-        while not task.done():
+        loop = get_bot().loop
+        coroutine: Awaitable = function(*args, **kwargs)
+        future: Future = run_coroutine_threadsafe(coro=coroutine, loop=loop)
+        while future.running():
             sleep(.1)
-        if task.exception():
-            raise task.exception()
-        return task.result()
+        return future.result()
 
     return wrapper
 

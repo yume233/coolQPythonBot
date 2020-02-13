@@ -1,5 +1,5 @@
-from typing import  Optional
 from inspect import iscoroutinefunction
+from typing import Optional
 
 from nonebot import NoneBot, get_bot
 from PIL import Image
@@ -94,7 +94,7 @@ def callModuleAPI(method: str, params: Optional[dict] = {}):
     return AsyncToSync(AsyncAPIMethod)(**params)
 
 
-def convertImageFormat(image: bytes, quality: int = 80) -> bytes:
+def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
     """Convert picture format to solve the problem of unrecognizable pictures
     
     Parameters
