@@ -1,5 +1,5 @@
 from asyncio import iscoroutinefunction
-from typing import Optional
+from typing import Optional, Any, Dict
 
 from nonebot import NoneBot, get_bot
 from nonebot.log import logger
@@ -65,13 +65,13 @@ class SyncWrapper:
         self._subject = subject
         self._sync = AsyncToSync
 
-    def __getattr__(self, key: str):
+    def __getattr__(self, key: str) -> Any:
         originAttr = getattr(self._subject, key)
         return (self._sync(originAttr)
                 if iscoroutinefunction(originAttr) else originAttr)
 
 
-def callModuleAPI(method: str, params: Optional[dict] = {}):
+def callModuleAPI(method: str, params: Optional[dict] = {}) -> Dict[str, Any]:
     """Call CQHTTP's underlying API
     
     Parameters

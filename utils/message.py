@@ -24,7 +24,7 @@ UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
 def _messageSender(function: Callable) -> Callable:
     @wraps(function)
     async def wrapper(session: UnionSession, *args, **kwargs):
-        returnData = AsyncToSync(function)(session, *args, **kwargs)
+        returnData = await function(session, *args, **kwargs)
         if isinstance(returnData, tuple):
             replyData, atSender = returnData
         elif isinstance(returnData, str):
@@ -33,6 +33,9 @@ def _messageSender(function: Callable) -> Callable:
             return
         if atSender: replyData = '\n' + replyData
         if settings.DEBUG: replyData += '\n(DEBUG)'
+        logger.debug(
+            'Reply to message of conversation ' +
+            f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
         await session.send(replyData, at_sender=atSender)
 
     return wrapper

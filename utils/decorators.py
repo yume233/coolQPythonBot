@@ -53,9 +53,8 @@ def SyncToAsync(function: Callable):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        loop = get_bot().loop
         runner: Callable = lambda: function(*args, **kwargs)
-        return loop.run_in_executor(_EXECUTOR, runner)
+        return get_bot().loop.run_in_executor(_EXECUTOR, runner)
 
     return wrapper
 
