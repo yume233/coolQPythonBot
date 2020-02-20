@@ -3,10 +3,11 @@ from concurrent.futures import Future
 from concurrent.futures import wait as waitFuture
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
+from inspect import isawaitable
 from time import sleep, time
 from typing import Awaitable, Callable, Optional, Union
 
-from nonebot import IntentCommand, logger, on_natural_language, get_bot
+from nonebot import IntentCommand, get_bot, logger, on_natural_language
 from requests import HTTPError, RequestException
 
 from .botConfig import settings
@@ -28,6 +29,8 @@ def _getFunctionName(function: Callable) -> str:
 def Timeit(function: Callable):
     """Decorator for timing a function
     """
+    assert callable(function)
+
     @wraps(function)
     def wrapper(*args, **kwargs):
         functionName = _getFunctionName(function)
@@ -64,11 +67,10 @@ def AsyncToSync(function: Callable):
 
     @wraps(function)
     def wrapper(*args, **kwargs):
-        loop = get_bot().loop
         coroutine: Awaitable = function(*args, **kwargs)
+        assert isawaitable(coroutine)
+        loop = get_bot().loop
         future: Future = run_coroutine_threadsafe(coro=coroutine, loop=loop)
-        while future.running():
-            sleep(.1)
         return future.result()
 
     return wrapper

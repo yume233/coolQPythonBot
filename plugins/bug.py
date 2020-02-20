@@ -19,7 +19,8 @@ def catch(session: CommandSession):
 
 
 @catch.args_parser
-async def _(session: CommandSession):
+@SyncToAsync
+def _(session: CommandSession):
     strippedArgs = session.current_arg_text.strip()
     if not strippedArgs:
         session.pause('请输入错误追踪ID')

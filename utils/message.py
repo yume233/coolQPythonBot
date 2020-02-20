@@ -10,7 +10,7 @@ from nonebot.log import logger
 from nonebot.session import BaseSession
 
 from .botConfig import settings
-from .decorators import Timeit
+from .decorators import Timeit, AsyncToSync
 from .exception import (BaseBotError, BotDisabledError, BotExistError,
                         BotMessageError, BotNetworkError, BotNotFoundError,
                         BotPermissionError, BotProgramError, BotRequestError,
@@ -24,7 +24,7 @@ UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
 def _messageSender(function: Callable) -> Callable:
     @wraps(function)
     async def wrapper(session: UnionSession, *args, **kwargs):
-        returnData = await function(session, *args, **kwargs)
+        returnData = AsyncToSync(function)(session, *args, **kwargs)
         if isinstance(returnData, tuple):
             replyData, atSender = returnData
         elif isinstance(returnData, str):
@@ -60,10 +60,11 @@ def processSession(function: Callable = None,
             pluginName=pluginName,
             ctx=session.ctx).status if pluginName else True
 
-        logger.debug(f'Session Class:{type(session).__name__},' +
-                     f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{sessionMessage.__repr__()}",' +
-                     f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
+        logger.debug('Session information: ' +
+                     f'type={type(session).__name__},' +
+                     f'plugin={pluginName},' +
+                     f'content={sessionMessage.__repr__()},' +
+                     f'ctx={session.ctx}' + f'enabled={enabled}')
 
         if isinstance(session, CommandSession):
             cancelController = handle_cancellation(session)

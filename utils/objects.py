@@ -1,7 +1,8 @@
-from inspect import iscoroutinefunction
+from asyncio import iscoroutinefunction
 from typing import Optional
 
 from nonebot import NoneBot, get_bot
+from nonebot.log import logger
 from PIL import Image
 
 
@@ -66,10 +67,8 @@ class SyncWrapper:
 
     def __getattr__(self, key: str):
         originAttr = getattr(self._subject, key)
-        if iscoroutinefunction(originAttr):
-            return self._sync(originAttr)
-        else:
-            return originAttr
+        return (self._sync(originAttr)
+                if iscoroutinefunction(originAttr) else originAttr)
 
 
 def callModuleAPI(method: str, params: Optional[dict] = {}):
@@ -89,7 +88,7 @@ def callModuleAPI(method: str, params: Optional[dict] = {}):
     """
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
-    AsyncAPIMethod = botObject.__getattr__(item=method)
+    AsyncAPIMethod = botObject.call_action(action=method, **params)
     assert AsyncAPIMethod
     return AsyncToSync(AsyncAPIMethod)(**params)
 

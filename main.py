@@ -27,7 +27,7 @@ if __name__ == "__main__":
     app = initApp()
     startTime = time()
     try:
-        nonebot.run()
+        nonebot.run(use_reloader=False)
     except KeyboardInterrupt:
         nonebot.logger.fatal('Program stopped due to user termination.' +
                              f'Uptime:{time() - startTime:.3f}s')
