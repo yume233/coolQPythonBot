@@ -1,22 +1,24 @@
 import json
 from functools import wraps
 from os.path import isfile as isFileExist
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 from copy import deepcopy
 
 from nonebot import logger
 
 from .botConfig import settings
 
+Settings_T = Dict[str, Any]
+
 SETTING_DIR = './data/pluginSettings.json'
 
-_CACHE = {}
+_CACHE: Settings_T = {}
 _MODIFED = True
 
 
 class _SettingsIO:
     @staticmethod
-    def read() -> dict:
+    def read() -> Settings_T:
         if not isFileExist(SETTING_DIR):
             return {}
         with open(SETTING_DIR, 'rt', encoding='utf-8') as f:
@@ -24,7 +26,7 @@ class _SettingsIO:
         return json.loads(fileRead)
 
     @staticmethod
-    def write(data: dict) -> int:
+    def write(data: Settings_T) -> int:
         dumpedData = json.dumps(
             data, ensure_ascii=False, sort_keys=True,
             indent=4) if settings.DEBUG else json.dumps(data)
@@ -88,7 +90,7 @@ class SingleSetting(object):
         """
         assert type in ('group', 'user')
         self.name, self.type = pluginName, type
-        self.id = str(id) if id != None else 'default'
+        self.id = str(id) if isinstance(id, int) else 'default'
 
     @property
     @_checker
@@ -164,7 +166,7 @@ class _PluginManager:
     def _getSettings(self,
                      pluginName: str,
                      type: str,
-                     id: Optional[int] = None):
+                     id: Optional[int] = None) -> SingleSetting:
         """Get settings for a certain plugin
         
         Parameters

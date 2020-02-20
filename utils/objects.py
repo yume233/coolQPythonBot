@@ -1,7 +1,8 @@
-from typing import  Optional
-from inspect import iscoroutinefunction
+from asyncio import iscoroutinefunction
+from typing import Optional, Any, Dict
 
 from nonebot import NoneBot, get_bot
+from nonebot.log import logger
 from PIL import Image
 
 
@@ -64,15 +65,13 @@ class SyncWrapper:
         self._subject = subject
         self._sync = AsyncToSync
 
-    def __getattr__(self, key: str):
+    def __getattr__(self, key: str) -> Any:
         originAttr = getattr(self._subject, key)
-        if iscoroutinefunction(originAttr):
-            return self._sync(originAttr)
-        else:
-            return originAttr
+        return (self._sync(originAttr)
+                if iscoroutinefunction(originAttr) else originAttr)
 
 
-def callModuleAPI(method: str, params: Optional[dict] = {}):
+def callModuleAPI(method: str, params: Optional[dict] = {}) -> Dict[str, Any]:
     """Call CQHTTP's underlying API
     
     Parameters
@@ -89,12 +88,12 @@ def callModuleAPI(method: str, params: Optional[dict] = {}):
     """
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
-    AsyncAPIMethod = botObject.__getattr__(item=method)
+    AsyncAPIMethod = botObject.call_action(action=method, **params)
     assert AsyncAPIMethod
     return AsyncToSync(AsyncAPIMethod)(**params)
 
 
-def convertImageFormat(image: bytes, quality: int = 80) -> bytes:
+def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
     """Convert picture format to solve the problem of unrecognizable pictures
     
     Parameters

@@ -10,7 +10,7 @@ from nonebot.log import logger
 from nonebot.session import BaseSession
 
 from .botConfig import settings
-from .decorators import Timeit
+from .decorators import Timeit, AsyncToSync
 from .exception import (BaseBotError, BotDisabledError, BotExistError,
                         BotMessageError, BotNetworkError, BotNotFoundError,
                         BotPermissionError, BotProgramError, BotRequestError,
@@ -33,6 +33,9 @@ def _messageSender(function: Callable) -> Callable:
             return
         if atSender: replyData = '\n' + replyData
         if settings.DEBUG: replyData += '\n(DEBUG)'
+        logger.debug(
+            'Reply to message of conversation ' +
+            f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
         await session.send(replyData, at_sender=atSender)
 
     return wrapper
@@ -60,10 +63,11 @@ def processSession(function: Callable = None,
             pluginName=pluginName,
             ctx=session.ctx).status if pluginName else True
 
-        logger.debug(f'Session Class:{type(session).__name__},' +
-                     f'Plugin Name:{pluginName},' +
-                     f'Message Text:"{sessionMessage.__repr__()}",' +
-                     f'Enabled:{enabled},' + f'CTX:"{session.ctx}"')
+        logger.debug('Session information: ' +
+                     f'type={type(session).__name__},' +
+                     f'plugin={pluginName},' +
+                     f'content={sessionMessage.__repr__()},' +
+                     f'ctx={session.ctx}' + f'enabled={enabled}')
 
         if isinstance(session, CommandSession):
             cancelController = handle_cancellation(session)
