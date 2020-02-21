@@ -4,13 +4,13 @@ from typing import Callable, Optional, Union
 from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
 from nonebot.command import (SwitchException, ValidateError, _FinishException,
                              _PauseException)
-from nonebot.command.argfilter.extractors import extract_text
 from nonebot.command.argfilter.controllers import handle_cancellation
+from nonebot.command.argfilter.extractors import extract_text
 from nonebot.log import logger
 from nonebot.session import BaseSession
 
 from .botConfig import settings
-from .decorators import Timeit, AsyncToSync
+from .decorators import AsyncToSync, Timeit
 from .exception import (BaseBotError, BotDisabledError, BotExistError,
                         BotMessageError, BotNetworkError, BotNotFoundError,
                         BotPermissionError, BotProgramError, BotRequestError,
@@ -33,7 +33,7 @@ def _messageSender(function: Callable) -> Callable:
             return
         if atSender: replyData = '\n' + replyData
         if settings.DEBUG: replyData += '\n(DEBUG)'
-        logger.debug(
+        logger.info(
             'Reply to message of conversation ' +
             f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
         await session.send(replyData, at_sender=atSender)
@@ -63,11 +63,13 @@ def processSession(function: Callable = None,
             pluginName=pluginName,
             ctx=session.ctx).status if pluginName else True
 
-        logger.debug('Session information: ' +
-                     f'type={type(session).__name__},' +
-                     f'plugin={pluginName},' +
-                     f'content={sessionMessage.__repr__()},' +
-                     f'ctx={session.ctx}' + f'enabled={enabled}')
+        logger.debug('Session information:' + ','.join([
+            f'type={type(session).__name__}',
+            f'plugin={pluginName}',
+            f'content={sessionMessage.__repr__()}',
+            f'ctx={session.ctx}',
+            f'enabled={enabled}',
+        ]))
 
         if isinstance(session, CommandSession):
             cancelController = handle_cancellation(session)
@@ -115,6 +117,11 @@ def processSession(function: Callable = None,
         except AssertionError as e:
             return f'程序抛出断言,原因:{e},追踪ID:{ExceptionProcess.catch()}'
         except:
+            from loguru import logger as loguruLogger
+            loguruLogger.exception(
+                'An unknown error occurred while' +
+                f'processing message {session.ctx["message_id"]}:')
+
             if not isinstance(session, CommandSession): return
             if settings.DEBUG: raise
             return f'出现未知错误,追踪ID:{ExceptionProcess.catch()},请联系开发者'

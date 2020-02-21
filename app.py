@@ -1,31 +1,45 @@
+import logging
 import os
-from datetime import datetime
-from logging import FileHandler, Formatter
 
 import nonebot
+from loguru import logger as loguruLogger
+from nonebot.log import logger as botLogger
 from quart import Quart
 
 from utils.botConfig import convertSettingsToDict, settings
 
-LOG_DIR = './data/logs'
-
 os.chdir(os.path.split(__file__)[0])
+LOG_FILE_DIR = './data/logs'
+
+if not os.path.exists(LOG_FILE_DIR):
+    os.mkdir(LOG_FILE_DIR)
 
 
-def _getLogName():
-    date = str(datetime.now()).replace(':', '_')
-    if not os.path.exists(LOG_DIR):
-        os.mkdir(LOG_DIR)
-    return os.path.join(LOG_DIR, f'{date}.log')
+class _LoguruHandler(logging.Handler):
+    def emit(self, record):
+        message = record.getMessage()
+        logger = loguruLogger
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, message)
 
 
 def initApp() -> Quart:
-    assert nonebot.scheduler
-    _logFormatter = Formatter(
-        '[%(asctime)s %(name)s] %(levelname)s: %(message)s')
-    _logHandler = FileHandler(filename=_getLogName(), encoding='utf-8')
-    _logHandler.setFormatter(_logFormatter)
-    nonebot.logger.addHandler(_logHandler)
+    assert nonebot.scheduler  #Check if scheduler exists
+    #Initialize logging
+    loguruHandler = _LoguruHandler()
+    loguruLogger.add(os.path.join(LOG_FILE_DIR, '{time}.log'), enqueue=True)
+    botLogger.handlers.clear()
+    botLogger.addHandler(loguruHandler)
+    #Initialize settings
     nonebot.init(settings)
     nonebot.load_plugins('plugins', 'plugins')
     nonebot.logger.debug(
