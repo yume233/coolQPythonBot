@@ -35,8 +35,9 @@ class _LoguruHandler(logging.Handler):
 def initApp() -> Quart:
     assert nonebot.scheduler  #Check if scheduler exists
     #Initialize logging
+    loggingPath = os.path.join(LOG_FILE_DIR, '{time}.log')
     loguruHandler = _LoguruHandler()
-    loguruLogger.add(os.path.join(LOG_FILE_DIR, '{time}.log'), enqueue=True)
+    loguruLogger.add(loggingPath, enqueue=True, encoding='utf-8')
     botLogger.handlers.clear()
     botLogger.addHandler(loguruHandler)
     #Initialize settings
