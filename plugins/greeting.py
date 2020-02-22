@@ -90,12 +90,14 @@ def timeTelling(*_) -> str:
 
 def batchSend():
     executor = ThreadPoolExecutor(CONFIG.api.thread)
-    groupsList = [
-        i['group_id'] for i in callModuleAPI('get_group_list') if
-        PluginManager._getSettings(__plugin_name__, type='group', id=i).status
-    ]
+    groupsList = [i['group_id'] for i in callModuleAPI('get_group_list')]
     sendList = cycle(executor.map(timeTelling, [tuple() for _ in groupsList]))
     for groupID in groupsList:
+        enabled = PluginManager._getSettings(__plugin_name__,
+                                             type='group',
+                                             id=groupID).status
+        if not enabled:
+            continue
         sendParams = {'group_id': groupID, 'message': next(sendList)}
         callModuleAPI('send_msg', params=sendParams)
 
@@ -109,7 +111,7 @@ def scheduledTiming():
 
 
 @on_command('test_greeting', aliases=('今日一言', ), permission=GROUP_MEMBER)
-@processSession()
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     return timeTelling(), True
@@ -118,7 +120,7 @@ def _(session: CommandSession):
 @on_command('enable_greeting',
             aliases=('打开问好', '启用问好'),
             permission=POWER_GROUP)
-@processSession()
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.ctx).status = True
@@ -128,7 +130,7 @@ def _(session: CommandSession):
 @on_command('disable_greeting',
             aliases=('关闭问好', '禁用问好'),
             permission=POWER_GROUP)
-@processSession()
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.ctx).status = False
@@ -136,7 +138,7 @@ def _(session: CommandSession):
 
 
 @on_command('test_greeting_batch', aliases=('测试问好群发', ), permission=SUPERUSER)
-@processSession()
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     batchSend()
