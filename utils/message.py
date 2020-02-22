@@ -1,16 +1,17 @@
 from functools import partial, wraps
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, Tuple
 
 from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
 from nonebot.command import (SwitchException, ValidateError, _FinishException,
                              _PauseException)
-from nonebot.command.argfilter.extractors import extract_text
 from nonebot.command.argfilter.controllers import handle_cancellation
+from nonebot.command.argfilter.extractors import extract_text
 from nonebot.log import logger
+from nonebot.message import MessageSegment
 from nonebot.session import BaseSession
 
 from .botConfig import settings
-from .decorators import Timeit, AsyncToSync
+from .decorators import AsyncToSync, Timeit
 from .exception import (BaseBotError, BotDisabledError, BotExistError,
                         BotMessageError, BotNetworkError, BotNotFoundError,
                         BotPermissionError, BotProgramError, BotRequestError,
@@ -24,19 +25,25 @@ UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
 def _messageSender(function: Callable) -> Callable:
     @wraps(function)
     async def wrapper(session: UnionSession, *args, **kwargs):
-        returnData = await function(session, *args, **kwargs)
+        returnData: Union[Tuple[str, bool], str] = \
+            await function(session, *args, **kwargs)
         if isinstance(returnData, tuple):
             replyData, atSender = returnData
         elif isinstance(returnData, str):
             replyData, atSender = returnData, True
         else:
             return
+
         if atSender: replyData = '\n' + replyData
         if settings.DEBUG: replyData += '\n(DEBUG)'
-        logger.debug(
+        logger.info(
             'Reply to message of conversation ' +
             f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
-        await session.send(replyData, at_sender=atSender)
+
+        if hasattr(session, 'finish'):
+            session.finish(replyData, at_sender=atSender)
+        else:
+            await session.send(replyData, at_sender=atSender)
 
     return wrapper
 
@@ -56,6 +63,7 @@ def processSession(function: Callable = None,
     @_messageSender
     async def wrapper(session: UnionSession, *args, **kwargs):
         assert isinstance(session, BaseSession)
+        sessionType = type(session)
 
         sessionMessage: str = extract_text(session.ctx['message'])
 
@@ -63,11 +71,13 @@ def processSession(function: Callable = None,
             pluginName=pluginName,
             ctx=session.ctx).status if pluginName else True
 
-        logger.debug('Session information: ' +
-                     f'type={type(session).__name__},' +
-                     f'plugin={pluginName},' +
-                     f'content={sessionMessage.__repr__()},' +
-                     f'ctx={session.ctx}' + f'enabled={enabled}')
+        logger.debug('Session information:' + ','.join([
+            f'type={sessionType.__name__}',
+            f'plugin={pluginName}',
+            f'content={sessionMessage.__repr__()}',
+            f'ctx={session.ctx}',
+            f'enabled={enabled}',
+        ]))
 
         if isinstance(session, CommandSession):
             cancelController = handle_cancellation(session)
@@ -77,10 +87,8 @@ def processSession(function: Callable = None,
             if not enabled:
                 if isinstance(session, CommandSession): raise BotDisabledError
                 else: return
-            if convertToSync:
-                session = SyncWrapper(session)
-
-            return await function(session, *args, **kwargs)
+            execSession = SyncWrapper(session) if convertToSync else session
+            return await function(execSession, *args, **kwargs)
 
         except (_FinishException, _PauseException, SwitchException,
                 ValidateError):
@@ -115,8 +123,13 @@ def processSession(function: Callable = None,
         except AssertionError as e:
             return f'程序抛出断言,原因:{e},追踪ID:{ExceptionProcess.catch()}'
         except:
-            if not isinstance(session, CommandSession): return
-            if settings.DEBUG: raise
-            return f'出现未知错误,追踪ID:{ExceptionProcess.catch()},请联系开发者'
+            from loguru import logger as loguruLogger
+            traceID = ExceptionProcess.catch()
+            loguruLogger.exception(
+                f'An unknown error (ID:{traceID}) occurred while' +
+                f'processing message {session.ctx["message_id"]}:')
+
+            if not sessionType == CommandSession: return
+            return f'出现未知错误,追踪ID:{traceID},请联系开发者'
 
     return wrapper

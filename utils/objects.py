@@ -88,9 +88,10 @@ def callModuleAPI(method: str, params: Optional[dict] = {}) -> Dict[str, Any]:
     """
     from .decorators import AsyncToSync
     botObject: NoneBot = get_bot()
-    AsyncAPIMethod = botObject.call_action(action=method, **params)
-    assert AsyncAPIMethod
-    return AsyncToSync(AsyncAPIMethod)(**params)
+    syncAPIMethod = AsyncToSync(botObject.call_action)
+    logger.debug('CQHTTP native API is being actively called, ' +
+                 f'data: action={method}, params={str(params):.100s}')
+    return syncAPIMethod(method, **params)
 
 
 def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:

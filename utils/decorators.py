@@ -1,4 +1,4 @@
-from asyncio import get_running_loop, run_coroutine_threadsafe
+from asyncio import run_coroutine_threadsafe
 from concurrent.futures import Future
 from concurrent.futures import wait as waitFuture
 from concurrent.futures.thread import ThreadPoolExecutor
