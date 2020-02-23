@@ -85,6 +85,10 @@ class BotDisabledError(BotProgramError):
     pass
 
 
+class BotRateLimitError(BotProgramError):
+    pass
+
+
 class BotRequestError(BotNetworkError):
     pass
 
