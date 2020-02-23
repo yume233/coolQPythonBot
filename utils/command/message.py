@@ -1,15 +1,15 @@
-from asyncio import iscoroutinefunction
+from asyncio import create_task, iscoroutinefunction
+from asyncio import sleep as asyncSleep
 from functools import partial, wraps
 from typing import Any, Callable, Optional, Tuple, Union
 
-from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
-from nonebot.permission import check_permission
-from nonebot import scheduler
+from nonebot import get_bot, scheduler
 from nonebot.command import (CommandHandler_T, CommandName_T, CommandSession,
                              SwitchException, ValidateError, _FinishException,
                              _PauseException, on_command)
 from nonebot.command.argfilter.controllers import handle_cancellation
 from nonebot.command.argfilter.extractors import extract_text
+from nonebot.permission import check_permission
 
 from ..exceptions import (BaseBotError, BotDisabledError, BotExistError,
                           BotMessageError, BotNetworkError, BotNotFoundError,
@@ -21,6 +21,7 @@ from ..objects.decorators import SyncToAsync, Timing
 from .settings import CommandSettings
 
 _CALLERS = {}
+_SETTINGS = {}
 
 
 @scheduler.scheduled_job('interval', minutes=1)
@@ -32,8 +33,11 @@ async def _():
 def _messageSender(function: Callable) -> Callable:
     @wraps(function)
     async def wrapper(session: CommandSession, *args, **kwargs):
-        returnData: Union[Tuple[str, bool], str] = \
-            await function(session, *args, **kwargs)
+        global _SETTINGS
+        returnData: Optional[Union[Tuple[str, bool], str]]
+        returnData = await function(session, *args, **kwargs)
+        setting = _SETTINGS.pop(session.ctx['message_id'])
+
         if isinstance(returnData, tuple):
             replyData, atSender = returnData
         elif isinstance(returnData, str):
@@ -46,7 +50,15 @@ def _messageSender(function: Callable) -> Callable:
             'Reply to message of conversation ' +
             f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
 
-        session.finish(replyData, at_sender=atSender)
+        msgID = await session.send(replyData, at_sender=atSender)
+        if setting['auto_delete']:
+
+            async def _remover():
+                await asyncSleep(60)
+                await get_bot().delete_msg(message_id=msgID)
+
+            session.bot.loop.create_task(_remover(), name=f'Remover-{msgID}')
+        session.finish()
 
     return wrapper
 
@@ -55,12 +67,14 @@ def _messageSender(function: Callable) -> Callable:
 async def _funcRunner(session: CommandSession, function: CommandHandler_T,
                       name: CommandName_T) -> str:
     global _CALLERS
+    global _SETTINGS
     assert isinstance(session, CommandSession)
 
     setting = CommandSettings(name, session.ctx).data
     sessionMessage: str = extract_text(session.ctx['message'])
     permitted = check_permission(session.bot, session.ctx,
                                  setting['permission'])
+    _SETTINGS[session.ctx['message_id']] = setting
 
     sessionKey = (f'group_{session.ctx["group_id"]}'
                   if session.ctx.get('group_id') else

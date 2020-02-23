@@ -17,6 +17,7 @@ def withCommand(name: Union[str, CommandName_T],
                 enabledAsDefault: bool = True,
                 allowStateChange: bool = True,
                 requireActivateKey: bool = False,
+                autoDelete: bool = False,
                 defaultFreqency: int = 20,
                 permission: int = EVERYBODY,
                 **kwargs) -> Callable[CommandHandler_T]:
@@ -47,7 +48,8 @@ def withCommand(name: Union[str, CommandName_T],
                                         settings={
                                             'freqency': defaultFreqency,
                                             'permission': permission,
-                                            'enabled': enabledAsDefault
+                                            'enabled': enabledAsDefault,
+                                            'auto_delete': autoDelete
                                         })
 
         return CommandFunction(function,
