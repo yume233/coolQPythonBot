@@ -6,6 +6,7 @@ from nonebot.permission import EVERYBODY
 
 from ..log import logger
 from .settings import CommandSettings
+from .message import CommandFunction
 
 _COMMANDS: Dict[CommandName_T, Dict[str, Any]] = {}
 _SETTINGS: Dict[str, Dict[str, Any]] = {}
@@ -49,10 +50,10 @@ def withCommand(name: Union[str, CommandName_T],
                                             'enabled': enabledAsDefault
                                         })
 
-        @wraps(function)
-        def wrapper(*args, **kwargs) -> Any:
-            pass
-
-        return wrapper
+        return CommandFunction(function,
+                               name,
+                               aliases=aliases,
+                               permission=permission,
+                               **kwargs)
 
     return decorator

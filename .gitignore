@@ -2,11 +2,9 @@
 .vscode/
 *.json
 *.tmp
-*.yml
-*.sqlite*
-test*
+./configs
 !.gitkeep
-!default.*
+!./configs/default/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
