@@ -18,6 +18,7 @@ from ..exceptions import (BaseBotError, BotDisabledError, BotExistError,
 from ..log import logger
 from ..objects.classes import SyncWrapper
 from ..objects.decorators import SyncToAsync, Timing
+from ..settings.bot import settings as botSettings
 from .settings import CommandSettings
 
 _CALLERS = {}
@@ -46,6 +47,7 @@ def _messageSender(function: Callable) -> Callable:
             return
 
         if atSender: replyData = '\n' + replyData
+        if botSettings.DEBUG: replyData += '\n(DEBUG)'
         logger.info(
             'Reply to message of conversation ' +
             f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')

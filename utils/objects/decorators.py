@@ -10,9 +10,10 @@ from requests import HTTPError, RequestException
 
 from ..exceptions import BotRequestError, ExceptionProcess
 from ..log import logger
+from ..settings.bot import settings
 from .functions import getObjectName
 
-_Executor = ThreadPoolExecutor()
+_Executor = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 
 
 def Timing(function: Callable) -> Callable:

@@ -26,7 +26,6 @@ class _LoguruHandler(logging.Handler):
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, message)
 
-
 loguruLogger.add(os.path.join(LOG_DIR, '{time}.log'),
                  enqueue=True,
                  encoding='utf-8')

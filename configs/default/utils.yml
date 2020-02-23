@@ -1,0 +1,11 @@
+network:
+  proxy:
+    enable: false
+    address: "http://127.0.0.1:1081"
+
+  shorten:
+    address: "https://s.yami.im/yourls-api.php"
+    auth:
+      apikey: #API密钥，如果填写将优先使用
+      username: #API用户名密码
+      password:
