@@ -39,16 +39,11 @@ class _CommandSettings:
                            sort_keys=True,
                            indent=4))
 
-    def registerCommand(self,
-                        commandName: CommandName_T,
-                        settings: Optional[Dict[str, Any]] = None):
+    def registerCommand(self, commandName: CommandName_T, settings: Dict[str,
+                                                                         Any]):
         name: str = '.'.join(commandName)
         if self._settings.get(name): return
-        self._settings[name] = settings if settings else {
-            'default': {},
-            'groups': {},
-            'users': {}
-        }
+        self._settings[name] = settings
         self._store()
         logger.debug(
             f'<green>{name.title()}</green> command has been registered, ' +

@@ -8,7 +8,7 @@ from ..log import logger
 from .settings import CommandSettings
 from .message import CommandFunction
 
-_COMMANDS: Dict[CommandName_T, Dict[str, Any]] = {}
+COMMANDS: Dict[CommandName_T, Dict[str, Any]] = {}
 _SETTINGS: Dict[str, Dict[str, Any]] = {}
 
 
@@ -32,8 +32,8 @@ def withCommand(name: Union[str, CommandName_T],
                 'be disabled and can not be enabled by default, ' +
                 'which means that this command will not be invoked by any means.'
             )
-        global _COMMANDS
-        _COMMANDS[name] = {
+        global COMMANDS
+        COMMANDS[name] = {
             'aliases': aliases,
             'can_disable': allowStateChange,
             'require_active': requireActivateKey,
@@ -42,7 +42,7 @@ def withCommand(name: Union[str, CommandName_T],
             'permission': permission
         }
         for alias in aliases:
-            _COMMANDS[alias] = {'equal': name}
+            COMMANDS[alias] = {'equal': name}
 
         CommandSettings.registerCommand(commandName=name,
                                         settings={
