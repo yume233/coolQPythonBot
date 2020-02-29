@@ -1,70 +1,101 @@
 import json
 import os
 from copy import deepcopy
-from typing import Any, Dict, Optional, Callable
+from dataclasses import asdict, dataclass
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from nonebot.command import CommandName_T
 from nonebot.typing import Context_T
+
 from ..log import logger
 
 SETTINGS_DIR = './data/commands.json'
+SettingLocation_T = Tuple[str, int]
+SettingsDict_T = Dict[SettingLocation_T, Dict[CommandName_T, 'SingleSetting']]
+
+
+@dataclass
+class SingleSetting:
+    name: CommandName_T
+    location: SettingLocation_T
+    freqency: int
+    enabled: bool
+    permission: str
+    autoDelete: bool
+    key: Optional[str] = None
+
+
+class SettingsStorage:
+    @staticmethod
+    def read() -> SettingsDict_T:
+        with open(SETTINGS_DIR, 'rt', encoding='utf-8') as f:
+            settingsLoad: List[Dict[str, Any]] = json.load(f)
+        settingsDict: SettingsDict_T = {}
+        for i in settingsLoad:
+            setting = SingleSetting(**i)
+            setting.location = tuple(setting.location)
+            setting.name = tuple(setting.name)
+            if not setting.location in settingsDict:
+                settingsDict[setting.location] = {}
+            settingsDict[setting.location][setting.name] = setting
+        return settingsDict
+
+    @staticmethod
+    def write(dataDict: SettingsDict_T) -> int:
+        writeList: List[Dict[str, Any]] = []
+        for i in dataDict.values():
+            writeList.extend(j for j in i.values())
+        with open(SETTINGS_DIR, 'wt', encoding='utf-8') as f:
+            writeBytes = f.write(
+                json.dumps(
+                    writeList,
+                    ensure_ascii=False,
+                    indent=4,
+                    sort_keys=True,
+                ), )
+        return writeBytes
 
 
 class _CommandSettings:
-    class SingleSetting:
-        def __init__(self, saveCallback: Callable[dict], setting: dict):
-            self._setting = deepcopy(setting)
-            self._save = saveCallback
-
-        @property
-        def data(self) -> Dict[str, Any]:
-            return self._setting
-
-        @data.setter
-        def data(self, setting: dict):
-            self._save(setting)
-
     def __init__(self):
         self._settings = {}
         if not os.path.isfile(SETTINGS_DIR):
             return
-        with open(SETTINGS_DIR, 'rt', encoding='utf-8') as f:
-            self._settings.update(json.load(f))
+        self._settings.update(SettingsStorage.read())
 
     def _store(self):
-        with open(SETTINGS_DIR, 'wt', encoding='utf-8') as f:
-            f.write(
-                json.dumps(self._settings,
-                           ensure_ascii=False,
-                           sort_keys=True,
-                           indent=4))
-
-    def registerCommand(self, commandName: CommandName_T, settings: Dict[str,
-                                                                         Any]):
-        name: str = '.'.join(commandName)
-        if self._settings.get(name): return
-        self._settings[name] = settings
-        self._store()
-        logger.debug(
-            f'<green>{name.title()}</green> command has been registered, ' +
-            f'is set to {self._settings[name]}')
+        SettingsStorage.write(self._settings)
 
     def _getSettings(self, commandName: CommandName_T, type: str,
-                     id: int) -> Dict[str, Any]:
-        name: str = '.'.join(commandName)
-        commandSettings: Dict[str, Any] = deepcopy(self._settings[name])
+                     id: int) -> SingleSetting:
         assert type in ('groups', 'users')
+        commandLocation = type, id
+        if not commandLocation in self._settings:
+            return self._settings[('default', 0)][commandName]
+        elif not commandName in self._settings[commandLocation]:
+            return self._settings[('default', 0)][commandName]
+        fetchedSettings: SingleSetting = self._settings[commandLocation][
+            commandName]
+        fetchedSettings.location = commandLocation
+        return self._settings[commandLocation][commandName]
 
-        def save(d: dict):
-            self._settings[name][type][id] = d
-            self._store()
+    def registerCommand(self, commandName: CommandName_T,
+                        settings: SingleSetting):
+        if commandName in self._settings[('default', 0)]: return
+        settings.location = ('default', 0)
+        self.saveSettings(settings)
+        logger.debug(
+            f'<green>{commandName}</green> command has been registered, ' +
+            f'is set to {self._settings[commandName]}')
 
-        return self.SingleSetting(saveCallback=save,
-                                  setting=commandSettings[type].get(
-                                      str(id), commandSettings['default']))
+    def saveSettings(self, setting: SingleSetting):
+        if not setting.location in self._settings:
+            self._settings[setting.location] = {}
+        self._settings[setting.location][setting.name] = setting
+        self._store()
 
     def __call__(self, commandName: CommandName_T,
-                 ctx: Context_T) -> Dict[str, Any]:
+                 ctx: Context_T) -> SingleSetting:
         if ctx.get('group_id'):
             type = 'groups'
             id = ctx['group_id']

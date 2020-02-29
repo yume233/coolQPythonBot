@@ -1,7 +1,7 @@
 from asyncio import create_task, iscoroutinefunction
 from asyncio import sleep as asyncSleep
 from functools import partial, wraps
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 from nonebot import get_bot, scheduler
 from nonebot.command import (CommandHandler_T, CommandName_T, CommandSession,
@@ -19,16 +19,16 @@ from ..log import logger
 from ..objects.classes import SyncWrapper
 from ..objects.decorators import SyncToAsync, Timing
 from ..settings.bot import settings as botSettings
-from .settings import CommandSettings
+from .settings import CommandSettings, SettingLocation_T, SingleSetting
 
-_CALLERS = {}
-_SETTINGS = {}
+_SETTINGS: Dict[int, SingleSetting] = {}
+_CALL_RATE: Dict[SettingLocation_T, Dict[CommandName_T, int]] = {}
 
 
 @scheduler.scheduled_job('interval', minutes=1)
 async def _():
-    global _CALLERS
-    _CALLERS.clear()
+    global _CALL_RATE
+    _CALL_RATE.clear()
 
 
 def _messageSender(function: Callable) -> Callable:
@@ -53,7 +53,7 @@ def _messageSender(function: Callable) -> Callable:
             f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}')
 
         msgID = await session.send(replyData, at_sender=atSender)
-        if setting['auto_delete']:
+        if setting.autoDelete:
 
             async def _remover():
                 await asyncSleep(60)
@@ -68,27 +68,34 @@ def _messageSender(function: Callable) -> Callable:
 @_messageSender
 async def _funcRunner(session: CommandSession, function: CommandHandler_T,
                       name: CommandName_T) -> str:
-    global _CALLERS
-    global _SETTINGS
+    global _SETTINGS, _CALL_RATE
     assert isinstance(session, CommandSession)
 
     setting = CommandSettings(name, session.ctx).data
     sessionMessage: str = extract_text(session.ctx['message'])
-    permitted = check_permission(session.bot, session.ctx,
-                                 setting['permission'])
+    permitted = check_permission(
+        session.bot,
+        session.ctx,
+        setting.permission,
+    )
     _SETTINGS[session.ctx['message_id']] = setting
 
-    sessionKey = (f'group_{session.ctx["group_id"]}'
-                  if session.ctx.get('group_id') else
-                  f'user_{session.ctx["user_id"]}')
-    if not _CALLERS[name].get(sessionKey): _CALLERS[name][sessionKey] = 0
+    location = setting.location
+    _CALL_RATE.setdefault(location, {})
+    if name in _CALL_RATE[location]:
+        _CALL_RATE[location][name] += 1
+    else:
+        _CALL_RATE[location][name] = 0
 
-    logger.debug('Session information:' + ','.join([
-        f'command={name}',
-        f'content={sessionMessage.__repr__()}',
-        f'ctx={session.ctx}',
-        f'enabled={setting["enabled"]}',
-    ]))
+    logger.debug(
+        'Session information:' + ','.join([
+            f'command={name}',
+            f'content={sessionMessage.__repr__()}',
+            f'ctx={session.ctx}',
+            f'enabled={setting.enabled}',
+            f'permitted={permitted}',
+            f'rate={_CALL_RATE[location][name]}',
+        ], ), )
 
     handle_cancellation(session)(sessionMessage)
 
@@ -97,9 +104,9 @@ async def _funcRunner(session: CommandSession, function: CommandHandler_T,
         function = SyncToAsync(function)
 
     try:
-        if not setting['enabled']:
+        if not setting.enabled:
             raise BotDisabledError
-        if _CALLERS[name][sessionKey] >= setting['freqency']:
+        if _CALLERS[location][name] >= setting.freqency:
             raise BotRateLimitError
         if not permitted:
             raise BotPermissionError
