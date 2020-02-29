@@ -55,7 +55,7 @@ def textAlign(img: bytes,
         with open(tf, 'wb') as f:
             f.write(img)
         with Image.open(tf) as im:
-            imageFont = ImageFont.truetype(font=font, size=size)
+            imageFont = ImageFont.truetype(font=font, size=fontSize)
             imageWidth, imageHeight = im.size
             textWidth, textHeight = imageFont.getsize(text)
             imageDraw = ImageDraw.Draw(im)
@@ -63,7 +63,7 @@ def textAlign(img: bytes,
                               (imageHeight - textHeight) / 2]
             imageDraw.text(xy=textCoordinate,
                            text=text,
-                           fill=color,
+                           fill=fontColor,
                            font=imageFont)
             im.save(tf, 'PNG')
         with open(tf, 'rb') as f:
