@@ -9,7 +9,7 @@ from quart import Quart
 from utils.botConfig import convertSettingsToDict, settings
 
 os.chdir(os.path.split(__file__)[0])
-LOG_FILE_DIR = './data/logs'
+LOG_FILE_DIR = "./data/logs"
 
 if not os.path.exists(LOG_FILE_DIR):
     os.mkdir(LOG_FILE_DIR)
@@ -33,16 +33,17 @@ class _LoguruHandler(logging.Handler):
 
 
 def initApp() -> Quart:
-    assert nonebot.scheduler  #Check if scheduler exists
-    #Initialize logging
-    loggingPath = os.path.join(LOG_FILE_DIR, '{time}.log')
+    assert nonebot.scheduler  # Check if scheduler exists
+    # Initialize logging
+    loggingPath = os.path.join(LOG_FILE_DIR, "{time}.log")
     loguruHandler = _LoguruHandler()
-    loguruLogger.add(loggingPath, enqueue=True, encoding='utf-8')
+    loguruLogger.add(loggingPath, enqueue=True, encoding="utf-8")
     botLogger.handlers.clear()
     botLogger.addHandler(loguruHandler)
-    #Initialize settings
+    # Initialize settings
     nonebot.init(settings)
-    nonebot.load_plugins('plugins', 'plugins')
+    nonebot.load_plugins("plugins", "plugins")
     nonebot.logger.debug(
-        f'The robot is currently configured as: {convertSettingsToDict()}')
+        f"The robot is currently configured as: {convertSettingsToDict()}"
+    )
     return nonebot.get_bot().asgi

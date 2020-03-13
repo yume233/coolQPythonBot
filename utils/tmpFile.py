@@ -1,7 +1,7 @@
 #!/bin/env python
 # coding=UTF-8
-#This is a third-party library from https://github.com/yingyulou/tmpFile
-'''
+# This is a third-party library from https://github.com/yingyulou/tmpFile
+"""
 DESCRIPTION
 
     tmpFile
@@ -16,7 +16,7 @@ LATEST UPDATE
 
     2019.3.4
 
-'''
+"""
 
 # Import Python Lib
 from os import mkdir, remove
@@ -28,14 +28,14 @@ from uuid import uuid4
 # Tmp File
 ################################################################################
 
-TEMP_DIR = './data/temp'
+TEMP_DIR = "./data/temp"
 
 if not exists(TEMP_DIR):
     mkdir(TEMP_DIR)
 
 
 class tmpFile(object):
-    '''
+    """
         DESCRIPTION
 
             Create a tmp file.
@@ -56,11 +56,11 @@ class tmpFile(object):
 
             * path = './', str
                 The path of the tempfile.
-    '''
+    """
 
-    __slots__ = ('__tmpFileName', )
+    __slots__ = ("__tmpFileName",)
 
-    def __init__(self, ext='.tmp', path=TEMP_DIR):
+    def __init__(self, ext=".tmp", path=TEMP_DIR):
 
         self.__tmpFileName = abspath(join(path, uuid4().hex + ext))
 
@@ -80,7 +80,7 @@ class tmpFile(object):
 
 
 class tmpFolder(object):
-    '''
+    """
         DESCRIPTION
 
             Create a tmp folder.
@@ -98,9 +98,9 @@ class tmpFolder(object):
 
             * path = './', str
                 The path of the tmp folder.
-    '''
+    """
 
-    __slots__ = ('__tmpFolderName', )
+    __slots__ = ("__tmpFolderName",)
 
     def __init__(self, path=TEMP_DIR):
 
