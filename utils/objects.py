@@ -1,9 +1,10 @@
 from asyncio import iscoroutinefunction
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
+from secrets import token_bytes
 
+from aiocqhttp.exceptions import ActionFailed
 from nonebot import NoneBot, get_bot
 from nonebot.log import logger
-from aiocqhttp.exceptions import ActionFailed
 from PIL import Image
 
 
@@ -106,9 +107,11 @@ def callModuleAPI(
     except ActionFailed as e:
         if ignoreError:
             return
-        from .exception import BotMessageError
+        from .exception import BotMessageError, ExceptionProcess
 
-        raise BotMessageError(reason=f"调用API出错,错误码:{e.retcode}")
+        raise BotMessageError(
+            reason=f"调用API出错,错误码:{e.retcode}", trace=ExceptionProcess.catch()
+        )
 
 
 def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
@@ -137,4 +140,4 @@ def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
             f.save(file1, "PNG", optimize=True, quality=quality)
         with open(file1, "rb") as f:
             readData = f.read()
-    return readData
+    return readData + b"\x00" * 16 + token_bytes(16)
