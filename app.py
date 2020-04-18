@@ -46,4 +46,7 @@ def initApp() -> Quart:
     nonebot.logger.debug(
         f"The robot is currently configured as: {convertSettingsToDict()}"
     )
-    return nonebot.get_bot().asgi
+    bot = nonebot.get_bot()
+    bot.logger.handlers.clear()
+    bot.logger.addHandler(_LoguruHandler())
+    return bot.asgi

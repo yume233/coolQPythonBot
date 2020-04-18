@@ -1,11 +1,14 @@
 from asyncio import iscoroutinefunction
-from typing import Any, Dict, Optional
+from os.path import getsize as getFileSize
 from secrets import token_bytes
+from typing import Any, Dict, Optional
 
 from aiocqhttp.exceptions import ActionFailed
 from nonebot import NoneBot, get_bot
 from nonebot.log import logger
 from PIL import Image
+
+MAX_IMAGE_SIZE = 4 * 1024 ** 2
 
 
 class EnhancedDict(dict):
@@ -136,8 +139,11 @@ def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
             f.write(image)
         with Image.open(file1) as f:
             f.save(file2, "BMP")
-        with Image.open(file2) as f:
-            f.save(file1, "PNG", optimize=True, quality=quality)
+        for i in reversed(range(quality, 100, 5)):
+            with Image.open(file2) as f:
+                f.save(file1, "PNG", optimize=True, quality=i)
+            if getFileSize(file1) <= MAX_IMAGE_SIZE:
+                break
         with open(file1, "rb") as f:
             readData = f.read()
     return readData + b"\x00" * 16 + token_bytes(16)

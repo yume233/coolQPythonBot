@@ -3,18 +3,22 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import date
 from itertools import cycle
 from os.path import isfile
+from typing import Optional
 from urllib.parse import urljoin
 
 import apscheduler
 import requests
-from nonebot import CommandSession, MessageSegment, logger, on_command, scheduler
+from nonebot import (CommandSession, MessageSegment, logger, on_command,
+                     scheduler)
 from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
+from PIL import Image
 
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import CatchRequestsException, SyncToAsync
 from utils.manager import PluginManager
 from utils.message import processSession
 from utils.objects import callModuleAPI, convertImageFormat
+from utils.tmpFile import tmpFile
 
 __plugin_name__ = "time_reminder"
 
@@ -27,6 +31,27 @@ if not isfile(CONFIG_DIR):
     copyFileInText(DEFAULT_DIR, CONFIG_DIR)
 CONFIG = configsReader(CONFIG_DIR, DEFAULT_DIR)
 _IMAGE_LIST_CACHE = None
+
+
+def resizeImage(
+    image: bytes, *, height: Optional[int] = None, width: Optional[int] = None
+) -> bytes:
+    with tmpFile() as tmpFileName:
+        with open(tmpFileName, "wb") as f:
+            f.write(image)
+        with Image.open(tmpFileName) as img:
+            originWidth, originHeight = img.size
+            if height:
+                width = int(originWidth * (height / originHeight))
+            elif width:
+                height = int(originHeight * (width / originWidth))
+            else:
+                raise AttributeError
+            img.resize((width, height), Image.ANTIALIAS)
+            img.save(tmpFileName, "PNG")
+        with open(tmpFileName, "rb") as f:
+            data = f.read()
+    return data
 
 
 class daily:
@@ -46,7 +71,7 @@ class daily:
                 urljoin("https://cn.bing.com/", imgLink), timeout=(6, None)
             )
             dataGet.raise_for_status()
-            return convertImageFormat(dataGet.content)
+            return convertImageFormat(resizeImage(dataGet.content, height=720))
 
         if not _IMAGE_LIST_CACHE:
             _IMAGE_LIST_CACHE = cycle(requestAPI()["images"])

@@ -77,7 +77,7 @@ def _(session: CommandSession):
         "小图": "medium",
         "原图": "original",
     }
-    for key, value in keywordChoice:
+    for key, value in keywordChoice.items():
         if key in textArgs:
             session.state["res"] = value
             break
@@ -160,7 +160,7 @@ def _(session: CommandSession):
     numberArgs = extract_numbers(session.current_arg_text)
     if len(numberArgs) > 2:
         session.pause("您输入的参数不正确")
-    page, member = numberArgs if len(numberArgs) == 2 else 1, numberArgs[0]
+    page, member = numberArgs if len(numberArgs) == 2 else (1, numberArgs[0])
     session.state["page"], session.state["id"] = int(page), int(member)
 
 
