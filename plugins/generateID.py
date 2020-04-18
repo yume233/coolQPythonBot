@@ -1,37 +1,39 @@
 import json
 import random
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from os.path import isfile
 from time import strftime, strptime
 from typing import Dict, List, Tuple
+from zipfile import PyZipFile
 
 from nonebot import CommandSession, on_command
 
+from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import SyncToAsync
 from utils.message import processSession
 
 __plugin_name__ = "generateID"
 
-MESSAGE = """
-{id_number}
-姓名:{name}
-性别:{gender}
-地址:{address}
+_DATA_BINARY_DIR = "./data/id.bin"
+_DEFAULT_DIR = "./configs/default.gen_id.yml"
+_CONFIG_DIR = "./configs/gen_id.yml"
 
-生成的数据仅供学习交流使用，并非真实存在的数据！
-"""
+if not isfile(_CONFIG_DIR):
+    copyFileInText(_DEFAULT_DIR, _CONFIG_DIR)
+CONFIG = configsReader(_CONFIG_DIR, _DEFAULT_DIR)
 
-BIRTH_BEGIN = datetime(1960, 1, 1)
-BIRTH_END = datetime(2000, 1, 1)
+MESSAGE = CONFIG.format
 
-_AREA_DATA_DIR = "./data/data.area.json"
-_NAME_DATA_DIR = "./data/data.name.json"
+BIRTH_BEGIN = datetime(*[int(i) for i in CONFIG.birth.begin])
+BIRTH_END = datetime(*[int(i) for i in CONFIG.birth.end])
 
 
 def _loadMainData() -> Tuple[Dict[str, str], Dict[str, List[str]]]:
-    with open(_AREA_DATA_DIR, "rt", encoding="utf-8") as f:
-        areaLoad = json.load(f)
-    with open(_NAME_DATA_DIR, "rt", encoding="utf-8") as f:
-        nameLoad = json.load(f)
+    with PyZipFile(_DATA_BINARY_DIR, "r") as zipFile:
+        with zipFile.open("name.json", "r") as f:
+            nameLoad = json.loads(f.read().decode())
+        with zipFile.open("area.json", "r") as f:
+            areaLoad = json.loads(f.read().decode())
     return areaLoad, nameLoad
 
 
