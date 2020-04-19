@@ -8,13 +8,14 @@ from urllib.parse import urljoin
 
 import apscheduler
 import requests
-from nonebot import (CommandSession, MessageSegment, logger, on_command,
-                     scheduler)
+from loguru import logger
+from nonebot import CommandSession, MessageSegment, logger, on_command, scheduler
 from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 from PIL import Image
 
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import CatchRequestsException, SyncToAsync
+from utils.exception import ExceptionProcess
 from utils.manager import PluginManager
 from utils.message import processSession
 from utils.objects import callModuleAPI, convertImageFormat
@@ -26,11 +27,11 @@ PluginManager.registerPlugin(__plugin_name__)
 POWER_GROUP = GROUP_ADMIN | SUPERUSER
 CONFIG_DIR = "./configs/greeting.yml"
 DEFAULT_DIR = "./configs/default.greeting.yml"
+_IMAGE_LIST_CACHE = None
 
 if not isfile(CONFIG_DIR):
     copyFileInText(DEFAULT_DIR, CONFIG_DIR)
 CONFIG = configsReader(CONFIG_DIR, DEFAULT_DIR)
-_IMAGE_LIST_CACHE = None
 
 
 def resizeImage(
@@ -95,7 +96,7 @@ class daily:
         return requestAPI()
 
 
-def timeTelling(*_) -> str:
+def timeTelling() -> str:
     imageData = daily.image()
     imageEncoded = f'base64://{b64encode(imageData["image"]).decode()}'
     hitokotoGet = daily.hitokoto()
@@ -110,24 +111,37 @@ def timeTelling(*_) -> str:
 
 
 def batchSend():
-    executor = ThreadPoolExecutor(CONFIG.api.thread)
+    global _IMAGE_LIST_CACHE
+    _IMAGE_LIST_CACHE = None
+    logger.debug("Begin to start daily greeting")
     groupsList = [i["group_id"] for i in callModuleAPI("get_group_list")]
-    sendList = cycle(executor.map(timeTelling, [tuple() for _ in groupsList]))
+    successSend = 0
     for groupID in groupsList:
+
         enabled = PluginManager._getSettings(
             __plugin_name__, type="group", id=groupID
         ).status
         if not enabled:
             continue
-        sendParams = {"group_id": groupID, "message": next(sendList)}
-        callModuleAPI("send_msg", params=sendParams, ignoreError=True)
+        try:
+            callModuleAPI(
+                "send_msg", params={"group_id": groupID, "message": timeTelling()},
+            )
+        except:
+            eid = ExceptionProcess.catch()
+            logger.exception(
+                f"Failed to greeting in group {groupID},traceback id:{eid}"
+            )
+        else:
+            successSend += 1
+    logger.info(
+        f"Daily greeting finished,total send:{len(groupsList)},success:{successSend}"
+    )
 
 
 @scheduler.scheduled_job("cron", day="*")
 @SyncToAsync
 def scheduledTiming():
-    global _IMAGE_LIST_CACHE
-    _IMAGE_LIST_CACHE = None
     batchSend()
 
 
