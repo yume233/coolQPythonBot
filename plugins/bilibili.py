@@ -141,12 +141,12 @@ def _(session: CommandSession):
     if avResult:
         session.state["id"] = int(avResult.group(1))
     elif bvResult:
-        session.state["id"] = IDCoverter.bv2av(avResult.group())
+        session.state["id"] = IDCoverter.bv2av(bvResult.group())
     else:
         session.pause("请输入正确的bv号或者av号")
 
 
-@on_natural_language()
+@on_natural_language(only_short_message=False, only_to_me=False)
 @SyncToAsync
 def _(session: NLPSession):
     status = PluginManager.settings(__plugin_name__, session.ctx).status
@@ -169,6 +169,7 @@ def _(session: NLPSession):
 
 
 @on_command("bilibili_disable", aliases=("禁用视频信息", "关闭视频信息"), permission=POWER_GROUP)
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.ctx).status = False
@@ -176,6 +177,7 @@ def _(session: CommandSession):
 
 
 @on_command("bilibili_enable", aliases=("启用视频信息", "打开视频信息"), permission=POWER_GROUP)
+@processSession
 @SyncToAsync
 def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.ctx).status = True

@@ -15,7 +15,7 @@ PluginManager.registerPlugin(
 )
 
 
-@on_natural_language(only_short_message=True, permission=GROUP_MEMBER)
+@on_natural_language(permission=GROUP_MEMBER, only_to_me=False)
 @processSession(pluginName=__plugin_name__)
 @SyncToAsync
 def _(session: NLPSession):
