@@ -19,7 +19,7 @@ def loadConfigInYAML(path: str) -> dict:
     dict
         Reading results
     """
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         ymlLoad = yaml.safe_load(f)
     return ymlLoad if type(ymlLoad) == dict else dict()
 
@@ -32,17 +32,15 @@ def filenameQuickChange(file: str, name: str) -> str:
 def touchFile(path: str, newContent: Union[str, bytes] = None) -> None:
     if not os.path.isfile(path):
         if type(newContent) == bytes:
-            with open(path, 'wb') as f:
+            with open(path, "wb") as f:
                 f.write(newContent)
         elif type(newContent) == str:
-            with open(path, 'wt', encoding='utf-8') as f:
+            with open(path, "wt", encoding="utf-8") as f:
                 f.write(newContent)
     return path
 
 
-def copyFileInText(originPath: str,
-                   targetPath: str,
-                   encoding: str = 'utf-8') -> int:
+def copyFileInText(originPath: str, targetPath: str, encoding: str = "utf-8") -> int:
     """Copy a file in text encoding
 
     Parameters
@@ -59,8 +57,9 @@ def copyFileInText(originPath: str,
     int
         Number of bytes written
     """
-    with open(originPath,'rt',encoding=encoding) as origin,\
-        open(targetPath,'wt',encoding=encoding) as target:
+    with open(originPath, "rt", encoding=encoding) as origin, open(
+        targetPath, "wt", encoding=encoding
+    ) as target:
         totalWrite: int = target.write(origin.read())
     return totalWrite
 
@@ -73,6 +72,7 @@ configLoad = loadConfigInYAML
 class configsReader:
     """ Read setting object
     """
+
     def __init__(self, configDir: str, defaultDir: str):
         """__init__ [summary]
 
@@ -94,6 +94,5 @@ class configsReader:
 
     def __dict__(self):
         return {
-            key: DictOperating.weaken(self.__getattr__(key))
-            for key in self.__default
+            key: DictOperating.weaken(self.__getattr__(key)) for key in self.__default
         }

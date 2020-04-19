@@ -1,9 +1,14 @@
 from asyncio import iscoroutinefunction
-from typing import Optional, Any, Dict
+from os.path import getsize as getFileSize
+from secrets import token_bytes
+from typing import Any, Dict, Optional
 
+from aiocqhttp.exceptions import ActionFailed
 from nonebot import NoneBot, get_bot
 from nonebot.log import logger
 from PIL import Image
+
+MAX_IMAGE_SIZE = 4 * 1024 ** 2
 
 
 class EnhancedDict(dict):
@@ -28,11 +33,14 @@ class DictOperating:
         EnhancedDict
             Recursively enhanced dictionary object
         """
+
         def change(old: dict):
-            return EnhancedDict({
-                k: (EnhancedDict(change(v)) if isinstance(v, dict) else v)
-                for k, v in old.items()
-            })
+            return EnhancedDict(
+                {
+                    k: (EnhancedDict(change(v)) if isinstance(v, dict) else v)
+                    for k, v in old.items()
+                }
+            )
 
         return change(origin) if isinstance(origin, dict) else origin
 
@@ -50,6 +58,7 @@ class DictOperating:
         dict
             Ordinary dictionary object
         """
+
         def change(old: EnhancedDict):
             return {
                 k: (dict(change(v)) if isinstance(v, EnhancedDict) else v)
@@ -62,16 +71,18 @@ class DictOperating:
 class SyncWrapper:
     def __init__(self, subject):
         from .decorators import AsyncToSync
+
         self._subject = subject
         self._sync = AsyncToSync
 
     def __getattr__(self, key: str) -> Any:
         originAttr = getattr(self._subject, key)
-        return (self._sync(originAttr)
-                if iscoroutinefunction(originAttr) else originAttr)
+        return self._sync(originAttr) if iscoroutinefunction(originAttr) else originAttr
 
 
-def callModuleAPI(method: str, params: Optional[dict] = {}) -> Dict[str, Any]:
+def callModuleAPI(
+    method: str, params: Optional[dict] = {}, ignoreError: Optional[bool] = False
+) -> Optional[Dict[str, Any]]:
     """Call CQHTTP's underlying API
     
     Parameters
@@ -87,11 +98,23 @@ def callModuleAPI(method: str, params: Optional[dict] = {}) -> Dict[str, Any]:
         The function that called the method
     """
     from .decorators import AsyncToSync
+
     botObject: NoneBot = get_bot()
     syncAPIMethod = AsyncToSync(botObject.call_action)
-    logger.debug('CQHTTP native API is being actively called, ' +
-                 f'data: action={method}, params={str(params):.100s}')
-    return syncAPIMethod(method, **params)
+    logger.debug(
+        "CQHTTP native API is being actively called, "
+        + f"data: action={method}, params={str(params):.100s}"
+    )
+    try:
+        return syncAPIMethod(method, **params)
+    except ActionFailed as e:
+        if ignoreError:
+            return
+        from .exception import BotMessageError, ExceptionProcess
+
+        raise BotMessageError(
+            reason=f"调用API出错,错误码:{e.retcode}", trace=ExceptionProcess.catch()
+        )
 
 
 def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
@@ -110,13 +133,17 @@ def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
         Returns the converted picture bytes
     """
     from .tmpFile import tmpFile
+
     with tmpFile() as file1, tmpFile() as file2:
-        with open(file1, 'wb') as f:
+        with open(file1, "wb") as f:
             f.write(image)
         with Image.open(file1) as f:
-            f.save(file2, 'BMP')
-        with Image.open(file2) as f:
-            f.save(file1, 'PNG', optimize=True, quality=quality)
-        with open(file1, 'rb') as f:
+            f.save(file2, "BMP")
+        for i in reversed(range(quality, 100, 5)):
+            with Image.open(file2) as f:
+                f.save(file1, "PNG", optimize=True, quality=i)
+            if getFileSize(file1) <= MAX_IMAGE_SIZE:
+                break
+        with open(file1, "rb") as f:
             readData = f.read()
-    return readData
+    return readData + b"\x00" * 16 + token_bytes(16)

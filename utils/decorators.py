@@ -13,14 +13,15 @@ from requests import HTTPError, RequestException
 from .botConfig import settings
 from .exception import BotRequestError, ExceptionProcess
 
-_EXECUTOR = ThreadPoolExecutor(settings.THREAD_POOL_NUM,
-                               thread_name_prefix='BotThreadPool')
+_EXECUTOR = ThreadPoolExecutor(
+    settings.THREAD_POOL_NUM, thread_name_prefix="BotThreadPool"
+)
 
 
 def _getFunctionName(function: Callable) -> str:
-    if hasattr(function, '__qualname__'):
+    if hasattr(function, "__qualname__"):
         return function.__qualname__
-    elif hasattr(function, '__name__'):
+    elif hasattr(function, "__name__"):
         return function.__name__
     else:
         return function.__repr__()
@@ -40,8 +41,9 @@ def Timeit(function: Callable):
         finally:
             runningCost = (time() * 1000) - startTime
             logger.debug(
-                f'Function {functionName} cost {runningCost:.3f}ms.' +
-                f'args={str(args):.100s}...,kwargs={str(kwargs):.100s}...')
+                f"Function {functionName} cost {runningCost:.3f}ms."
+                + f"args={str(args):.100s}...,kwargs={str(kwargs):.100s}..."
+            )
 
     return wrapper
 
@@ -79,9 +81,11 @@ Async = SyncToAsync
 Sync = AsyncToSync
 
 
-def WithKeyword(keywords: Union[str, tuple],
-                command: str,
-                confidence: Optional[Union[float, int]] = 80.0):
+def WithKeyword(
+    keywords: Union[str, tuple],
+    command: str,
+    confidence: Optional[Union[float, int]] = 80.0,
+):
     """Decorator, set keywords for commands
     
     Parameters
@@ -93,8 +97,9 @@ def WithKeyword(keywords: Union[str, tuple],
     confidence : Union[float, int], optional
         Confidence is used to identify the degree of ambiguity (unit:%), by default 80.0
     """
+
     def decorator(function: Callable):
-        getKeyword = keywords if isinstance(keywords, tuple) else (keywords, )
+        getKeyword = keywords if isinstance(keywords, tuple) else (keywords,)
 
         @on_natural_language(keywords=getKeyword)
         async def _(session):
@@ -109,10 +114,12 @@ def WithKeyword(keywords: Union[str, tuple],
     return decorator
 
 
-def CatchRequestsException(function: Callable = None,
-                           *,
-                           prompt: Optional[str] = None,
-                           retries: Optional[int] = None):
+def CatchRequestsException(
+    function: Callable = None,
+    *,
+    prompt: Optional[str] = None,
+    retries: Optional[int] = None,
+):
     """Decorator, catch exceptions from `requests` library
     
     Parameters
@@ -140,8 +147,10 @@ def CatchRequestsException(function: Callable = None,
                 return function(*args, **kwargs)
             except RequestException as error:
                 traceID = ExceptionProcess.catch()
-                logger.debug(f'Function {functionName} encountered' +
-                             f'a network request error: "{error}"')
+                logger.debug(
+                    f"Function {functionName} encountered"
+                    + f'a network request error: "{error}"'
+                )
                 if isinstance(error, HTTPError):
                     break
         raise BotRequestError(prompt, traceID)

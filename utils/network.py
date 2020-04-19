@@ -24,11 +24,15 @@ class _NetworkUtils:
             Comply with the acceptable proxy address format for requests
         """
         proxySettings: dict = self.configObject.proxy
-        retValue = {
-            'http': proxySettings['address'],
-            'https': proxySettings['address'],
-            'ftp': proxySettings['address']
-        } if proxySettings['enable'] else {}
+        retValue = (
+            {
+                "http": proxySettings["address"],
+                "https": proxySettings["address"],
+                "ftp": proxySettings["address"],
+            }
+            if proxySettings["enable"]
+            else {}
+        )
         return deepcopy(retValue)
 
     def shortLink(self, links: List[str]) -> Dict[str, str]:
@@ -49,36 +53,37 @@ class _NetworkUtils:
         BotNotFoundError
             Throws when short link API settings are not written in the configuration file
         """
-        @CatchRequestsException(prompt='短链接因为网络连接原因生成失败', retries=3)
+
+        @CatchRequestsException(prompt="短链接因为网络连接原因生成失败", retries=3)
         def requestShortLink(link: str, params: dict) -> Dict[str, dict]:
             r = requests.get(url=link, params=params)
             r.raise_for_status()
             return r.json()
 
         shortenSettings: dict = self.configObject.shorten
-        authSettings: dict = shortenSettings['auth']
-        if authSettings.get('apikey'):
-            authParam = {'signature': authSettings['apikey']}
-        elif authSettings.get('username') and authSettings.get('password'):
+        authSettings: dict = shortenSettings["auth"]
+        if authSettings.get("apikey"):
+            authParam = {"signature": authSettings["apikey"]}
+        elif authSettings.get("username") and authSettings.get("password"):
             authParam = {
-                'username': authSettings['username'],
-                'password': authSettings['password']
+                "username": authSettings["username"],
+                "password": authSettings["password"],
             }
         else:
-            raise BotNotFoundError('短链接API配置文件未填写')
+            raise BotNotFoundError("短链接API配置文件未填写")
         fullParam: dict = {
-            'action': 'bulkshortener',
-            'urls[]': links,
+            "action": "bulkshortener",
+            "urls[]": links,
         }
         fullParam.update(authParam)
-        responseData = requestShortLink(shortenSettings['address'], fullParam)
+        responseData = requestShortLink(shortenSettings["address"], fullParam)
         retDict = {}
         for perURL in responseData:
             shortData = responseData[perURL]
-            if shortData['statusCode'] != 200:
+            if shortData["statusCode"] != 200:
                 retDict[perURL] = perURL
                 continue
-            retDict[perURL] = responseData[perURL]['shorturl']
+            retDict[perURL] = responseData[perURL]["shorturl"]
         return retDict
 
 
