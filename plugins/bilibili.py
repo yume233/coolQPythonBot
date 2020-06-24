@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from re import compile as compileRegexp
 from time import localtime, strftime
+from datetime import datetime, timedelta
 from typing import Any, Dict, Union
 
 import requests
@@ -44,42 +45,44 @@ API_URL = "https://api.imjad.cn/bilibili/v2/"
 APIData_T = Dict[str, Any]
 
 
-class BV_AV_Utils:
-    def __init__(self):
-        self.table = "fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF"
-        self.convertR = {j: i for i, j in enumerate(self.table)}
-        self.xor = 177451812
-        self.add = 8728348608
-        self.s = [11, 10, 3, 8, 4, 6]
+class IDCoverter:
+    table = "fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF"
+    convertR = {j: i for i, j in enumerate(table)}
+    xor = 177451812
+    add = 8728348608
+    s = [11, 10, 3, 8, 4, 6]
 
-    def bv2av(self, BVid: str) -> int:
-        value = sum([self.convertR[BVid[self.s[i]]] * 58 ** i for i in range(6)])
-        return (value - self.add) ^ self.xor
+    @classmethod
+    def bv2av(cls, BVid: str) -> int:
+        value = sum([cls.convertR[BVid[cls.s[i]]] * 58 ** i for i in range(6)])
+        return (value - cls.add) ^ cls.xor
 
-    def av2bv(self, AVid: int) -> str:
-        value = (AVid ^ self.xor) + self.add
+    @classmethod
+    def av2bv(cls, AVid: int) -> str:
+        value = (AVid ^ cls.xor) + cls.add
         r = list("BV1  4 1 7  ")
         for i in range(6):
-            r[self.s[i]] = self.table[value // 58 ** i % 58]
+            r[cls.s[i]] = cls.table[value // 58 ** i % 58]
         return "".join(r)
-
-
-IDCoverter = BV_AV_Utils()
 
 
 class BiliParser:
     @staticmethod
     def encodeTime(seconds: int) -> str:
-        minutes, seconds = seconds // 60, seconds % 60
-        hours, minutes = minutes // 60, minutes % 60
-        return f"{hours:0>2d}:{minutes:0>2d}:{seconds:0>2d}"
+        return str(timedelta(seconds=seconds))
 
     @staticmethod
     def stamp2Time(stamp: Union[int, float]) -> str:
-        publishTime = localtime(float(stamp))
-        return strftime("%c %z", publishTime)
+        publishTime = datetime.fromtimestamp(stamp)
+        deltaTime = datetime.now() - datetime(*publishTime)
+        return (
+            strftime("%z", localtime(stamp))
+            if deltaTime.days
+            else (str(deltaTime) + "前")
+        )
 
-    def __call__(self, data: APIData_T) -> APIData_T:
+    @classmethod
+    def parse(cls, data: APIData_T) -> APIData_T:
         assert not data["code"], data["msg"]
         vidData = data["data"]
         return {
@@ -88,8 +91,8 @@ class BiliParser:
             "title": vidData["title"],
             "desc": vidData["desc"],
             "cover": MessageSegment.image(vidData["pic"]),
-            "duration": self.encodeTime(vidData["duration"]),
-            "time": self.stamp2Time(vidData["pubdate"]),
+            "duration": cls.encodeTime(vidData["duration"]),
+            "time": cls.stamp2Time(vidData["pubdate"]),
             "part": vidData["videos"],
             "author": vidData["owner"]["name"],
             "author_id": vidData["owner"]["mid"],
@@ -101,9 +104,6 @@ class BiliParser:
             "coin": vidData["stat"]["coin"],
             "favorite": vidData["stat"]["favorite"],
         }
-
-
-Parser = BiliParser()
 
 
 @CatchRequestsException(retries=3, prompt="请求Bilibili接口失败")
@@ -120,7 +120,7 @@ def vidInfo(session: CommandSession):
     aid = session.state["id"]
     responseData = getVideoInfo(aid)
     try:
-        parsedData = Parser(responseData)
+        parsedData = BiliParser.parse(responseData)
     except:
         if session.state.get("auto", False):
             return
