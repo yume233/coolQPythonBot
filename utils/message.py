@@ -1,7 +1,15 @@
 from functools import partial, wraps
-from typing import Callable, Optional, Union, Tuple
+from typing import Callable, Optional, Tuple, Union
 
-from nonebot import CommandSession, NLPSession, NoticeSession, RequestSession
+from aiocqhttp import Event
+from nonebot import (
+    CommandSession,
+    NLPSession,
+    NoneBot,
+    NoticeSession,
+    RequestSession,
+    on_natural_language,
+)
 from nonebot.command import (
     SwitchException,
     ValidateError,
@@ -11,7 +19,7 @@ from nonebot.command import (
 from nonebot.command.argfilter.controllers import handle_cancellation
 from nonebot.command.argfilter.extractors import extract_text
 from nonebot.log import logger
-from nonebot.message import MessageSegment
+from nonebot.message import CanceledException, MessageSegment, message_preprocessor
 from nonebot.session import BaseSession
 
 from .botConfig import settings
@@ -32,6 +40,17 @@ from .manager import PluginManager
 from .objects import SyncWrapper
 
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
+
+
+@message_preprocessor
+async def _(bot: NoneBot, event: Event, plugin_manager):
+    loginInfo = await bot.get_login_info()
+
+    if loginInfo["user_id"] != event.self_id:
+        logger.info(f"Ignored message {event.message_id} due to incorrect account.")
+        raise CanceledException(None)
+
+    return
 
 
 def _messageSender(function: Callable) -> Callable:

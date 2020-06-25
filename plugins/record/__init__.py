@@ -48,7 +48,7 @@ def messageGenterator(
 @SyncToAsync
 def _(session: CommandSession):
     latestTime = time() - DELTA_TIME.total_seconds()
-    if AsyncToSync(check_permission)(session.bot, session.ctx, GROUP_ADMIN):
+    if "group_id" in session.ctx:
         messageIter = messageGenterator(
             group_id=session.ctx["group_id"], latestTime=latestTime
         )
