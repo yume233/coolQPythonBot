@@ -9,7 +9,8 @@ from . import models, tables
 
 DATABASE_URL = "sqlite:///./data/database.sqlite3"
 DATABASE_CONFIG = {"check_same_thread": False}
-DATABASE_DEBUG = False
+DATABASE_DEBUG = True
+MAX_PAGE_SIZE = 200
 
 
 class DatabaseTransaction:
@@ -17,7 +18,7 @@ class DatabaseTransaction:
         self._session = session
 
     def __enter__(self) -> Session:
-        self._session.begin()
+        self._session.begin(subtransactions=True)
         return self._session
 
     def __exit__(self, *args):
@@ -85,7 +86,7 @@ class RecordDAO:
                     if reversed
                     else tables.ChatRecords.time
                 )
-                .limit(limit if limit <= 200 else 200)
+                .limit(limit if limit <= MAX_PAGE_SIZE else MAX_PAGE_SIZE)
                 .offset(offset)
             )
             allData = [models.RecordsRead(**self.table2dict(i)) for i in result]
@@ -104,16 +105,21 @@ class RecordDAO:
         return
 
     def userCreate(
-        self, data: models.Users, raiseException: bool = True
+        self,
+        data: models.Users,
+        raiseException: bool = True,
+        updateIfExist: bool = False,
     ) -> Optional[models.Users]:
         with self.connect() as session:
             if session.query(tables.Users).filter(tables.Users.uid == data.uid).first():
-                if raiseException:
+                if updateIfExist:
+                    return self.userUpdate(data)
+                elif raiseException:
                     raise BotExistError("此条记录已在数据库中存在")
                 else:
                     return
-            table = table.Users(**dict(data))
-            session.add(data)
+            table = tables.Users(**dict(data))
+            session.add(table)
             session.flush()
             result = models.Users(**self.table2dict(table))
         return result
@@ -126,7 +132,7 @@ class RecordDAO:
                 session.query(tables.Users)
                 .filter((tables.Users.uid == uid) if uid is not None else True)
                 .order_by(tables.Users.uid)
-                .limit(limit if limit <= 200 else 200)
+                .limit(limit if limit <= MAX_PAGE_SIZE else MAX_PAGE_SIZE)
                 .offset(offset)
                 .all()
             )
@@ -142,7 +148,9 @@ class RecordDAO:
             )
             if not result:
                 raise BotNotFoundError("在数据库中没有相应记录")
-            for k, v in data.dict(exclude={"uid"}).items():
+            for k, v in data.dict().items():
+                if getattr(result, k) == v:
+                    continue
                 setattr(result, k, v)
             session.flush()
             data = models.Users(**self.table2dict(result))
@@ -157,7 +165,10 @@ class RecordDAO:
         return
 
     def groupCreate(
-        self, data: models.Groups, raiseException: bool = True
+        self,
+        data: models.Groups,
+        raiseException: bool = True,
+        updateIfExist: bool = False,
     ) -> Optional[models.Groups]:
         with self.connect() as session:
             if (
@@ -165,12 +176,14 @@ class RecordDAO:
                 .filter(tables.Groups.gid == data.gid)
                 .first()
             ):
-                if raiseException:
+                if updateIfExist:
+                    return self.groupUpdate(data)
+                elif raiseException:
                     raise BotExistError("此条记录已在数据库中存在")
                 else:
                     return
-            table = table.Groups(**dict(data))
-            session.add(data)
+            table = tables.Groups(**dict(data))
+            session.add(table)
             session.flush()
             result = models.Groups(**self.table2dict(table))
         return result
@@ -183,7 +196,7 @@ class RecordDAO:
                 session.query(tables.Groups)
                 .filter((tables.Groups.gid == gid) if gid is not None else True)
                 .order_by(tables.Groups.uid)
-                .limit(limit if limit <= 200 else 200)
+                .limit(limit if limit <= MAX_PAGE_SIZE else MAX_PAGE_SIZE)
                 .offset(offset)
                 .all()
             )
@@ -201,7 +214,9 @@ class RecordDAO:
             )
             if not result:
                 raise BotNotFoundError("在数据库中没有相应记录")
-            for k, v in data.dict(exclude={"gid"}).items():
+            for k, v in data.dict().items():
+                if getattr(result, k) == v:
+                    continue
                 setattr(result, k, v)
             session.flush()
             data = models.Groups(**self.table2dict(result))

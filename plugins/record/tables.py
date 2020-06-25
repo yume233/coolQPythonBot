@@ -21,6 +21,7 @@ class Users(Base):
     __tablename__ = "users"
     uid = Column(Integer, primary_key=True)
     nickname = Column(String, index=True, nullable=False)
+    data = Column(JsonIO, nullable=False)
 
 
 class Groups(Base):

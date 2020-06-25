@@ -1,4 +1,4 @@
-from typing import Optional,Dict,Any
+from typing import Optional, Dict, Any, List
 
 from nonebot.typing import Context_T
 from pydantic import BaseModel
@@ -23,9 +23,10 @@ class RecordsRead(BaseModel):
 class Users(BaseModel):
     uid: int
     nickname: str
+    data: List[Dict[str, Any]]
 
 
 class Groups(BaseModel):
     gid: int
     name: str
-    members:Dict[str,Any]
+    members: List[Dict[str, Any]]
