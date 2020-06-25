@@ -8,7 +8,6 @@ from nonebot import (
     NoneBot,
     NoticeSession,
     RequestSession,
-    on_natural_language,
 )
 from nonebot.command import (
     SwitchException,
@@ -47,7 +46,6 @@ async def _(bot: NoneBot, event: Event, plugin_manager):
     loginInfo = await bot.get_login_info()
 
     if loginInfo["user_id"] != event.self_id:
-        logger.info(f"Ignored message {event.message_id} due to incorrect account.")
         raise CanceledException(None)
 
     return

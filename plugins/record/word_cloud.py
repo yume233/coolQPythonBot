@@ -34,7 +34,7 @@ class WordcloudGenerator:
         return self._wordFreqency.copy()
 
     def update(self, text: str) -> FreqDict:
-        cutText: List[str] = jieba.cut(text)
+        cutText: List[str] = [i for i in jieba.cut(text) if not i.isascii()]
         freqDict = self._wordcloud.process_text(" ".join(cutText))
         return self.updateFreqency(freqDict)
 

@@ -47,6 +47,7 @@ def messageGenterator(
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
+    session.send("开始生成词云")
     latestTime = time() - DELTA_TIME.total_seconds()
     if "group_id" in session.ctx:
         messageIter = messageGenterator(
