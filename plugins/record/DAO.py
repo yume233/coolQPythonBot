@@ -4,12 +4,13 @@ from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import Session, sessionmaker
 
 from utils.exception import BotNotFoundError, BotExistError
+from utils.botConfig import settings
 
 from . import models, tables
 
 DATABASE_URL = "sqlite:///./data/database.sqlite3"
 DATABASE_CONFIG = {"check_same_thread": False}
-DATABASE_DEBUG = True
+DATABASE_DEBUG = settings.DEBUG
 MAX_PAGE_SIZE = 200
 
 

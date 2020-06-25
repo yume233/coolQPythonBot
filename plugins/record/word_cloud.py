@@ -4,6 +4,7 @@ import jieba
 from wordcloud import WordCloud
 
 from utils.tmpFile import tmpFile
+from utils.objects import convertImageFormat
 
 FONT_PATH = "./data/font.otf"
 
@@ -17,7 +18,6 @@ class WordcloudGenerator:
         global JIEBA_INIT
         if not JIEBA_INIT:
             jieba.initialize()
-            jieba.enable_paddle()
             JIEBA_INIT = True
 
         self._wordcloud = WordCloud(
@@ -26,7 +26,7 @@ class WordcloudGenerator:
         self._wordFreqency: FreqDict = {}
 
     def updateFreqency(self, data: FreqDict) -> FreqDict:
-        for k, v in data:
+        for k, v in data.items():
             if k in self._wordFreqency:
                 self._wordFreqency[k] += v
             else:
@@ -34,14 +34,14 @@ class WordcloudGenerator:
         return self._wordFreqency.copy()
 
     def update(self, text: str) -> FreqDict:
-        cutText: List[str] = jieba.cut(text, use_paddle=True)
+        cutText: List[str] = jieba.cut(text)
         freqDict = self._wordcloud.process_text(" ".join(cutText))
         return self.updateFreqency(freqDict)
 
     def save(self) -> bytes:
         wordcloud = self._wordcloud.generate_from_frequencies(self._wordFreqency)
-        with tmpFile() as tmpFileName:
+        with tmpFile(ext=".png") as tmpFileName:
             wordcloud.to_file(tmpFileName)
             with open(tmpFileName, "rb") as f:
                 fileRead = f.read()
-        return fileRead
+        return convertImageFormat(fileRead)

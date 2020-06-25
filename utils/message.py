@@ -42,10 +42,13 @@ def _messageSender(function: Callable) -> Callable:
         )
         if isinstance(returnData, tuple):
             replyData, atSender = returnData
-        elif isinstance(returnData, str):
-            replyData, atSender = returnData, True
         else:
+            replyData, atSender = returnData, True
+
+        if not isinstance(replyData, (str, MessageSegment)):
             return
+
+        replyData = str(replyData)
 
         if atSender:
             replyData = "\n" + replyData
