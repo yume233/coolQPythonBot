@@ -9,6 +9,7 @@ from nonebot.log import logger
 from utils.decorators import SyncToAsync
 from utils.message import processSession
 from utils.objects import callModuleAPI
+from utils.exception import ExceptionProcess
 
 from . import models
 from .DAO import RecordDAO
@@ -21,7 +22,7 @@ on_startup = get_bot().server_app.before_serving
 @scheduler.scheduled_job("interval", minutes=10)
 @SyncToAsync
 def saveDetail():
-    logger.debug("Refreshing detail of users and groups.")
+    logger.info("Refreshing detail of users and groups.")
     groupList: List[Dict[str, Any]] = callModuleAPI("get_group_list")
     groupData: Dict[int, Dict[str, Any]] = {}
     usersData: Dict[int, List[Dict[str, Any]]] = {}
@@ -78,8 +79,16 @@ def recordChat(session: NLPSession):
     ctx = session.ctx.copy()
     sender = session.ctx["user_id"]
     group = session.ctx.get("group_id")
-
     data = models.RecordsCreate(sender=sender, group=group, content=content, ctx=ctx)
-    result = DatabaseIO.recordCreate(data)
 
-    logger.debug(f"Chat record {result.__repr__()} has been saved to database")
+    try:
+        result = DatabaseIO.recordCreate(data)
+    except Exception as e:
+        traceID = ExceptionProcess.catch()
+        logger.warning(
+            f"Chat record {data} failed to storage due to {e} (Traceback ID:{traceID})."
+        )
+    else:
+        logger.debug(
+            f"Chat record {result} has been storaged to database successfully."
+        )
