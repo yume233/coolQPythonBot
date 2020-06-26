@@ -8,13 +8,12 @@ from nonebot.command.argfilter.extractors import extract_numbers, extract_text
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
 from utils.decorators import SyncToAsync, WithKeyword
-from utils.exception import BotDisabledError
 from utils.manager import PluginManager, nameJoin
 from utils.message import processSession
 
 from .config import Config
 from .parse import parseMultiImage, parseSingleImage
-from .tools import downloadImage, downloadMutliImage, pixiv
+from .tools import downloadMutliImage, pixiv
 
 __plugin_name__ = "pixiv"
 
@@ -257,4 +256,4 @@ def r18KeyBack(session: CommandSession):
     )
     key = "".join([chr(ord(i) + 10) for i in list(oldKey)])
     PluginManager.settings(OPERATING_METHOD, ctx=session.ctx).settings = {"key": key}
-    return f"分发的密钥已被收回"
+    return "分发的密钥已被收回"

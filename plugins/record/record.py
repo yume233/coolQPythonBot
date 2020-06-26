@@ -7,9 +7,8 @@ from nonebot.exceptions import CQHttpError
 from nonebot.log import logger
 
 from utils.decorators import SyncToAsync
-from utils.message import processSession
-from utils.objects import callModuleAPI
 from utils.exception import ExceptionProcess
+from utils.objects import callModuleAPI
 
 from . import models
 from .DAO import RecordDAO

@@ -4,7 +4,6 @@ import requests
 from PIL import Image
 
 from utils.decorators import CatchRequestsException
-from utils.exception import BotProgramError
 from utils.network import NetworkUtils
 from utils.tmpFile import tmpFile
 

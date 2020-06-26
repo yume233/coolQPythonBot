@@ -1,5 +1,4 @@
 from base64 import b64encode
-from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import date
 from itertools import cycle
 from os.path import isfile
@@ -8,7 +7,6 @@ from urllib.parse import urljoin
 
 import apscheduler
 import requests
-from loguru import logger
 from nonebot import CommandSession, MessageSegment, logger, on_command, scheduler
 from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 from PIL import Image
@@ -32,6 +30,8 @@ _IMAGE_LIST_CACHE = None
 if not isfile(CONFIG_DIR):
     copyFileInText(DEFAULT_DIR, CONFIG_DIR)
 CONFIG = configsReader(CONFIG_DIR, DEFAULT_DIR)
+
+logger.debug(f"Apscheduler status: {apscheduler.version_info}.")
 
 
 def resizeImage(
@@ -127,7 +127,7 @@ def batchSend():
             callModuleAPI(
                 "send_msg", params={"group_id": groupID, "message": timeTelling()},
             )
-        except:
+        except Exception:
             eid = ExceptionProcess.catch()
             logger.exception(
                 f"Failed to greeting in group {groupID},traceback id:{eid}"

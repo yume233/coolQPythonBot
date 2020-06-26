@@ -2,7 +2,7 @@ import json
 import random
 from datetime import datetime, timedelta
 from os.path import isfile
-from time import strftime, strptime
+from time import strftime
 from typing import Dict, List, Tuple
 from zipfile import PyZipFile
 

@@ -6,9 +6,9 @@ from typing import Iterator, Optional, Union
 
 from nonebot import CommandSession, on_command
 from nonebot.message import MessageSegment
-from nonebot.permission import GROUP_ADMIN, PRIVATE, SUPERUSER, check_permission
+from nonebot.permission import GROUP_ADMIN, PRIVATE, SUPERUSER
 
-from utils.decorators import SyncToAsync, AsyncToSync
+from utils.decorators import SyncToAsync
 from utils.message import processSession
 
 from . import models, record

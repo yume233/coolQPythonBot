@@ -1,9 +1,8 @@
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
 from utils.decorators import CatchRequestsException
-from utils.exception import BotNotFoundError, BotProgramError
 
 BASE_URL = "https://bangumi.moe"
 
