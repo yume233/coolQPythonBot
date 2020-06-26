@@ -4,7 +4,7 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from lxml import etree
-from nonebot import MessageSegment, logger
+from nonebot import MessageSegment
 
 from utils.decorators import CatchRequestsException
 from utils.network import NetworkUtils

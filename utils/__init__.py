@@ -1,5 +1,4 @@
 import os
-from yaml import safe_load
 from typing import Any
 
 UTILS_CONFIG_DIR = "./configs/utils.yml"

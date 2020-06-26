@@ -1,6 +1,6 @@
 from nonebot import MessageSegment
 
-from .tools import Executor, downloadImage, mosaicImage
+from .tools import Executor, downloadImage
 
 
 def _checkIsR18(tags: list) -> bool:

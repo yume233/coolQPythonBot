@@ -1,10 +1,9 @@
 from asyncio import run_coroutine_threadsafe
 from concurrent.futures import Future
-from concurrent.futures import wait as waitFuture
 from concurrent.futures.thread import ThreadPoolExecutor
 from functools import partial, wraps
 from inspect import isawaitable
-from time import sleep, time
+from time import time
 from typing import Awaitable, Callable, Optional, Union
 
 from nonebot import IntentCommand, get_bot, logger, on_natural_language

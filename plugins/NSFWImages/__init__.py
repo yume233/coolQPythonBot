@@ -11,7 +11,7 @@ from utils.manager import PluginManager, nameJoin
 from utils.message import processSession
 
 from .config import Config
-from .network import downloadImage, downloadMultiImage, getImageList
+from .network import downloadMultiImage, getImageList
 
 __plugin_name__ = "NSFWImages"
 OPERATING_METHOD = nameJoin(__plugin_name__, "ops")
@@ -123,4 +123,4 @@ def _(session: CommandSession):
     PluginManager.settings(pluginName=OPERATING_METHOD, ctx=session.ctx).settings = {
         "key": key
     }
-    return f"涩图密钥已被回收"
+    return "涩图密钥已被回收"

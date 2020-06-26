@@ -59,7 +59,7 @@ def rssParser(feed: str) -> dict:
         parsedData: FeedParserDict = parseFeed(feed)
         if parsedData.get("bozo") != 0:
             raise parsedData["bozo_exception"]
-    except:
+    except Exception:
         traceID = ExceptionProcess.catch()
         raise BotProgramError(reason="处理RSS订阅数据失败", trace=traceID)
 
@@ -95,7 +95,5 @@ def rssParser(feed: str) -> dict:
 
     feedContents.sort(key=lambda x: x["published_stamp"], reverse=True)
 
-    returnInfo.update(
-        {"content": feedContents, "size": len(feedContents),}
-    )
+    returnInfo.update({"content": feedContents, "size": len(feedContents)})
     return returnInfo

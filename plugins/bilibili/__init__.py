@@ -4,11 +4,9 @@ from nonebot import (
     CommandSession,
     IntentCommand,
     NLPSession,
-    get_bot,
     on_command,
     on_natural_language,
 )
-from nonebot.message import MessageSegment
 from nonebot.permission import GROUP_ADMIN, SUPERUSER
 
 from utils.decorators import SyncToAsync
@@ -36,7 +34,7 @@ def vidInfo(session: CommandSession):
     responseData = getVideoInfo(aid)
     try:
         parsedData = BiliParser.parse(responseData)
-    except:
+    except Exception:
         if session.state.get("auto", False):
             return
         else:

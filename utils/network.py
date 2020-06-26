@@ -1,9 +1,7 @@
 from copy import deepcopy
-from os.path import isfile as isFileExist
 from typing import Dict, List
 
 import requests
-from nonebot import logger
 
 from . import UtilsConfig
 from .decorators import CatchRequestsException

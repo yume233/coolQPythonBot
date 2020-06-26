@@ -1,9 +1,8 @@
 import os
 from datetime import timedelta
-from typing import Dict, Tuple
 
 from nonebot import default_config as dc
-from yaml import safe_dump, safe_load
+from yaml import safe_load
 
 CONFIG_DIR = "./configs/bot.yml"
 DEFAULT_CONFIG_DIR = "./configs/default.bot.yml"
