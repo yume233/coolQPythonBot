@@ -1,7 +1,7 @@
 from nonebot import CommandSession, on_command
 from nonebot.permission import SUPERUSER
 
-from utils.decorators import SyncToAsync
+from utils.decorators import SyncToAsync, WithKeyword
 from utils.exception import ExceptionProcess
 from utils.message import processSession
 
@@ -27,3 +27,11 @@ def _(session: CommandSession):
     if not strippedArgs:
         session.pause("请输入错误追踪ID")
     session.state["id"] = strippedArgs
+
+
+@on_command("ping", aliases=("在线状态",))
+@WithKeyword(("在？", "在?"), "ping", confidence=100)
+@processSession
+@SyncToAsync
+def _(session: CommandSession):
+    return "你好,在的", False

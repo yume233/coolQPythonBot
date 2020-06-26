@@ -1,0 +1,21 @@
+api:
+    address: https://api.imjad.cn/bilibili/v2/
+    retries: 3
+
+customize:
+    regexp:
+        av: '[aA][vV](\d{1,12})'
+        bv: "BV[a-zA-Z0-9]{8,12}"
+
+    video: |
+        {cover}
+        标题:“{title}”
+        作者:{author} (UID:{author_id})
+        观看链接:
+        http://b23.tv/av{aid}
+        http://b23.tv/{bid}
+        发布时间: {time}
+        视频时长: {duration}
+        已有:
+        {view}播放,{like}点赞,{share}分享,
+        {favorite}收藏,{coin}投币,{danmaku}弹幕

@@ -2,7 +2,7 @@ from copy import deepcopy
 from re import compile as compileRegexp
 
 from nonebot import logger, scheduler
-from nonebot.command import CommandSession, on_command
+from nonebot import CommandSession, on_command
 from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 
 from utils.decorators import SyncToAsync, WithKeyword

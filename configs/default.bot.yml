@@ -15,7 +15,6 @@ debug: true #开启logging中的debug级日志显示，会降低性能
 #API相关设置
 access_token: "" #访问授权，具体请查看CQHTTP文档
 secret: "" #同上
-api_root: "http://127.0.0.1:5700" #使用HTTP请求时的根地址，必填
 host: 127.0.0.1 #反向ws监听地址，建议127.0.0.1
 port: 8080 #反向ws端口
 thread_pool_num: 64

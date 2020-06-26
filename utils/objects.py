@@ -1,7 +1,7 @@
 from asyncio import iscoroutinefunction
 from os.path import getsize as getFileSize
 from secrets import token_bytes
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union, List
 
 from aiocqhttp.exceptions import ActionFailed
 from nonebot import NoneBot, get_bot
@@ -82,7 +82,7 @@ class SyncWrapper:
 
 def callModuleAPI(
     method: str, params: Optional[dict] = {}, ignoreError: Optional[bool] = False
-) -> Optional[Dict[str, Any]]:
+) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
     """Call CQHTTP's underlying API
     
     Parameters

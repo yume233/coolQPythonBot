@@ -9,7 +9,7 @@ customize:
         ----------
         {preview}
         标题:{title}
-        来自:{source}(ID:{id})
+        来自:{source} (ID:{id})
         {link}
     suffix: |
         ==========
