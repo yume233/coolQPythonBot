@@ -1,14 +1,9 @@
 from functools import partial, wraps
+from re import compile as compileRegexp
 from typing import Callable, Optional, Tuple, Union
 
 from aiocqhttp import Event
-from nonebot import (
-    CommandSession,
-    NLPSession,
-    NoneBot,
-    NoticeSession,
-    RequestSession,
-)
+from nonebot import CommandSession, NLPSession, NoneBot, NoticeSession, RequestSession
 from nonebot.command import (
     SwitchException,
     ValidateError,
@@ -39,6 +34,7 @@ from .manager import PluginManager
 from .objects import SyncWrapper
 
 UnionSession = Union[CommandSession, NLPSession, NoticeSession, RequestSession]
+CQ_CODE = compileRegexp(r"\[(CQ:\w+)(?:,\w+=[^,]+)*\]")
 
 
 @message_preprocessor
@@ -49,6 +45,10 @@ async def _(bot: NoneBot, event: Event, plugin_manager):
         raise CanceledException(None)
 
     return
+
+
+def _shortCQCode(message: str) -> str:
+    return CQ_CODE.sub(r"[\1...]", message).__repr__()
 
 
 def _messageSender(function: Callable) -> Callable:
@@ -73,7 +73,7 @@ def _messageSender(function: Callable) -> Callable:
             replyData += "\n(DEBUG)"
         logger.info(
             "Reply to message of conversation "
-            + f'{session.ctx["message_id"]} as {replyData.__repr__():.100s}'
+            + f'{session.ctx["message_id"]} as {_shortCQCode(replyData)}'
         )
 
         if hasattr(session, "finish"):
