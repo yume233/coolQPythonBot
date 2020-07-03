@@ -3,23 +3,33 @@ from re import compile as compileRegexp
 from typing import Callable, Optional, Tuple, Union
 
 from aiocqhttp import Event
-from nonebot import (CommandSession, NLPSession, NoneBot, NoticeSession,
-                     RequestSession)
-from nonebot.command import (SwitchException, ValidateError, _FinishException,
-                             _PauseException)
+from nonebot import CommandSession, NLPSession, NoneBot, NoticeSession, RequestSession
+from nonebot.command import (
+    SwitchException,
+    ValidateError,
+    _FinishException,
+    _PauseException,
+)
 from nonebot.command.argfilter.controllers import handle_cancellation
 from nonebot.command.argfilter.extractors import extract_text
 from nonebot.log import logger
-from nonebot.message import (CanceledException, MessageSegment,
-                             message_preprocessor)
+from nonebot.message import CanceledException, MessageSegment, message_preprocessor
 from nonebot.session import BaseSession
 
 from .botConfig import settings
 from .decorators import Timeit
-from .exception import (BaseBotError, BotDisabledError, BotExistError,
-                        BotMessageError, BotNetworkError, BotNotFoundError,
-                        BotPermissionError, BotProgramError, BotRequestError,
-                        ExceptionProcess)
+from .exception import (
+    BaseBotError,
+    BotDisabledError,
+    BotExistError,
+    BotMessageError,
+    BotNetworkError,
+    BotNotFoundError,
+    BotPermissionError,
+    BotProgramError,
+    BotRequestError,
+    ExceptionProcess,
+)
 from .manager import PluginManager
 from .objects import SyncWrapper
 
