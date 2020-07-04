@@ -2,8 +2,15 @@
 
 > 基于酷Q+CQHTTP的多功能QQ机器人
 
+
 ![](https://github.com/mnixry/coolQPythonBot/workflows/Code%20Check/badge.svg)
 ![](https://api.codacy.com/project/badge/Grade/55fe934189a74bf392bfbb301dfc33d4)
+
+![](https://img.shields.io/github/license/mnixry/coolQPythonBot)
+![](https://img.shields.io/github/issues/mnixry/coolQPythonBot?color=green)
+![](https://img.shields.io/github/forks/mnixry/coolQPythonBot)
+![](https://img.shields.io/github/stars/mnixry/coolQPythonBot)
+![](https://img.shields.io/badge/Python-3.7%2B-blue)
 
 ---
 
