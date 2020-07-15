@@ -170,7 +170,7 @@ def _(session: CommandSession):
     session.send("开始获取一图")
     randomRank = random.choice(["day", "week", "month"])
     apiParse = parseMultiImage(pixiv.getRank(randomRank))
-    if apiParse:
+    if apiParse["result"]:
         cache.update(randomRank, apiParse)
     else:
         apiParse = cache.get(randomRank)

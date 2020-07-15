@@ -41,6 +41,6 @@ class Chart:
     def chatFrequency(cls, data: DataFrame):
         assert "date" in data
         assert "time" in data
-        grid = sns.FacetGrid(data=data, row="date", aspect=4)
+        grid = sns.FacetGrid(data=data, row="date", aspect=2)
         grid.map(sns.distplot, "time", rug=True, kde=True)
         return cls._toImage(grid)
