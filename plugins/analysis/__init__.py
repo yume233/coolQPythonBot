@@ -23,9 +23,10 @@ DELTA_TIME = datetime.timedelta(days=7)
 def messageGenterator(
     group_id: Optional[int] = None,
     user_id: Optional[int] = None,
-    newestTime: Optional[datetime.datetime] = None,
-    latestTime: Optional[datetime.datetime] = None,
+    newestTime: datetime.datetime = datetime.datetime.max,
+    latestTime: datetime.datetime = datetime.datetime.min,
 ) -> Iterator[models.RecordsRead]:
+    assert newestTime >= latestTime
     for offset in count(0, MAX_PAGE_SIZE):
         result = DatabaseIO.recordReadBulk(
             user=user_id,
@@ -37,9 +38,9 @@ def messageGenterator(
         if not result:
             break
         for data in result:
-            if data.time <= (latestTime or datetime.datetime.min):
+            if data.time <= latestTime:
                 return
-            elif data.time >= (newestTime or datetime.datetime.max):
+            elif data.time >= newestTime:
                 continue
             yield data
     return
@@ -82,7 +83,7 @@ def _(session: CommandSession):
     return MessageSegment.image(f"base64://{b64encode(imageData).decode()}")
 
 
-@on_command("statistics", aliases=("统计",), permission=SUPERUSER)
+@on_command("statistics", aliases=("统计",), permission=POWER_GROUP)
 @processSession
 @SyncToAsync
 def _(session: CommandSession):
@@ -90,9 +91,16 @@ def _(session: CommandSession):
     latestTime = datetime.datetime.now() - DELTA_TIME
     newestTime = _datetimeRound(datetime.datetime.now())
     frameMaker = DataFrameMaker({"date": str, "time": float})
-    messageIter = messageGenterator(
-        group_id=session.ctx["group_id"], newestTime=newestTime, latestTime=latestTime
-    )
+    if "group_id" in session.ctx:
+        messageIter = messageGenterator(
+            group_id=session.ctx["group_id"],
+            newestTime=newestTime,
+            latestTime=latestTime,
+        )
+    else:
+        messageIter = messageGenterator(
+            user_id=session.ctx["user_id"], newestTime=newestTime, latestTime=latestTime
+        )
     for data in messageIter:
         date = str(data.time.date())
         time = _time2Int(data.time.time())

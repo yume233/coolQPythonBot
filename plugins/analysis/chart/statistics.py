@@ -6,10 +6,10 @@ from pandas import DataFrame
 
 from utils.tmpFile import tmpFile
 
-FONT_PATH = "./data/font.otf"
+# FONT_PATH = "./data/font.otf"
 
-font = FontProperties(fname=FONT_PATH)
-sns.set(font=font.get_family())
+# font = FontProperties(fname=FONT_PATH)
+# sns.set(font=font.get_family())
 
 
 class DataFrameMaker:
@@ -23,8 +23,8 @@ class DataFrameMaker:
         return self._frame.size
 
     def read(self) -> DataFrame:
-        for k, v in self._index.items():
-            self._frame[k] = self._frame[k].astype(v)
+        # for k, v in self._index.items():
+        #     self._frame[k] = self._frame[k].astype(v)
         return self._frame
 
 
@@ -41,6 +41,6 @@ class Chart:
     def chatFrequency(cls, data: DataFrame):
         assert "date" in data
         assert "time" in data
-        grid = sns.FacetGrid(data=data, row="date", height=1.7, aspect=4)
-        grid.map(sns.distplot, "time", rug=True)
+        grid = sns.FacetGrid(data=data, row="date", aspect=4)
+        grid.map(sns.distplot, "time", rug=True, kde=True)
         return cls._toImage(grid)
