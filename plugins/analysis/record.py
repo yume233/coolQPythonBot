@@ -11,7 +11,7 @@ from utils.exception import ExceptionProcess
 from utils.objects import callModuleAPI
 
 from . import models
-from .DAO import RecordDAO
+from .access import RecordDAO
 
 DatabaseIO = RecordDAO()
 

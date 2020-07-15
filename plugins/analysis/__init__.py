@@ -1,8 +1,7 @@
 from base64 import b64encode
-from datetime import timedelta
+from datetime import datetime, timedelta
 from itertools import count
-from time import time
-from typing import Iterator, Optional, Union
+from typing import Iterator, Optional
 
 from nonebot import CommandSession, on_command
 from nonebot.message import MessageSegment
@@ -12,8 +11,8 @@ from utils.decorators import SyncToAsync
 from utils.message import processSession
 
 from . import models, record
-from .DAO import MAX_PAGE_SIZE
-from .word_cloud import WordcloudGenerator
+from .access import MAX_PAGE_SIZE
+from .chart.cloud import WordcloudGenerator
 
 DatabaseIO = record.DatabaseIO
 POWER_GROUP = GROUP_ADMIN | SUPERUSER | PRIVATE
@@ -23,7 +22,7 @@ DELTA_TIME = timedelta(days=7)
 def messageGenterator(
     group_id: Optional[int] = None,
     user_id: Optional[int] = None,
-    latestTime: Optional[Union[float, int]] = None,
+    latestTime: Optional[datetime] = None,
 ) -> Iterator[models.RecordsRead]:
     for offset in count(0, MAX_PAGE_SIZE):
         result = DatabaseIO.recordReadBulk(
@@ -48,7 +47,7 @@ def messageGenterator(
 @SyncToAsync
 def _(session: CommandSession):
     session.send("开始生成词云")
-    latestTime = time() - DELTA_TIME.total_seconds()
+    latestTime = datetime.now() - DELTA_TIME
     if "group_id" in session.ctx:
         messageIter = messageGenterator(
             group_id=session.ctx["group_id"], latestTime=latestTime

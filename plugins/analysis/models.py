@@ -1,4 +1,5 @@
-from typing import Optional, Dict, Any, List
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from nonebot.typing import Context_T
 from pydantic import BaseModel
@@ -15,7 +16,7 @@ class RecordsRead(BaseModel):
     rid: int
     sender: int
     group: Optional[int]
-    time: float
+    time: datetime
     content: str
     ctx: Context_T
 
