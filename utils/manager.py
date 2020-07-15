@@ -39,12 +39,12 @@ class _SettingsIO:
 
 def nameJoin(pluginName: str, *methodsName: str) -> str:
     """Splice plugin name
-    
+
     Parameters
     ----------
     pluginName : str
         Plugin name
-    
+
     Returns
     -------
     str
@@ -81,7 +81,7 @@ def _checker(function):
 class SingleSetting(object):
     def __init__(self, pluginName: str, type: str, id: Optional[int] = None):
         """Get settings for a plugin
-        
+
         Parameters
         ----------
         pluginName : str
@@ -89,7 +89,7 @@ class SingleSetting(object):
         type : str
             Location type, select group or user
         id : Optional[int], optional
-            The ID of the selected type, 
+            The ID of the selected type,
             the default value is called if it is empty
         """
         assert type in ("group", "user")
@@ -140,7 +140,7 @@ class _PluginManager:
         defaultSettings: Optional[Any] = {},
     ):
         """Register a plugin
-        
+
         Parameters
         ----------
         pluginName : str
@@ -176,7 +176,7 @@ class _PluginManager:
         self, pluginName: str, type: str, id: Optional[int] = None
     ) -> SingleSetting:
         """Get settings for a certain plugin
-        
+
         Parameters
         ----------
         pluginName : str
@@ -184,9 +184,9 @@ class _PluginManager:
         type : str
             Location type, select group or user
         id : Optional[int], optional
-            The ID of the selected type, 
+            The ID of the selected type,
             the default value is called if it is empty
-        
+
         Returns
         -------
         SingleSetting
@@ -196,14 +196,14 @@ class _PluginManager:
 
     def settings(self, pluginName: str, ctx: dict) -> SingleSetting:
         """Get plugin settings automatically based on the provided `ctx` value
-        
+
         Parameters
         ----------
         pluginName : str
             Plugin name
         ctx : dict
             ctx content
-        
+
         Returns
         -------
         SingleSetting

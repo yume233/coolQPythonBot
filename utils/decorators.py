@@ -86,7 +86,7 @@ def WithKeyword(
     confidence: Optional[Union[float, int]] = 80.0,
 ):
     """Decorator, set keywords for commands
-    
+
     Parameters
     ----------
     keywords : Union[str, tuple]
@@ -120,14 +120,14 @@ def CatchRequestsException(
     retries: Optional[int] = None,
 ):
     """Decorator, catch exceptions from `requests` library
-    
+
     Parameters
     ----------
     prompt : str, optional
         Prompt for error, do not prompt if empty, by default None
     retries : int, optional
         number of retries, by default 1
-    
+
     Raises
     ------
     BotRequestError

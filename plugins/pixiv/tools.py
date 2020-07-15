@@ -166,7 +166,7 @@ class cache:
     @classmethod
     def read(cls, name: str) -> APIresult_T:
         cacheData = cls.all()
-        if not name in cacheData:
+        if name not in cacheData:
             raise BotNotFoundError("缓存未命中")
         return cacheData[name]
 

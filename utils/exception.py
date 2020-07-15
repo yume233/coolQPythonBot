@@ -56,7 +56,7 @@ class ExceptionProcess:
     @staticmethod
     def catch() -> str:
         """Catch the exception to get the exception ID
-        
+
         Returns
         -------
         str
@@ -70,14 +70,14 @@ class ExceptionProcess:
     @staticmethod
     def store(exceptionTime: float, exceptionStack: str) -> str:
         """Store a caught exception
-        
+
         Parameters
         ----------
         exceptionTime : float
             Timestamp when the exception occurred
         exceptionStack : str
             Exception stack
-        
+
         Returns
         -------
         str
@@ -103,12 +103,12 @@ class ExceptionProcess:
     @staticmethod
     def read(stackID: str) -> dict:
         """Read previously caught exception
-        
+
         Parameters
         ----------
         stackID : str
             Provided error stack ID
-        
+
         Returns
         -------
         dict
@@ -116,7 +116,7 @@ class ExceptionProcess:
             time : Timestamp when an error occurred
             time_format : Formatted version of the timestamp above
             stack : Exception stack
-        
+
         Raises
         ------
         BotNotFoundError

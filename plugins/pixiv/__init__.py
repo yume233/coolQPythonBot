@@ -1,6 +1,5 @@
 import random
 from secrets import token_hex
-from time import localtime
 from typing import List
 
 from nonebot import CommandSession, MessageSegment, on_command
