@@ -7,7 +7,9 @@ from pandas import DataFrame
 from utils.tmpFile import tmpFile
 
 FONT_PATH = "./data/font.otf"
-sns.set(font=FontProperties(fname=FONT_PATH).get_name())
+
+font = FontProperties(fname=FONT_PATH)
+sns.set(font=font.get_family())
 
 
 class DataFrameMaker:
@@ -39,5 +41,6 @@ class Chart:
     def chatFrequency(cls, data: DataFrame):
         assert "date" in data
         assert "time" in data
-        image = sns.catplot(x="date", y="time", data=data)
-        return cls._toImage(image)
+        grid = sns.FacetGrid(data=data, row="date", height=1.7, aspect=4)
+        grid.map(sns.distplot, "time", rug=True)
+        return cls._toImage(grid)

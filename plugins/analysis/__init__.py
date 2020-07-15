@@ -23,6 +23,7 @@ DELTA_TIME = datetime.timedelta(days=7)
 def messageGenterator(
     group_id: Optional[int] = None,
     user_id: Optional[int] = None,
+    newestTime: Optional[datetime.datetime] = None,
     latestTime: Optional[datetime.datetime] = None,
 ) -> Iterator[models.RecordsRead]:
     for offset in count(0, MAX_PAGE_SIZE):
@@ -36,9 +37,10 @@ def messageGenterator(
         if not result:
             break
         for data in result:
-            if latestTime is not None:
-                if data.time <= latestTime:
-                    break
+            if data.time <= (latestTime or datetime.datetime.min):
+                return
+            elif data.time >= (newestTime or datetime.datetime.max):
+                continue
             yield data
     return
 
@@ -50,6 +52,11 @@ def _time2Int(time: datetime.time) -> int:
         seconds=time.second,
         microseconds=time.microsecond,
     ).total_seconds()
+
+
+def _datetimeRound(date: datetime.datetime) -> datetime.datetime:
+    date = date.date().timetuple()
+    return datetime.datetime(*date[:6])
 
 
 @on_command("wordcloud", aliases=("词云", "高频词"), permission=POWER_GROUP)
@@ -81,9 +88,10 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     session.send("开始生成统计")
     latestTime = datetime.datetime.now() - DELTA_TIME
+    newestTime = _datetimeRound(datetime.datetime.now())
     frameMaker = DataFrameMaker({"date": str, "time": float})
     messageIter = messageGenterator(
-        group_id=session.ctx["group_id"], latestTime=latestTime
+        group_id=session.ctx["group_id"], newestTime=newestTime, latestTime=latestTime
     )
     for data in messageIter:
         date = str(data.time.date())
