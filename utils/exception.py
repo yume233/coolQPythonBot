@@ -8,9 +8,9 @@ from typing import Optional
 from nonebot import logger
 
 STORE_EXCEPTION_DIR = "./data/errors"
+STORE_EXCEPTION_DEPTH = 3
 
-if not os.path.exists(STORE_EXCEPTION_DIR):
-    os.mkdir(STORE_EXCEPTION_DIR)
+os.makedirs(STORE_EXCEPTION_DIR, exist_ok=True)
 
 
 class BaseBotError(Exception):
@@ -54,6 +54,17 @@ class BotMessageError(BotNetworkError):
 
 class ExceptionProcess:
     @staticmethod
+    def _getRecursivePath(filename: str, *, makeDir: bool = False) -> str:
+        name, ext = os.path.splitext(filename)
+        assert len(name) >= STORE_EXCEPTION_DEPTH
+        exceptionDir = os.path.join(
+            STORE_EXCEPTION_DIR, *list(name[:STORE_EXCEPTION_DEPTH])
+        )
+        if makeDir:
+            os.makedirs(exceptionDir, exist_ok=True)
+        return os.path.join(exceptionDir, filename)
+
+    @staticmethod
     def catch() -> str:
         """Catch the exception to get the exception ID
 
@@ -67,8 +78,8 @@ class ExceptionProcess:
         )
         return trace.upper()
 
-    @staticmethod
-    def store(exceptionTime: float, exceptionStack: str) -> str:
+    @classmethod
+    def store(cls, exceptionTime: float, exceptionStack: str) -> str:
         """Store a caught exception
 
         Parameters
@@ -84,7 +95,7 @@ class ExceptionProcess:
             Unique ID used to identify the exception
         """
         stackID: str = token_hex(4).upper()
-        storeDir: str = os.path.join(STORE_EXCEPTION_DIR, f"{stackID}.json")
+        storeDir: str = cls._getRecursivePath(f"{stackID}.json", makeDir=True)
         exceptionInfo: dict = {
             "stack_id": stackID,
             "time": exceptionTime,
@@ -100,8 +111,8 @@ class ExceptionProcess:
         )
         return stackID
 
-    @staticmethod
-    def read(stackID: str) -> dict:
+    @classmethod
+    def read(cls, stackID: str) -> dict:
         """Read previously caught exception
 
         Parameters
@@ -122,7 +133,7 @@ class ExceptionProcess:
         BotNotFoundError
             Throws when the exception stack for the specified ID cannot be found
         """
-        storeDir: str = os.path.join(STORE_EXCEPTION_DIR, f"{stackID.upper()}.json")
+        storeDir: str = cls._getRecursivePath(f"{stackID.upper()}.json")
         if not os.path.isfile(storeDir):
             raise BotNotFoundError("无法找到该追踪ID")
         with open(storeDir, "rt", encoding="utf-8") as f:
