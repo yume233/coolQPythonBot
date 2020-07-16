@@ -13,7 +13,7 @@ FreqDict = Dict[str, int]
 JIEBA_INIT = False
 
 
-class WordcloudGenerator:
+class WordcloudMaker:
     def __init__(self):
         global JIEBA_INIT
         if not JIEBA_INIT:

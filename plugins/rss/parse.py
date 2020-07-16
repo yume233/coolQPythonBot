@@ -38,17 +38,17 @@ def _avoidKeyError(function: Callable) -> Callable:
 @_avoidKeyError
 def rssParser(feed: str) -> dict:
     """Functions for handling RSS pushes
-    
+
     Parameters
     ----------
     feed : str
         Downloaded RSS file content
-    
+
     Returns
     -------
     dict
         A dictionary containing RSS information
-    
+
     Raises
     ------
     BotProgramError

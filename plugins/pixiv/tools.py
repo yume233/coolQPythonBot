@@ -1,3 +1,5 @@
+import json
+import os
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Union
@@ -7,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from utils.botConfig import settings
 from utils.decorators import CatchRequestsException
-from utils.exception import BotRequestError
+from utils.exception import BotNotFoundError, BotRequestError
 from utils.network import NetworkUtils
 from utils.objects import convertImageFormat
 from utils.tmpFile import tmpFile
@@ -16,17 +18,6 @@ from .config import Config
 
 Executor = ThreadPoolExecutor(settings.THREAD_POOL_NUM)
 APIresult_T = Union[List[Dict[str, Any]], Dict[str, Any]]
-
-
-@CatchRequestsException(prompt="从Pixiv获取接口信息失败")
-def _baseGetJSON(params: Dict[str, str]) -> APIresult_T:
-    r = requests.get(Config.apis.address, params=params, timeout=3)
-    r.raise_for_status()
-    resp: dict = r.json()
-    if resp.get("error"):
-        reason = "".join([str(i) for _, i in resp["error"].items()])
-        raise BotRequestError(reason)
-    return resp
 
 
 @CatchRequestsException(prompt="下载图片失败", retries=Config.apis.retries)
@@ -88,14 +79,25 @@ def downloadMutliImage(
 
 
 class pixiv:
-    @staticmethod
-    def getRank(rankLevel: Optional[str] = "week") -> APIresult_T:
+    @CatchRequestsException(prompt="从Pixiv获取接口信息失败")
+    def _baseGetJSON(params: Dict[str, str]) -> APIresult_T:
+        r = requests.get(Config.apis.address, params=params, timeout=3)
+        r.raise_for_status()
+        resp: dict = r.json()
+        if resp.get("error"):
+            reason = "".join([str(i) for i in resp["error"].keys() if i])
+            raise BotRequestError(reason)
+        return resp
+
+    @classmethod
+    def getRank(cls, rankLevel: Optional[str] = "week") -> APIresult_T:
         argsPayload = {"type": "rank", "mode": rankLevel}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
+    @classmethod
     def searchIllust(
+        cls,
         keyword: str,
         page: Optional[int] = 1,
         searchMode: Optional[int] = 0,
@@ -115,35 +117,63 @@ class pixiv:
             "page": page,
             "order": "date_asc" if ascending else "date_desc",
         }
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
-    def getRelatedIllust(imageID: int) -> APIresult_T:
+    @classmethod
+    def getRelatedIllust(cls, imageID: int) -> APIresult_T:
         argsPayload = {"type": "related", "id": str(imageID)}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
-    def getHotTags() -> APIresult_T:
+    @classmethod
+    def getHotTags(cls) -> APIresult_T:
         argsPayload = {"type": "tags"}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
-    def getImageDetail(imageID: int) -> APIresult_T:
+    @classmethod
+    def getImageDetail(cls, imageID: int) -> APIresult_T:
         argsPayload = {"type": "illust", "id": str(imageID)}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
-    def getMemberDetail(memberID: int) -> APIresult_T:
+    @classmethod
+    def getMemberDetail(cls, memberID: int) -> APIresult_T:
         argsPayload = {"type": "member", "id": str(memberID)}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
 
-    @staticmethod
-    def getMemberIllust(memberID: int, page: Optional[int] = 1) -> APIresult_T:
+    @classmethod
+    def getMemberIllust(cls, memberID: int, page: Optional[int] = 1) -> APIresult_T:
         argsPayload = {"type": "member_illust", "id": str(memberID), "page": str(page)}
-        getData = _baseGetJSON(argsPayload)
+        getData = cls._baseGetJSON(argsPayload)
         return getData
+
+
+class cache:
+    _path = "./data/PixivCache.json"
+
+    @classmethod
+    def all(cls) -> APIresult_T:
+        cacheData = {}
+        if not os.path.isfile(cls._path):
+            return cacheData
+        with open(cls._path, "rt", encoding="utf-8") as f:
+            cacheData = json.load(f)
+        return cacheData
+
+    @classmethod
+    def read(cls, name: str) -> APIresult_T:
+        cacheData = cls.all()
+        if name not in cacheData:
+            raise BotNotFoundError("缓存未命中")
+        return cacheData[name]
+
+    @classmethod
+    def update(cls, name: str, data: APIresult_T) -> int:
+        cacheData = cls.all()
+        cacheData[name] = data
+        with open(cls._path, "wt", encoding="utf-8") as f:
+            totalWrite = f.write(json.dumps(cacheData))
+        return totalWrite

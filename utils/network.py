@@ -15,7 +15,7 @@ class _NetworkUtils:
     @property
     def proxy(self) -> Dict[str, str]:
         """Used to get the global network proxy address
-        
+
         Returns
         -------
         dict
@@ -35,17 +35,17 @@ class _NetworkUtils:
 
     def shortLink(self, links: List[str]) -> Dict[str, str]:
         """Short link function to generate short links
-        
+
         Parameters
         ----------
         links : List[str]
             A list of URLs to be shortened
-        
+
         Returns
         -------
         Dict[str, str]
             Back to dictionary type, original link: short link
-        
+
         Raises
         ------
         BotNotFoundError

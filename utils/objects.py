@@ -20,14 +20,14 @@ class EnhancedDict(dict):
 class DictOperating:
     @staticmethod
     def enhance(origin: dict) -> EnhancedDict:
-        """Recursively convert all elements in a 
+        """Recursively convert all elements in a
         dictionary into an enhanced dictionary
-        
+
         Parameters
         ----------
         origin : dict
             Original dictionary object
-        
+
         Returns
         -------
         EnhancedDict
@@ -47,12 +47,12 @@ class DictOperating:
     @staticmethod
     def weaken(origin: EnhancedDict) -> dict:
         """Weaken the enhanced dictionary into a normal dictionary
-        
+
         Parameters
         ----------
         origin : EnhancedDict
             Original enhanced dictionary
-        
+
         Returns
         -------
         dict
@@ -84,14 +84,14 @@ def callModuleAPI(
     method: str, params: Optional[dict] = {}, ignoreError: Optional[bool] = False
 ) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
     """Call CQHTTP's underlying API
-    
+
     Parameters
     ----------
     method : str
         The name of the method to call
     params : Optional[dict], optional
         Additional parameters for the call, by default {}
-    
+
     Returns
     -------
     Callable
@@ -119,14 +119,14 @@ def callModuleAPI(
 
 def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
     """Convert picture format to solve the problem of unrecognizable pictures
-    
+
     Parameters
     ----------
     image : bytes
         Read out the bytes of the image
     quality : int, optional
         Image compression quality, by default 80
-    
+
     Returns
     -------
     bytes

@@ -1,6 +1,5 @@
 import random
 from secrets import token_hex
-from time import localtime
 from typing import List
 
 from nonebot import CommandSession, MessageSegment, on_command
@@ -13,7 +12,7 @@ from utils.message import processSession
 
 from .config import Config
 from .parse import parseMultiImage, parseSingleImage
-from .tools import downloadMutliImage, pixiv
+from .tools import cache, downloadMutliImage, pixiv
 
 __plugin_name__ = "pixiv"
 
@@ -169,11 +168,12 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     global _RANK_CACHE
     session.send("开始获取一图")
-    if localtime().tm_hour >= 12:
-        randomRank = random.choice(["day", "week", "month"])
-        apiGet = pixiv.getRank(randomRank)
-        _RANK_CACHE[randomRank] = parseMultiImage(apiGet)
-    apiParse = _RANK_CACHE[random.choice(list(_RANK_CACHE))]
+    randomRank = random.choice(["day", "week", "month"])
+    apiParse = parseMultiImage(pixiv.getRank(randomRank))
+    if apiParse["result"]:
+        cache.update(randomRank, apiParse)
+    else:
+        apiParse = cache.get(randomRank)
     choiceResult = random.choice(
         [data for data in apiParse["result"] if data["type"] == "illust"]
     )
