@@ -15,6 +15,15 @@
 
         如果以上步骤已经确认完毕，你可以通过[联系作者](mailto:admin@yami,im)来取得帮助
 
+3. 性能要求
+
+    |              | Linux(最低) | Linux(推荐)      | Windows(最低) | Windows(推荐) |
+    | :----------: | ----------- | ---------------- | :------------ | :------------ |
+    |     CPU      | 1核         | 1核              | 1核           | 2核           |
+    |   内存大小   | 1GiB        | 2GiB + 1GiB Swap | 2GiB          | 4GiB          |
+    |   网络带宽   | 10Mbps      | 30Mbps           | 10Mbps        | 30Mbps        |
+    | 硬盘剩余空间 | 5GiB        | 10GiB            | 2GiB          | 4GiB          |
+
 
 
 ## 开始部署
@@ -44,7 +53,43 @@
 
 **注意！因为本机器人的大量功能依赖图片发送功能，所以请使用需要付费的酷Q Pro**
 
+1. [下载酷Q Pro](https://dlsec.cqp.me/cqp-full)
+
+2. 请参考[CQHTTP文档](https://cqhttp.cc/docs/)下载安装CQHTTP插件
+
+    - 如果你的windows不是最新版，可能无法启动CQHTTP插件，请安装[Visual C++ 可再发行软件包](https://aka.ms/vs/16/release/vc_redist.x86.exe)
+
+3. 进行配置
+
+    - 可参考[CQHTTP 文档/配置](https://cqhttp.cc/docs/#/Configuration)
+
+    - **一定要记得打开拓展名显示**
+
+        
+
+    1. 打开`<酷Q运行目录>\data\app\io.github.richardchien.coolqhttpapi\config\`文件夹
+
+    2. 删除该文件夹下所有文件
+
+    3. 新建一个文件，名为`general.json`内容如下
+
+        ```json
+        {
+            "use_http": false,
+            "use_ws": false,
+            "use_ws_reverse": true,
+            "ws_reverse_use_universal_client": true,
+            "ws_reverse_url": "ws://127.0.0.1:8080/ws/",
+            "serve_data_files": false
+        }
+        ```
+
+    4. 重启或者启动酷Q Pro
+
 #### 使用Mirai
 
+- 咕了咕了
 
+### 运行程序
 
+- 这个我也不想讲`py main,py`就完事了
