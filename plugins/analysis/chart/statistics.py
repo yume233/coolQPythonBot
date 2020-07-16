@@ -1,15 +1,9 @@
 from typing import Any, Dict
 
 import seaborn as sns
-from matplotlib.font_manager import FontProperties
 from pandas import DataFrame
 
 from utils.tmpFile import tmpFile
-
-# FONT_PATH = "./data/font.otf"
-
-# font = FontProperties(fname=FONT_PATH)
-# sns.set(font=font.get_family())
 
 
 class DataFrameMaker:
@@ -23,8 +17,6 @@ class DataFrameMaker:
         return self._frame.size
 
     def read(self) -> DataFrame:
-        # for k, v in self._index.items():
-        #     self._frame[k] = self._frame[k].astype(v)
         return self._frame
 
 
