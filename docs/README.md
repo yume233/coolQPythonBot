@@ -4,10 +4,8 @@
 
 <details>
   <summary>Badges</summary>
-
 ![](https://github.com/mnixry/coolQPythonBot/workflows/Code%20Check/badge.svg)
 ![](https://api.codacy.com/project/badge/Grade/55fe934189a74bf392bfbb301dfc33d4)
-
 ![](https://img.shields.io/github/license/mnixry/coolQPythonBot)
 ![](https://img.shields.io/github/issues/mnixry/coolQPythonBot?color=green)
 ![](https://img.shields.io/github/forks/mnixry/coolQPythonBot)
@@ -17,6 +15,7 @@
 </details>
 
 ---
+
 
 ## 综述
 
@@ -44,23 +43,24 @@
 
 - 根据以上的原因，我们很容易总结出该 bot 的几点优势，汇总如下：
 
-  | 优势               | 其他 bot | 本 bot |
-  | ------------------ | -------- | ------ |
-  | 积极开发           | 部分     | 具有   |
-  | 开源               | 否       | 是     |
-  | 功能使用统一性     | 否       | 是     |
-  | 能使用多种底层实现 | 否       | 是     |
-  | 跨平台运行         | 否       | 是     |
-  | 娱乐功能 ⑴         | 是       | 否     |
-  | 代码责任担保 ⑵     | 是       | 否     |
+  | 优势               | 其他机器人 | 本机器人 |
+  | :----------------- | :--------: | :------: |
+  | 积极开发           |    部分    |   具有   |
+  | 开源               |     否     |    是    |
+  | 功能使用统一性     |     否     |    是    |
+  | 能使用多种底层实现 |     否     |    是    |
+  | 跨平台运行         |     否     |    是    |
+  | 娱乐功能 ⑴         |     是     |    否    |
+  | 代码责任担保 ⑵     |     是     |    否    |
 
 1. 本项目**没有**且**永远不会添加**任何具有娱乐性质的功能
    - 一个群聊是一个以人为基础的社区，需要用户积极地于其他社区用户交流，而不是与机器人交流
    - 当娱乐功能出现，用户会选择实时在线不会掉线的机器人进行互动，而不是人类。且机器人的消息对其他人聊天的污染性极大，会导致正常聊天消息被覆盖
    - 当一个群聊中 75%以上的消息都是于机器人的互动的时候，我个人认为这个群聊已经事实上死亡了
    - **如果你仍然需要任何娱乐功能，请自行关闭该页面，去淘宝找一个适合你的**
-
-2) 根据本项目所采用的 [GPLv3](https://github.com/mnixry/coolQPythonBot/blob/master/LICENSE#L591) 开源协议，本项目不作任何责任担保，协议原文摘录如下
+   
+2. 根据本项目所采用的 [GPLv3](https://github.com/mnixry/coolQPythonBot/blob/master/LICENSE#L591) 开源协议，本项目不作任何责任担保，协议原文摘录如下
+   
    > THERE IS **NO WARRANTY** FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.
 
 ## 目录
