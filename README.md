@@ -22,6 +22,6 @@
 
 请联系作者获取演示机器人qq号
 
-## **详情 ** *Details*
+## **详情** *Details*
 
 请移步[详细文档](docs/README.md)
