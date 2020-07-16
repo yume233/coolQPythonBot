@@ -1,6 +1,6 @@
 # CoolQ Python Bot
 
-> **基于酷 Q+CQHTTP 的多功能 QQ 机器人
+> **基于酷 Q+CQHTTP 的多功能 QQ 机器人**
 
 ---
 

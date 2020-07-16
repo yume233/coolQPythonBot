@@ -32,15 +32,20 @@
 
 1. 下载本程序代码
 
-    |                           下载方式                           | 优势                                           | 劣势                   |
+|                           下载方式                           | 优势                                           | 劣势                   |
 | :----------------------------------------------------------: | :--------------------------------------------- | :--------------------- |
-    | **推荐**[从Release处下载](https://github.com/mnixry/coolQPythonBot/releases/latest) | 稳定、快捷                                     | 无法得到最新的功能更新 |
-    | [下载master分支源码](https://github.com/mnixry/coolQPythonBot/archive/master.zip) | 较为稳定、新功能多                             | 不一定十分稳定         |
-    |                        从Git仓库clone                        | 快捷(对于某些用户而言)、能够获得最新更新、灵活 | 稳定性差               |
+| **推荐**[从Release处下载](https://github.com/mnixry/coolQPythonBot/releases/latest) | 稳定、快捷                                     | 无法得到最新的功能更新 |
+| [下载master分支源码](https://github.com/mnixry/coolQPythonBot/archive/master.zip) | 较为稳定、新功能多                             | 不一定十分稳定         |
+|                        从Git仓库clone                        | 快捷(对于某些用户而言)、能够获得最新更新、灵活 | 稳定性差               |
 
 2. 安装Python环境
 
-    这一步网上教程很多，我不太想讲
+    - **必须`Python3.8 `以及以上**
+    - **包含完整的Python标准库(包括sqlite等)**
+
+    *对于某些Linux发行版(例如CentOS7)来讲，以上要求意味着你需要自行编译安装Python运行环境*
+
+    这一步网上教程很多，就不细讲了
 
 ### 准备QQ机器人框架
 
@@ -88,8 +93,68 @@
 
 #### 使用Mirai
 
-- 咕了咕了
+1. 前往miraiOK地址，根据你对应的平台下载[miraiOK](https://github.com/LXY1226/miraiOK#%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80)
+
+2. 将miraiOK放置到一个你喜欢的目录，运行该文件
+
+    - 首次运行因为需要下载一些环境依赖，需要较长时间
+
+3. 安装`CQHTTPmirai`插件
+
+    - [下载地址](https://github.com/yyuueexxiinngg/cqhttp-mirai/releases)
+    - 参考[配置方式](https://github.com/yyuueexxiinngg/cqhttp-mirai#%E5%BC%80%E5%A7%8B%E4%BD%BF%E7%94%A8)
+
+    - 参考配置文件`setting.yml`如下
+
+        ```yaml
+        # 要进行配置的QQ号 (Mirai支持多帐号登录, 故需要对每个帐号进行单独设置)
+        '<你的机器人QQ号>':
+            # 可选，反向客户端服务
+            ws_reverse:
+                # 可选，是否启用反向客户端，默认不启用
+                enable: true
+                # 上报消息格式，string 为字符串格式，array 为数组格式, 默认为string
+                postMessageFormat: string
+                # 反向Websocket主机
+                reverseHost: 127.0.0.1
+                # 反向Websocket端口
+                reversePort: 8080
+                # 反向Websocket路径
+                reversePath: /ws
+                # 访问口令, 默认为null, 即不设置Token
+                accessToken: null
+                # 反向 WebSocket 客户端断线重连间隔，单位毫秒
+                reconnectInterval: 3000
+        ```
+
+4. 运行`miraiOK`，按照指引登录账号并进行验证
 
 ### 运行程序
 
-- 这个我也不想讲`py main,py`就完事了
+为了保证程序运行的依赖不被破坏，**本程序极度建议采用virtualenv管理虚拟环境**
+
+1. 打开本程序目录
+
+2. 在命令行中进行进行依赖安装工作
+
+    - 对于Windows
+
+        ```
+        python3 -m pip install pip -U
+        pip3 install virtualenv
+        virtualenv .venv
+        .venv\Scripts\activate.bat
+        pip install -r requirements
+        ```
+
+    - 对于Linux
+
+        ```shell
+        python3 -m pip install pip -U #升级pip
+        pip3 install virtualenv #安装虚拟环境virtualenv
+        python3 -m virtualenv .venv #创建虚拟环境
+        source .venv/bin/activate #激活虚拟环境
+        pip install -r requirements.txt #安装依赖
+        ```
+
+3. 在保持虚拟环境激活的情况下，运行`python3 main.py`即可启动程序
