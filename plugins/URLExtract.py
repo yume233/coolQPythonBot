@@ -4,12 +4,12 @@ from re import compile as compileRegexp
 
 from nonebot import (
     CommandSession,
+    IntentCommand,
+    MessageSegment,
     NLPSession,
     logger,
     on_command,
     on_natural_language,
-    MessageSegment,
-    IntentCommand,
 )
 
 from utils.decorators import SyncToAsync
