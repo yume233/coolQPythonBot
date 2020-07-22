@@ -27,7 +27,7 @@ REPLY_FORMAT = """
 def parse(data: str) -> dict:
     dataLoad = json.loads(data)
     link = ""
-    perview = ""
+    perview = ""  # noqa: F841
     assert "desc" in dataLoad
     assert "prompt" in dataLoad
     assert "meta" in dataLoad

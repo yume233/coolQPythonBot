@@ -20,7 +20,7 @@ PluginManager.registerPlugin(__plugin_name__, defaultSettings=[])
 async def _(bot: NoneBot, event: Event, _):
     if event.user_id in settings.SUPERUSERS:
         return
-    if not "group_id" in event:
+    if "group_id" not in event:
         return
     blacklists = PluginManager.settings(__plugin_name__, event).settings
     if event.user_id in blacklists:
@@ -46,7 +46,7 @@ def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.event).settings = [
         *set(nowBlacklist)
     ]
-    return f"已经为" + "".join(map(lambda x: str(MessageSegment.at(x)), banID)) + "添加黑名单"
+    return "已经为" + "".join(map(lambda x: str(MessageSegment.at(x)), banID)) + "添加黑名单"
 
 
 @on_command("blacklist_remove", aliases=("黑名单移除", "洗白"), permission=POWER_GROUP)
@@ -61,7 +61,7 @@ def _(session: CommandSession):
     PluginManager.settings(__plugin_name__, session.event).settings = [
         *set(nowBlacklist)
     ]
-    return f"已经为" + "".join(map(lambda x: str(MessageSegment.at(x)), banID)) + "移除黑名单"
+    return "已经为" + "".join(map(lambda x: str(MessageSegment.at(x)), banID)) + "移除黑名单"
 
 
 @on_command("blacklist_view", aliases=("查看黑名单", "黑人"), permission=POWER_GROUP)
@@ -70,8 +70,6 @@ def _(session: CommandSession):
 def _(session: CommandSession):
     nowBlacklist: list = PluginManager.settings(__plugin_name__, session.event).settings
     return (
-        f"目前"
-        + "".join(map(lambda x: str(MessageSegment.at(x)), nowBlacklist))
-        + "在黑名单上"
+        "目前" + "".join(map(lambda x: str(MessageSegment.at(x)), nowBlacklist)) + "在黑名单上"
     )
 
