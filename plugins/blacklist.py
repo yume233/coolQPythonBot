@@ -39,7 +39,7 @@ def _(session: CommandSession):
         )
     ]
     banID = [*set([int(i) for i in banID]).intersection({*groupUsers})]
-    if banID is None:
+    if not banID:
         session.pause("请输入被拉黑者的QQ")
     nowBlacklist: list = PluginManager.settings(__plugin_name__, session.event).settings
     nowBlacklist.extend(map(int, banID))
@@ -54,7 +54,7 @@ def _(session: CommandSession):
 @SyncToAsync
 def _(session: CommandSession):
     banID = extract_numbers(session.current_arg_text)
-    if banID is None:
+    if not banID:
         session.pause("请输入被洗白者的QQ")
     nowBlacklist: list = PluginManager.settings(__plugin_name__, session.event).settings
     nowBlacklist = [i for i in nowBlacklist if i not in banID]
