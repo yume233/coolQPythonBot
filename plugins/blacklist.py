@@ -72,4 +72,3 @@ def _(session: CommandSession):
     return (
         "目前" + "".join(map(lambda x: str(MessageSegment.at(x)), nowBlacklist)) + "在黑名单上"
     )
-
