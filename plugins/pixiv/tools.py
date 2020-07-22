@@ -1,4 +1,4 @@
-import json
+import pickle
 import os
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -79,6 +79,7 @@ def downloadMutliImage(
 
 
 class pixiv:
+    @staticmethod
     @CatchRequestsException(prompt="从Pixiv获取接口信息失败")
     def _baseGetJSON(params: Dict[str, str]) -> APIresult_T:
         r = requests.get(Config.apis.address, params=params, timeout=3)
@@ -152,15 +153,15 @@ class pixiv:
 
 
 class cache:
-    _path = "./data/PixivCache.json"
+    _path = "./data/pixiv.cache"
 
     @classmethod
     def all(cls) -> APIresult_T:
         cacheData = {}
         if not os.path.isfile(cls._path):
             return cacheData
-        with open(cls._path, "rt", encoding="utf-8") as f:
-            cacheData = json.load(f)
+        with open(cls._path, "rb") as f:
+            cacheData = pickle.load(f)
         return cacheData
 
     @classmethod
@@ -174,6 +175,6 @@ class cache:
     def update(cls, name: str, data: APIresult_T) -> int:
         cacheData = cls.all()
         cacheData[name] = data
-        with open(cls._path, "wt", encoding="utf-8") as f:
-            totalWrite = f.write(json.dumps(cacheData))
+        with open(cls._path, "wb") as f:
+            totalWrite = f.write(pickle.dumps(cacheData))
         return totalWrite
