@@ -173,7 +173,7 @@ def _(session: CommandSession):
     if apiParse["result"]:
         cache.update(randomRank, apiParse)
     else:
-        apiParse = cache.get(randomRank)
+        apiParse = cache.read(randomRank)
     choiceResult = random.choice(
         [data for data in apiParse["result"] if data["type"] == "illust"]
     )
