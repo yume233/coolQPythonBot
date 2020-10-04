@@ -52,11 +52,13 @@ def wikipedia(session: CommandSession):
     finalResult = {"keyword": keyword, "size": len(pages)}
     finalResult["result"] = []
     for page in pages.values():
-        finalResult["result"].append({
+        finalResult["result"].append(
+            {
                 "title": page["title"],
                 "introduce": page["extract"],
-                "link": NetworkUtils.shortLink([page["fullurl"]])[page["fullurl"]]
-            })
+                "link": NetworkUtils.shortLink([page["fullurl"]])[page["fullurl"]],
+            }
+        )
     repeatMessage = [
         str(CONFIG_READ.customize.repeat).format(**result)
         for result in finalResult["result"]
