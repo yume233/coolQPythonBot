@@ -98,7 +98,10 @@ class pixiv:
 
     @classmethod
     def getRank(cls, rankLevel: Optional[str] = "week") -> APIresult_T:
-        argsPayload = {"type": "rank", "mode": rankLevel, "date" : daybeforeYesterday()}
+        today=date.today() 
+        twodays=timedelta(days=2) 
+        daybYesterday=(today-twodays).strftime("%Y-%m-%d")
+        argsPayload = {"type": "rank", "mode": rankLevel, "date" : daybYesterday}
         getData = cls._baseGetJSON(argsPayload)
         return getData
 
@@ -156,31 +159,3 @@ class pixiv:
         argsPayload = {"type": "member_illust", "id": str(memberID), "page": str(page)}
         getData = cls._baseGetJSON(argsPayload)
         return getData
-
-
-class cache:
-    _path = "./data/pixiv.cache"
-
-    @classmethod
-    def all(cls) -> APIresult_T:
-        cacheData = {}
-        if not os.path.isfile(cls._path):
-            return cacheData
-        with open(cls._path, "rb") as f:
-            cacheData = pickle.load(f)
-        return cacheData
-
-    @classmethod
-    def read(cls, name: str) -> APIresult_T:
-        cacheData = cls.all()
-        if name not in cacheData:
-            raise BotNotFoundError("缓存未命中")
-        return cacheData[name]
-
-    @classmethod
-    def update(cls, name: str, data: APIresult_T) -> int:
-        cacheData = cls.all()
-        cacheData[name] = data
-        with open(cls._path, "wb") as f:
-            totalWrite = f.write(pickle.dumps(cacheData))
-        return totalWrite

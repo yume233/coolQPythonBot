@@ -12,7 +12,7 @@ from utils.message import processSession
 
 from .config import Config
 from .parse import parseMultiImage, parseSingleImage
-from .tools import cache, downloadMutliImage, pixiv
+from .tools import downloadMutliImage, pixiv
 
 __plugin_name__ = "pixiv"
 
@@ -29,7 +29,6 @@ PluginManager.registerPlugin(MEMBER_IMAGE_METHOD, defaultSettings={"r-18": False
 PluginManager.registerPlugin(RANK_IMAGE_METHOD)
 PluginManager.registerPlugin(OPERATING_METHOD)
 
-_RANK_CACHE = {}
 
 
 @on_command(GET_IMAGE_METHOD, aliases=("点图", "获取图片"))
@@ -166,14 +165,9 @@ def _(session: CommandSession):
 @processSession(pluginName=RANK_IMAGE_METHOD)
 @SyncToAsync
 def _(session: CommandSession):
-    global _RANK_CACHE
     session.send("开始获取一图")
     randomRank = random.choice(["day", "week", "month"])
     apiParse = parseMultiImage(pixiv.getRank(randomRank))
-    if apiParse["result"]:
-        cache.update(randomRank, apiParse)
-    else:
-        apiParse = cache.read(randomRank)
     choiceResult = random.choice(
         [data for data in apiParse["result"] if data["type"] == "illust"]
     )
