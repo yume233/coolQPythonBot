@@ -30,7 +30,6 @@ PluginManager.registerPlugin(RANK_IMAGE_METHOD)
 PluginManager.registerPlugin(OPERATING_METHOD)
 
 
-
 @on_command(GET_IMAGE_METHOD, aliases=("点图", "获取图片"))
 @processSession(pluginName=GET_IMAGE_METHOD)
 @WithKeyword("p站点图", command=GET_IMAGE_METHOD)
