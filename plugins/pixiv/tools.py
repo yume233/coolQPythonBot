@@ -3,6 +3,7 @@ import os
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Union
+from datetime import date, timedelta
 
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -31,6 +32,11 @@ def downloadImage(url: str, mosaic: Optional[bool] = False) -> str:
         pngImage = convertImageFormat(r.content)
     return f"base64://{b64encode(pngImage).decode()}"
 
+def daybeforeYesterday():
+    today=date.today() 
+    oneday=timedelta(days=2) 
+    yesterday=today-oneday  
+    return yesterday.strftime("%Y-%m-%d")
 
 def textAlign(
     img: bytes,
@@ -92,7 +98,7 @@ class pixiv:
 
     @classmethod
     def getRank(cls, rankLevel: Optional[str] = "week") -> APIresult_T:
-        argsPayload = {"type": "rank", "mode": rankLevel}
+        argsPayload = {"type": "rank", "mode": rankLevel, "date" : daybeforeYesterday()}
         getData = cls._baseGetJSON(argsPayload)
         return getData
 
