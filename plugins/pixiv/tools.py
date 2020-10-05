@@ -32,11 +32,13 @@ def downloadImage(url: str, mosaic: Optional[bool] = False) -> str:
         pngImage = convertImageFormat(r.content)
     return f"base64://{b64encode(pngImage).decode()}"
 
+
 def daybeforeYesterday():
-    today=date.today() 
-    oneday=timedelta(days=2) 
-    yesterday=today-oneday  
+    today = date.today()
+    oneday = timedelta(days=2)
+    yesterday = today - oneday
     return yesterday.strftime("%Y-%m-%d")
+
 
 def textAlign(
     img: bytes,
@@ -98,10 +100,10 @@ class pixiv:
 
     @classmethod
     def getRank(cls, rankLevel: Optional[str] = "week") -> APIresult_T:
-        today=date.today() 
-        twodays=timedelta(days=2) 
-        daybYesterday=(today-twodays).strftime("%Y-%m-%d")
-        argsPayload = {"type": "rank", "mode": rankLevel, "date" : daybYesterday}
+        today = date.today()
+        twodays = timedelta(days=2)
+        daybYesterday = (today - twodays).strftime("%Y-%m-%d")
+        argsPayload = {"type": "rank", "mode": rankLevel, "date": daybYesterday}
         getData = cls._baseGetJSON(argsPayload)
         return getData
 
