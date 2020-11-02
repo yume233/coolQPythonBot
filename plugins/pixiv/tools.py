@@ -94,7 +94,7 @@ class pixiv:
         r.raise_for_status()
         resp: dict = r.json()
         if resp.get("error"):
-            reason = "".join([str(i) for i in resp["error"].keys() if i])
+            reason = "/".join([str(i) for i in resp["error"].values() if i])
             raise BotRequestError(reason)
         return resp
 
