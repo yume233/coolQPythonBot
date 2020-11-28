@@ -1,6 +1,4 @@
 #Custom ignore
-.vscode/
-*.json
 *.tmp
 ./configs
 !.gitkeep
