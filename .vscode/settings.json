@@ -10,5 +10,9 @@
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
         }
-    }
+    },
+    "cSpell.words": [
+        "Izumi"
+    ],
+    "editor.formatOnSave": true
 }
