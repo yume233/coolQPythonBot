@@ -12,7 +12,11 @@
         }
     },
     "cSpell.words": [
-        "Izumi"
+        "Haruka",
+        "Izumi",
+        "aiofiles",
+        "cqhttp",
+        "nonebot"
     ],
     "editor.formatOnSave": true
 }

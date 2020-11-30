@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "HarukaBot"
 version = "3.0.0-alpha.0"
-description = "The multiple function QQ bot based on nonebot."
+description = "The multiple function QQ bot based on NoneBot."
 authors = ["mnixry"]
 license = "GPL-3.0-or-later"
 
@@ -14,6 +14,7 @@ pillow = "^8.0.1"
 lxml = "^4.6.2"
 feedparser = "^6.0.2"
 requests = "^2.25.0"
+aiofiles = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.4"
