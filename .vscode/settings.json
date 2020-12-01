@@ -16,7 +16,8 @@
         "Izumi",
         "aiofiles",
         "cqhttp",
-        "nonebot"
+        "nonebot",
+        "pydantic"
     ],
     "editor.formatOnSave": true
 }
