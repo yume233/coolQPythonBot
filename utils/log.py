@@ -5,7 +5,7 @@ from nonebot.log import logger as logger_
 
 from .config import Config
 
-LOG_PATH = Path(".") / "log"
+LOG_PATH = Path(".") / "data" / "logs"
 LOG_PATH.mkdir(parents=True, exist_ok=True)
 
 logger: Logger = logger_.opt(colors=True)

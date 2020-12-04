@@ -21,9 +21,10 @@ class ExceptionStorage:
     @classmethod
     def _resolvePath(cls, id_: str) -> Path:
         assert len(id_) >= cls.PATH_DEPTH
-        cls.EXCEPTION_PATH.mkdir(exist_ok=True, parents=True)
         filename = id_ + ".json"
-        return cls.EXCEPTION_PATH / ("/".join(filename[: cls.PATH_DEPTH])) / filename
+        path = cls.EXCEPTION_PATH / ("/".join(filename[: cls.PATH_DEPTH])) / filename
+        path.parent.mkdir(exist_ok=True, parents=True)
+        return path
 
     @classmethod
     def save(cls, traceback: str, *, time: Optional[datetime] = None) -> str:

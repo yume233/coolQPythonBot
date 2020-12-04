@@ -1,75 +1,107 @@
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from nonebot.matcher import MatcherGroup
 from nonebot.rule import Rule
 from nonebot.typing import Bot, Event
-from pydantic import BaseModel
 
-FeaturesRoot = None
-
-
-async def privilegeChecker(bot: Bot, event: Event, state: dict) -> bool:
-    return True
+from .permission import PermissionGroups, permissionGroupSelector
 
 
 class FeaturesMatcherGroup(MatcherGroup):
     pass
 
 
-class FeatureInfo(BaseModel):
-    name: str
-    description: str = ""
-    usage: str = ""
-
-
-class Feature(BaseModel):
-    info: FeatureInfo
-    path: Tuple[str, ...]
-    parent: "FeaturesView"
-    matcher: FeaturesMatcherGroup
-
-
-ALL_FEATURES: Dict[str, Feature] = {}
-
-
-class FeaturesView:
-    def __init__(self, name: str, parent: Optional["FeaturesView"] = None):
-        self._name = name
-        self._parent = parent
-        self._children: Dict[str, Union["FeaturesView", Feature]] = {}
+class FeaturesBase:
+    def __init__(
+        self,
+        name: str,
+        description: str = "",
+        usage: str = "",
+        parent: Optional["FeaturesBase"] = None,
+        status: Optional[Dict[PermissionGroups, bool]] = None,
+        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+    ):
+        self._name, self.description, self.usage = name, description, usage
+        self._parent, self._status, self._data = parent, status, data
 
     @property
     def name(self):
         return self._name
 
     @property
+    def parent(self):
+        return self._parent
+
+    @property
     def path(self) -> Tuple[str, ...]:
-        parentPath: List["FeaturesView"] = []
-        parent = self._parent
+        parentPath: List[str] = []
+        parent = self
         while parent is not None:
-            parentPath.append(parent)
-            parent = parent._parent
-        return tuple(*[p.name for p in reversed(parentPath)])
+            parentPath.append(parent.name)
+            parent = parent.parent
+        return tuple(reversed(parentPath))
 
-    def new(self, name: str) -> "FeaturesView":
-        assert name not in self._children
-        child = self.__class__(name=name, parent=self)
-        self._children[name] = child
-        return child
+    @property
+    def defaultStatus(self) -> Dict[PermissionGroups, bool]:
+        return self._status or self.parent.defaultStatus
 
-    def get(self, name: str, info: Optional[FeatureInfo] = None) -> Feature:
-        global ALL_FEATURES
-        info = info or FeatureInfo(name=name)
-        feature = Feature(
-            info=info,
-            path=(*self.path, info.name),
-            parent=self,
-            matcher=FeaturesMatcherGroup(rule=Rule(privilegeChecker)),
+    async def isEnabled(self, bot: Bot, event: Event, state: dict) -> bool:
+        # TODO: Check per user permission
+        group = await permissionGroupSelector(bot, event)
+        return self.defaultStatus[
+            group if group in self.defaultStatus else PermissionGroups.DEFAULT
+        ]
+
+
+class Feature(FeaturesBase):
+    @property
+    def matcher(self):
+        if hasattr(self, "_matcher"):
+            return self._matcher
+        self._matcher = FeaturesMatcherGroup(
+            rule=Rule(self.isEnabled), default_state={"_feature_path": self.path}
         )
-        ALL_FEATURES[".".join(feature.path)] = self._children[info.name] = feature
-        return feature
 
-    def lookup(self, path: Iterable[str]) -> Union["FeaturesView", Feature]:
+
+class FeaturesTree(FeaturesBase):
+    def __init__(
+        self,
+        name: str,
+        description: str = "",
+        usage: str = "",
+        parent: Optional["FeaturesBase"] = None,
+        status: Optional[Dict[PermissionGroups, bool]] = None,
+        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+    ):
+        super().__init__(
+            name,
+            description=description,
+            usage=usage,
+            parent=parent,
+            status=status,
+            data=data,
+        )
+        self._children: Dict[str, FeaturesBase] = {}
+
+    def inherit(
+        self,
+        name: str,
+        description: str = "",
+        usage: str = "",
+        status: Optional[Dict[PermissionGroups, bool]] = None,
+        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+    ):
+        self[name] = self.__class__(
+            name,
+            description=description,
+            usage=usage,
+            parent=self,
+            status=status,
+            data=data,
+        )
+        return self[name]
+
+    def lookup(self, path: Iterable[str]) -> Union["FeaturesBase", Feature]:
         root, *children = path
         assert root == self.name
         if not children:
@@ -81,17 +113,20 @@ class FeaturesView:
         elif isinstance(childInstance, self.__class__):
             return childInstance.lookup(children)
         elif isinstance(childInstance, Feature):
-            raise KeyError(f"{childInstance.info.name} is Feature, it has no child!")
+            raise KeyError(f"{childInstance.name} is Feature, it has no child!")
         else:
-            raise Exception(
-                f"Unknown exception occurred during parsing {self=}/{path=}"
-            )
+            raise Exception(f"Unknown exception occurred during parsing {self}/{path}")
 
     def __getitem__(self, key: str):
         return self._children[key]
+
+    def __setitem__(self, key: str, value: Any):
+        if key in self._children:
+            raise KeyError(f"Key {key} already exists at {self.name}.")
+        self._children[key] = value
 
     def __iter__(self):
         return self._children.keys()
 
 
-FeaturesRoot = FeaturesView("HarukaBot")
+FeaturesRoot = FeaturesBase("HarukaBot")
