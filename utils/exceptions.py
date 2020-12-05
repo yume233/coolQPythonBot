@@ -5,6 +5,9 @@ from secrets import token_hex
 from traceback import format_exc
 from typing import Optional
 
+import aiofiles
+from nonebot.message import run_postprocessor
+from nonebot.typing import Bot, Event, Matcher
 from pydantic import BaseModel
 
 
@@ -27,23 +30,26 @@ class ExceptionStorage:
         return path
 
     @classmethod
-    def save(cls, traceback: str, *, time: Optional[datetime] = None) -> str:
+    async def save(cls, traceback: str, *, time: Optional[datetime] = None) -> str:
         traceID = token_hex(8).upper()
         time = time or datetime.now()
         traceData = cls.ExceptionInfo(
             time=time, stamp=time.timestamp(), id=traceID, traceback=traceback
         )
         path = cls._resolvePath(traceID)
-        path.write_text(
-            json.dumps(traceData.dict(), ensure_ascii=False, indent=4, sort_keys=True),
-            encoding="utf-8",
-        )
+        async with aiofiles.open(path, "wt", encoding="utf-8") as target:  # type:ignore
+            await target.write(
+                json.dumps(
+                    traceData.dict(), ensure_ascii=False, indent=4, sort_keys=True
+                )
+            )
         return traceID
 
     @classmethod
-    def read(cls, id_: str):
+    async def read(cls, id_: str):
         path = cls._resolvePath(id_.upper())
-        data = path.read_text(encoding="utf-8")
+        async with aiofiles.open(path, "rt", encoding="utf-8") as target:  # type:ignore
+            data = await target.read()
         return cls.ExceptionInfo(**json.loads(data))
 
 
@@ -94,3 +100,26 @@ class BadRequestException(UsageIncorrectException):
 
 class IllegalArgumentException(BadRequestException):
     prompt = "错误的使用参数"
+
+
+@run_postprocessor
+async def _storeException(
+    matcher: Matcher,
+    exception: Optional[Exception],
+    bot: Bot,
+    event: Event,
+    state: dict,
+):
+    reason, trace = "", ""
+    if exception is None:
+        return
+    try:
+        raise exception
+    except BaseBotException as e:
+        reason, trace = e.prompt, e.traceID  # type:ignore
+    except Exception as e:
+        reason, trace = (
+            "未知故障:" + e.__class__.__name__,
+            await ExceptionStorage.save(format_exc()),
+        )
+    await bot.send(event, message=f"出现问题\n信息:{reason}\n追寻ID:{trace}")
