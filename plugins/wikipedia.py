@@ -25,9 +25,14 @@ CONFIG_READ = Config = configsReader(CONFIG_PATH, DEFAULT_PATH)
 @CatchRequestsException(prompt="从维基获取数据出错")
 def getWiki(keyword: str) -> dict:
     requestParam = {
-        "action": "opensearch",
-        "search": keyword,
+        "action": "query",
+        "generator": "prefixsearch",
+        "gpssearch": keyword,
         "format": "json",
+        "prop": "extracts|info",
+        "inprop": "url",
+        "exintro": "1",
+        "explaintext": "1",
         "uselang": "zh-hans",
     }
     result = requests.get(
@@ -43,17 +48,17 @@ def getWiki(keyword: str) -> dict:
 def wikipedia(session: CommandSession):
     keyword = session.get("keyword")
     session.send(f"开始Wiki搜索:{keyword}")
-    _, resultTitles, resultIntros, resultLinks = getWiki(keyword)
-    resultShortLinks = NetworkUtils.shortLink(resultLinks)
-    finalResult = {"keyword": keyword, "size": len(resultTitles)}
-    finalResult["result"] = [
-        {
-            "title": resultTitles[i],
-            "introduce": resultIntros[i],
-            "link": resultShortLinks[resultLinks[i]],
-        }
-        for i in range(len(resultTitles))
-    ]
+    pages = getWiki(keyword)["query"]["pages"]
+    finalResult = {"keyword": keyword, "size": len(pages)}
+    finalResult["result"] = []
+    for page in pages.values():
+        finalResult["result"].append(
+            {
+                "title": page["title"],
+                "introduce": page["extract"],
+                "link": NetworkUtils.shortLink([page["fullurl"]])[page["fullurl"]],
+            }
+        )
     repeatMessage = [
         str(CONFIG_READ.customize.repeat).format(**result)
         for result in finalResult["result"]

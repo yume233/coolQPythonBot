@@ -4,16 +4,8 @@
 name: Code Check
 
 on:
-    schedule:
-        - cron: 0 0 * * 1
-    push:
-        branches:
-            - master
-            - bot-v2
-            - bot-v3
-    pull_request:
-        branches:
-            - master
+    - push
+    - pull_request
 
 jobs:
     lint:
