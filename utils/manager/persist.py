@@ -1,51 +1,96 @@
 import json
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Literal, Union
+from typing import Any, Dict, Literal, Optional, Tuple
 
-import aiofiles
+from nonebot.permission import GROUP, Permission
+from nonebot.typing import Bot, Event
 
-from .models import MsgType
+MANAGE_DATA_DIR = Path(".") / "data" / "manager.json"
+MANAGE_DATA_DIR.parent.mkdir(exist_ok=True, parents=True)
 
-MANAGE_DATA_DIR = Path(".") / "data" / "manager"
-MANAGE_DATA_DIR.mkdir(exist_ok=True, parents=True)
-
-
-PersistDataStruct_T = Dict[
-    Literal[MsgType.GROUP, MsgType.PRIVATE],
-    Dict[str, Dict[Literal["status", "data"], Dict[str, Union[bool, Dict[str, Any]]]]],
-]
+_DEFAULT_STRUCT: Dict[str, Dict[str, Dict[str, Any]]] = {"group": {}, "private": {}}
 
 
 class FileOperating:
     _modified: bool = True
-    _cache: PersistDataStruct_T = {}
+    _cache: Dict[str, Any] = {}
 
     @classmethod
-    async def load(cls, pluginName: str) -> PersistDataStruct_T:
+    def load(cls) -> Dict[str, Any]:
         if not cls._modified:
             return cls._cache
-        configDir = MANAGE_DATA_DIR / f"{pluginName}.json"
-        if not configDir.exists():
-            return {}
-        async with aiofiles.open(
-            configDir, "rt", encoding="utf-8"
-        ) as target:  # type:ignore
-            data = json.loads(await target.read())
+        if not MANAGE_DATA_DIR.exists():
+            return _DEFAULT_STRUCT
+        with open(MANAGE_DATA_DIR, "rt", encoding="utf-8") as target:
+            data = json.load(target)
             assert isinstance(data, dict)
-        cls._modified = False
+        cls._modified, cls._cache = False, data
         return data
 
     @classmethod
-    async def save(cls, pluginName: str, data: PersistDataStruct_T) -> int:
+    def save(cls, data: Dict[str, Any]) -> int:
         cls._modified = True
-        configDir = MANAGE_DATA_DIR / f"{pluginName}.json"
-        async with aiofiles.open(
-            configDir, "wt", encoding="utf-8"
-        ) as target:  # type:ignore
+        with open(MANAGE_DATA_DIR, "wt", encoding="utf-8") as target:
             dumpedData = json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
-            totalWrites = await target.write(dumpedData)
+            totalWrites = target.write(dumpedData)
         return totalWrites
 
 
-class DataPersist:
-    pass
+class ManageData:
+    _checkGroup = Permission(GROUP)
+
+    def __init__(
+        self, type_: Literal["group", "private"], id_: int, path: Tuple[str, ...]
+    ):
+        self._type, self._id, self._path = type_, id_, path
+
+    @classmethod
+    async def new(cls, bot: Bot, event: Event, state: dict):
+        type_ = "group" if await cls._checkGroup(bot, event) else "private"
+        id_ = event.group_id if type_ == "group" else event.user_id
+        return cls(type_, id_, state["_feature_path"])  # type:ignore
+
+    @property
+    def _properties(self) -> Dict[str, Dict[str, Any]]:
+        data = FileOperating.load()
+        return deepcopy(data[self._type].get(str(self._id), {"status": {}, "data": {}}))
+
+    @_properties.setter
+    def _properties(self, value: Dict[str, Dict[str, Any]]):
+        data = FileOperating.load()
+        data[self._type][str(self._id)] = value
+        FileOperating.save(data)
+
+    @property
+    def status(self) -> Optional[bool]:
+        statusMap: Dict[str, bool] = self._properties["status"]
+        if (stringPath := ".".join(self._path)) in statusMap:
+            return statusMap[stringPath]
+        for parent in map(
+            lambda i: ".".join(self._path[:-i]), range(1, len(self._path))
+        ):
+            if parent not in statusMap:
+                continue
+            return statusMap[parent]
+        return None
+
+    @status.setter
+    def status(self, value: Optional[bool]):
+        data = self._properties
+        path = ".".join(self._path)
+        if value is None:
+            data["status"].pop(path)
+        else:
+            data["status"][".".join(self._path)] = value
+        self._properties = data
+
+    @property
+    def data(self) -> Optional[Dict[str, Any]]:
+        return deepcopy(self._properties["data"].get(".".join(self._path)))
+
+    @data.setter
+    def data(self, value: Dict[str, Any]):
+        data = self._properties
+        data["data"][".".join(self._path)] = value
+        self._properties = data

@@ -1,10 +1,12 @@
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
-from nonebot.matcher import MatcherGroup
+from nonebot.message import event_preprocessor
+from nonebot.plugin import MatcherGroup
 from nonebot.rule import Rule
 from nonebot.typing import Bot, Event
 
 from .permission import PermissionGroups, permissionGroupSelector
+from .persist import ManageData
 
 
 class FeaturesMatcherGroup(MatcherGroup):
@@ -23,6 +25,11 @@ class FeaturesBase:
     ):
         self._name, self.description, self.usage = name, description, usage
         self._parent, self._status, self._data = parent, status, data
+
+        @event_preprocessor
+        async def _appendManageData(bot: Bot, event: Event, state: dict):
+            state["_feature_path"] = self.path
+            state["_feature_data"] = ManageData.new(bot, event, state)
 
     @property
     def name(self):
@@ -46,7 +53,9 @@ class FeaturesBase:
         return self._status or self.parent.defaultStatus
 
     async def isEnabled(self, bot: Bot, event: Event, state: dict) -> bool:
-        # TODO: Check per user permission
+        data: ManageData = state["_feature_data"]
+        if data.status is not None:
+            return data.status
         group = await permissionGroupSelector(bot, event)
         return self.defaultStatus[
             group if group in self.defaultStatus else PermissionGroups.DEFAULT
@@ -58,9 +67,7 @@ class Feature(FeaturesBase):
     def matcher(self):
         if hasattr(self, "_matcher"):
             return self._matcher
-        self._matcher = FeaturesMatcherGroup(
-            rule=Rule(self.isEnabled), default_state={"_feature_path": self.path}
-        )
+        self._matcher = FeaturesMatcherGroup(rule=Rule(self.isEnabled))
 
 
 class FeaturesTree(FeaturesBase):
@@ -129,4 +136,4 @@ class FeaturesTree(FeaturesBase):
         return self._children.keys()
 
 
-FeaturesRoot = FeaturesBase("HarukaBot")
+FeaturesRoot = FeaturesBase("IzumiBot", status={PermissionGroups.DEFAULT: True})
