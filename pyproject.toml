@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "HarukaBot"
+name = "IzumiBot"
 version = "3.0.0-alpha.0"
 description = "The multiple function QQ bot based on NoneBot."
 authors = ["mnixry"]
