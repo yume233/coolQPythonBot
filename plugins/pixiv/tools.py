@@ -1,5 +1,3 @@
-import pickle
-import os
 from base64 import b64encode
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Any, Dict, List, Optional, Union
@@ -10,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from utils.botConfig import settings
 from utils.decorators import CatchRequestsException
-from utils.exception import BotNotFoundError, BotRequestError
+from utils.exception import  BotRequestError
 from utils.network import NetworkUtils
 from utils.objects import convertImageFormat
 from utils.tmpFile import tmpFile
