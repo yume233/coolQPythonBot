@@ -12,12 +12,14 @@
         }
     },
     "cSpell.words": [
-        "Haruka",
         "Izumi",
         "Struct",
         "aiofiles",
         "cqhttp",
+        "fastapi",
+        "ipaddress",
         "nonebot",
+        "noqa",
         "pydantic"
     ],
     "editor.formatOnSave": true

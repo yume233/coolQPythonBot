@@ -1,9 +1,23 @@
 general:
-  version: 3.0.0a1
+  version: 3.0.0a0
   debug: false
   log:
     level: INFO
 
-api:
+server:
   listen: 127.0.0.1
   port: 8080
+  driver: nonebot.drivers.fastapi
+
+upstream:
+  api_root: {}
+  api_timeout: 30
+  access_token: null
+  secret: null
+
+bot:
+  superusers: []
+  nickname: [""]
+  command_start: ["!", "*", "/", "！", "＊", "／"]
+  command_sep: ["."]
+  session_expire_timeout: 120

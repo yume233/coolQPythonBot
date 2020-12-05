@@ -1,6 +1,6 @@
 #Custom ignore
 *.tmp
-./configs
+./configs/*
 !.gitkeep
 !./configs/default/*
 
