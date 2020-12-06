@@ -1,4 +1,4 @@
-# HarukaBot
+# IzumiBot
 
 >**The multiple function QQ bot based on NoneBot.**
 
