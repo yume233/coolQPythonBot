@@ -1,8 +1,21 @@
-general:
+#     ____                     _ ____        __
+#    /  _/___ __  ______ ___  (_) __ )____  / /_
+#    / //_  // / / / __ `__ \/ / __  / __ \/ __/
+#  _/ /  / // /_/ / / / / / / / /_/ / /_/ / /_
+# /___/ /___|__,_/_/ /_/ /_/_/_____/\____/\__/
+#
+# The multiple function QQ bot based on NoneBot.
+
+general: #General configuration
   version: 3.0.0a0
   debug: false
   log:
     level: INFO
+    format: >
+      <level>
+      <v>{level:<8}</v>
+      [{time:YYYY/MM/DD} {time:HH:mm:ss.SSS} <d>{module}:{name}</d>]</level>
+      {message}
 
 server:
   listen: 127.0.0.1

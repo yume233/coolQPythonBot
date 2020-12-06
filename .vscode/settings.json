@@ -15,9 +15,13 @@
         "Izumi",
         "Struct",
         "aiofiles",
+        "asyncio",
         "cqhttp",
         "fastapi",
+        "hitokoto",
+        "httpx",
         "ipaddress",
+        "iscoroutinefunction",
         "nonebot",
         "noqa",
         "pydantic"
