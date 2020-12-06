@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Literal, Optional, Tuple
 
+from loguru import logger
 from nonebot.permission import GROUP, Permission
 from nonebot.typing import Bot, Event
 
@@ -34,6 +35,10 @@ class FileOperating:
         with open(MANAGE_DATA_DIR, "wt", encoding="utf-8") as target:
             dumpedData = json.dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
             totalWrites = target.write(dumpedData)
+        logger.debug(
+            "Persistence of manage data finished, "
+            f"file size:<b>{totalWrites}bytes</b>"
+        )
         return totalWrites
 
 

@@ -1,8 +1,9 @@
 from os import get_terminal_size
 
 import nonebot
+from nonebot.adapters.cqhttp import Bot as CQHTTPBot
 
-from utils.config import NONEBOT_CONFIG
+from utils.config import NONEBOT_CONFIG, VERSION
 from utils.log import logger
 
 COPYRIGHT = r"""<g>
@@ -24,4 +25,7 @@ if __name__ == "__main__":
     )
     logger.warning(COPYRIGHT)
     nonebot.init(**NONEBOT_CONFIG)
+    nonebot.get_driver().register_adapter("cqhttp", CQHTTPBot)  # type:ignore
+    nonebot.load_plugins("plugins")
+    logger.info(f"Current bot version <r><b>{VERSION}</b></r>")
     nonebot.run()

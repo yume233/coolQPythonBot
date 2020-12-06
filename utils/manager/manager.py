@@ -1,10 +1,12 @@
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
+from nonebot.exception import IgnoredException
 from nonebot.message import event_preprocessor
 from nonebot.plugin import MatcherGroup
 from nonebot.rule import Rule
 from nonebot.typing import Bot, Event
 
+from ..log import logger
 from .permission import PermissionGroups, permissionGroupSelector
 from .persist import ManageData
 
@@ -28,8 +30,12 @@ class FeaturesBase:
 
         @event_preprocessor
         async def _appendManageData(bot: Bot, event: Event, state: dict):
+            if event.type == "meta_event" and event.detail_type == "heartbeat":
+                raise IgnoredException(f"Ignored meta event: {event.__dict__}.")
             state["_feature_path"] = self.path
-            state["_feature_data"] = ManageData.new(bot, event, state)
+            state["_feature_data"] = await ManageData.new(bot, event, state)
+
+        logger.trace(f"Feature <e>{self.path}</e> initiated")
 
     @property
     def name(self):
@@ -68,6 +74,7 @@ class Feature(FeaturesBase):
         if hasattr(self, "_matcher"):
             return self._matcher
         self._matcher = FeaturesMatcherGroup(rule=Rule(self.isEnabled))
+        return self._matcher
 
 
 class FeaturesTree(FeaturesBase):
@@ -98,7 +105,7 @@ class FeaturesTree(FeaturesBase):
         status: Optional[Dict[PermissionGroups, bool]] = None,
         data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
     ):
-        self[name] = self.__class__(
+        self[name] = child = self.__class__(
             name,
             description=description,
             usage=usage,
@@ -106,7 +113,9 @@ class FeaturesTree(FeaturesBase):
             status=status,
             data=data,
         )
-        return self[name]
+        return child
+
+    __call__ = inherit
 
     def lookup(self, path: Iterable[str]) -> Union["FeaturesBase", Feature]:
         root, *children = path
@@ -124,6 +133,23 @@ class FeaturesTree(FeaturesBase):
         else:
             raise Exception(f"Unknown exception occurred during parsing {self}/{path}")
 
+    def feature(
+        self,
+        name: str,
+        description: str = "",
+        usage: str = "",
+        status: Optional[Dict[PermissionGroups, bool]] = None,
+        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+    ) -> Feature:
+        return Feature(
+            name,
+            description=description,
+            usage=usage,
+            parent=self,
+            status=status,
+            data=data,
+        )
+
     def __getitem__(self, key: str):
         return self._children[key]
 
@@ -136,4 +162,4 @@ class FeaturesTree(FeaturesBase):
         return self._children.keys()
 
 
-FeaturesRoot = FeaturesBase("IzumiBot", status={PermissionGroups.DEFAULT: True})
+FeaturesRoot = FeaturesTree("IzumiBot", status={PermissionGroups.DEFAULT: True})
