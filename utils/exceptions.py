@@ -10,6 +10,8 @@ from nonebot.message import run_postprocessor
 from nonebot.typing import Bot, Event, Matcher
 from pydantic import BaseModel
 
+from .log import logger
+
 
 class ExceptionStorage:
     EXCEPTION_PATH = Path(".") / "data" / "errors"
@@ -110,16 +112,18 @@ async def _storeException(
     event: Event,
     state: dict,
 ):
-    reason, trace = "", ""
+    reason, trace, exc = "", "", None
     if exception is None:
         return
     try:
         raise exception
     except BaseBotException as e:
-        reason, trace = e.prompt, e.traceID  # type:ignore
+        reason, trace, exc = e.prompt, e.traceID, e  # type:ignore
     except Exception as e:
-        reason, trace = (
+        reason, trace, exc = (
             "未知故障:" + e.__class__.__name__,
             await ExceptionStorage.save(format_exc()),
+            e,  # type:ignore
         )
+    logger.debug(f"Exception <R>{exc}</R> has been stored into ID {trace}")
     await bot.send(event, message=f"出现问题\n信息:{reason}\n追寻ID:{trace}")
