@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 from nonebot.exception import IgnoredException
@@ -7,8 +8,8 @@ from nonebot.rule import Rule
 from nonebot.typing import Bot, Event
 
 from ..log import logger
-from .permission import PermissionGroups, permissionGroupSelector
 from .persist import ManageData
+from .privilege import PrivilegeGroup, PrivilegeManager, PrivilegeRoles
 
 
 class FeaturesMatcherGroup(MatcherGroup):
@@ -22,8 +23,8 @@ class FeaturesBase:
         description: str = "",
         usage: str = "",
         parent: Optional["FeaturesBase"] = None,
-        status: Optional[Dict[PermissionGroups, bool]] = None,
-        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+        status: Optional[Dict[PrivilegeRoles, bool]] = None,
+        data: Optional[Dict[PrivilegeRoles, Dict[str, Any]]] = None,
     ):
         self._name, self.description, self.usage = name, description, usage
         self._parent, self._status, self._data = parent, status, data
@@ -55,16 +56,20 @@ class FeaturesBase:
         return tuple(reversed(parentPath))
 
     @property
-    def defaultStatus(self) -> Dict[PermissionGroups, bool]:
+    def strPath(self) -> str:
+        return ".".join(self.path)
+
+    @property
+    def defaultStatus(self) -> Dict[PrivilegeRoles, bool]:
         return self._status or self.parent.defaultStatus
 
     async def isEnabled(self, bot: Bot, event: Event, state: dict) -> bool:
         data: ManageData = state["_feature_data"]
         if data.status is not None:
             return data.status
-        group = await permissionGroupSelector(bot, event)
+        group = await PrivilegeRoleselector(bot, event)
         return self.defaultStatus[
-            group if group in self.defaultStatus else PermissionGroups.DEFAULT
+            group if group in self.defaultStatus else PrivilegeRoles.DEFAULT
         ]
 
 
@@ -84,8 +89,8 @@ class FeaturesTree(FeaturesBase):
         description: str = "",
         usage: str = "",
         parent: Optional["FeaturesBase"] = None,
-        status: Optional[Dict[PermissionGroups, bool]] = None,
-        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+        status: Optional[Dict[PrivilegeRoles, bool]] = None,
+        data: Optional[Dict[PrivilegeRoles, Dict[str, Any]]] = None,
     ):
         super().__init__(
             name,
@@ -97,13 +102,22 @@ class FeaturesTree(FeaturesBase):
         )
         self._children: Dict[str, FeaturesBase] = {}
 
+    @property
+    def allStatus(self) -> Dict[str, Dict[PrivilegeRoles, bool]]:
+        statuses = {self.strPath: self.defaultStatus}
+        for child in self._children.values():
+            statuses[child.strPath] = child.defaultStatus
+            if isinstance(child, self.__class__):
+                statuses.update(child.allStatus)
+        return statuses
+
     def inherit(
         self,
         name: str,
         description: str = "",
         usage: str = "",
-        status: Optional[Dict[PermissionGroups, bool]] = None,
-        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+        status: Optional[Dict[PrivilegeRoles, bool]] = None,
+        data: Optional[Dict[PrivilegeRoles, Dict[str, Any]]] = None,
     ):
         self[name] = child = self.__class__(
             name,
@@ -138,8 +152,8 @@ class FeaturesTree(FeaturesBase):
         name: str,
         description: str = "",
         usage: str = "",
-        status: Optional[Dict[PermissionGroups, bool]] = None,
-        data: Optional[Dict[PermissionGroups, Dict[str, Any]]] = None,
+        status: Optional[Dict[PrivilegeRoles, bool]] = None,
+        data: Optional[Dict[PrivilegeRoles, Dict[str, Any]]] = None,
     ) -> Feature:
         return Feature(
             name,
@@ -156,10 +170,12 @@ class FeaturesTree(FeaturesBase):
     def __setitem__(self, key: str, value: Any):
         if key in self._children:
             raise KeyError(f"Key {key} already exists at {self.name}.")
+        if not key.isalnum():
+            raise KeyError(f"Key {key} must be a number or alpha.")
         self._children[key] = value
 
     def __iter__(self):
         return self._children.keys()
 
 
-FeaturesRoot = FeaturesTree("IzumiBot", status={PermissionGroups.DEFAULT: True})
+FeaturesRoot = FeaturesTree("IzumiBot", status={PrivilegeRoles.SUPERUSER: True})
