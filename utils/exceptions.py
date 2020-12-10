@@ -6,16 +6,19 @@ from traceback import format_exc
 from typing import Optional
 
 import aiofiles
+from nonebot.exception import NoneBotException
 from nonebot.message import run_postprocessor
 from nonebot.typing import Bot, Event, Matcher
 from pydantic import BaseModel
 
 from .log import logger
+from .utils import SyncUtil
 
 
 class ExceptionStorage:
     EXCEPTION_PATH = Path(".") / "data" / "errors"
     PATH_DEPTH = 3
+    ID_LENGTH = 6
 
     class ExceptionInfo(BaseModel):
         time: datetime
@@ -33,7 +36,7 @@ class ExceptionStorage:
 
     @classmethod
     async def save(cls, traceback: str, *, time: Optional[datetime] = None) -> str:
-        traceID = token_hex(8).upper()
+        traceID = token_hex(cls.ID_LENGTH).upper()
         time = time or datetime.now()
         traceData = cls.ExceptionInfo(
             time=time, stamp=time.timestamp(), id=traceID, traceback=traceback
@@ -54,14 +57,17 @@ class ExceptionStorage:
             data = await target.read()
         return cls.ExceptionInfo(**json.loads(data))
 
+    saveSync = SyncUtil.ToSync(save)
+    readSync = SyncUtil.ToAsync(read)
 
-class BaseBotException(Exception):
+
+class BaseBotException(NoneBotException, Exception):
     prompt: Optional[str] = None
 
     def __init__(self, prompt: Optional[str] = None, traceback: Optional[str] = None):
         self.prompt = prompt or self.__class__.prompt or self.__class__.__name__
         self.traceback = traceback or format_exc()
-        self.traceID = ExceptionStorage.save(self.traceback)
+        self.traceID = ExceptionStorage.saveSync()
 
 
 class BotProgramException(BaseBotException):
@@ -105,25 +111,28 @@ class IllegalArgumentException(BadRequestException):
 
 
 @run_postprocessor
-async def _storeException(
+async def _(
     matcher: Matcher,
     exception: Optional[Exception],
     bot: Bot,
     event: Event,
     state: dict,
 ):
-    reason, trace, exc = "", "", None
+    reason, trace = "", ""
+    exc: Optional[Exception] = None
     if exception is None:
         return
+
     try:
         raise exception
     except BaseBotException as e:
-        reason, trace, exc = e.prompt, e.traceID, e  # type:ignore
+        reason, trace, exc = e.prompt or e.__class__.__name__, e.traceID, e
     except Exception as e:
         reason, trace, exc = (
             "未知故障:" + e.__class__.__name__,
             await ExceptionStorage.save(format_exc()),
-            e,  # type:ignore
+            e,
         )
+
     logger.debug(f"Exception <R>{exc}</R> has been stored into ID {trace}")
-    await bot.send(event, message=f"出现问题\n信息:{reason}\n追寻ID:{trace}")
+    await bot.send(event, message=f"[出现问题]\n{reason}\n(追寻ID:{trace})", at_sender=True)
