@@ -1,15 +1,20 @@
 import asyncio
+from asyncio import get_event_loop, run_coroutine_threadsafe
 from datetime import datetime
 from functools import wraps
 from inspect import iscoroutinefunction
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Union
 
 import httpx
+from nonebot.utils import run_sync
 
 from .log import logger
 
+_AnyCallable = Callable[..., Any]
+_AsyncCallable = Callable[..., Awaitable]
 
-def TimeIt(function: Callable) -> Callable:
+
+def TimeIt(function: _AnyCallable) -> _AnyCallable:
     @wraps(function)
     async def asyncWrapper(*args, **kwargs):
         start = datetime.now()
@@ -59,3 +64,20 @@ async def batchDownload(
     succeed, failed = len(results), len(results) - len(data)
     logger.debug(f"Bulk download finished, succeed={succeed} failed={failed}.")
     return data
+
+
+class SyncUtil:
+    @staticmethod
+    def ToAsync(function: _AnyCallable) -> _AsyncCallable:
+        return TimeIt(run_sync(function))
+
+    @staticmethod
+    def ToSync(function: _AsyncCallable) -> _AnyCallable:
+        @TimeIt
+        @wraps(function)
+        def wrapper(*args, **kwargs):
+            return run_coroutine_threadsafe(
+                function(*args, **kwargs), loop=get_event_loop()
+            ).result()
+
+        return wrapper

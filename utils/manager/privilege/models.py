@@ -1,7 +1,61 @@
-from enum import IntEnum, auto
-from typing import Dict, Optional
+from enum import Enum, IntEnum, auto
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Type, Union
 
+from nonebot import permission
+from nonebot.typing import Bot, Event
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from ..manager import FeaturesTree
+
+
+class PrivilegeStatus(IntEnum):
+    """
+    - PROHIBITED: Prohibit anyone to change this
+    - DISABLED: Disabled usage by default
+    - ENABLED: Enabled usage by default
+    - FORCED: Force this function open which is cannot be changed
+    """
+
+    PROHIBITED = -1
+    DISABLED = 0
+    ENABLED = 1
+    FORCED = 2
+
+
+class DefaultPrivilegeRoles:
+    class _BaseRole:
+        perm: permission.Permission = permission.Permission(permission.EVERYBODY)
+
+        def __init__(self, root: "FeaturesTree"):
+            self._privileges = {
+                k: v[self.__class__]
+                for k, v in root.allStatus.items()
+                if self.__class__ in v
+            }
+
+        @classmethod
+        async def validator(cls, bot: Bot, event: Event):
+            return await cls.perm(bot, event)
+
+        @property
+        def privileges(self) -> Dict[str, PrivilegeStatus]:
+            return self._privileges
+
+    class Superuser(_BaseRole):
+        perm = permission.Permission(permission.SUPERUSER)
+
+    class GroupAdmin(Superuser):
+        perm = permission.Permission(permission.GROUP_OWNER) or permission.GROUP_ADMIN
+
+    class GroupChat(GroupAdmin):
+        perm = permission.Permission(permission.GROUP)
+
+    class Friend(Superuser):
+        perm = permission.Permission(permission.PRIVATE_FRIEND)
+
+    class PrivateChat(Friend):
+        perm = permission.Permission(permission.PRIVATE)
 
 
 class PrivilegeRoles(IntEnum):
