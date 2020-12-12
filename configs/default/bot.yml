@@ -28,6 +28,21 @@ upstream:
   access_token: null
   secret: null
 
+database: #Current only support PostgreSQL
+  connection:
+    host: localhost
+    port: 5432
+    password: ""
+    user: postgres
+    database: postgres
+  pool:
+    max: 16
+    min: 1
+  echo: false
+  retry:
+    limit: 1
+    interval: 1
+
 bot:
   superusers: []
   nickname: [""]

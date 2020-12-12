@@ -16,15 +16,22 @@
         "Struct",
         "aiofiles",
         "asyncio",
+        "chdir",
         "cqhttp",
         "fastapi",
         "hitokoto",
         "httpx",
         "ipaddress",
+        "isalnum",
         "iscoroutinefunction",
         "nonebot",
         "noqa",
-        "pydantic"
+        "postgres",
+        "postgresql",
+        "pydantic",
+        "rsplit",
+        "sqlite",
+        "starlette"
     ],
     "editor.formatOnSave": true
 }
