@@ -2,9 +2,11 @@ from os import get_terminal_size
 
 import nonebot
 from nonebot.adapters.cqhttp import Bot as CQHTTPBot
+from nonebot.drivers.fastapi import Driver as FastAPIDriver
 
 from utils.config import NONEBOT_CONFIG, VERSION
 from utils.log import logger
+from utils.manager.persist.db import db as DBPlugin
 
 COPYRIGHT = r"""<g>
     ____                     _ ____        __ 
@@ -25,7 +27,9 @@ if __name__ == "__main__":
     )
     logger.warning(COPYRIGHT)
     nonebot.init(**NONEBOT_CONFIG)
-    nonebot.get_driver().register_adapter("cqhttp", CQHTTPBot)  # type:ignore
+    driver: FastAPIDriver = nonebot.get_driver()  # type:ignore
+    driver.register_adapter("cqhttp", CQHTTPBot)
+    DBPlugin.init_app(driver.server_app)
     nonebot.load_plugins("plugins")
     logger.info(f"Current bot version <r><b>{VERSION}</b></r>")
     nonebot.run()

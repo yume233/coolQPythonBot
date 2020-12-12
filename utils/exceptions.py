@@ -6,7 +6,6 @@ from traceback import format_exc
 from typing import Optional
 
 import aiofiles
-from nonebot.exception import NoneBotException
 from nonebot.message import run_postprocessor
 from nonebot.typing import Bot, Event, Matcher
 from pydantic import BaseModel
@@ -61,13 +60,14 @@ class ExceptionStorage:
     readSync = SyncUtil.ToAsync(read)
 
 
-class BaseBotException(NoneBotException, Exception):
+class BaseBotException(Exception):
     prompt: Optional[str] = None
 
     def __init__(self, prompt: Optional[str] = None, traceback: Optional[str] = None):
         self.prompt = prompt or self.__class__.prompt or self.__class__.__name__
         self.traceback = traceback or format_exc()
         self.traceID = ExceptionStorage.saveSync()
+        super().__init__(self.prompt)
 
 
 class BotProgramException(BaseBotException):

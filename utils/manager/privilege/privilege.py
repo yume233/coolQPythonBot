@@ -24,10 +24,6 @@ class PrivilegeManager:
         ),
     }
 
-    SuperuserGroup = PrivilegeGroup(
-        name="superuser",
-    )
-
     def __init__(self):
         self._groups: Dict[str, PrivilegeGroup] = {}
         self._users: Dict[str, UserPrivilege] = {}

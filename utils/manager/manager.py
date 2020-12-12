@@ -8,7 +8,6 @@ from nonebot.rule import Rule
 from nonebot.typing import Bot, Event
 
 from ..log import logger
-from .persist import ManageData
 from .privilege import PrivilegeGroup, PrivilegeManager, PrivilegeRoles
 
 
