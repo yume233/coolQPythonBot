@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from gino.ext.starlette import Gino  # type:ignore
 from sqlalchemy.engine.url import URL
 
-from ...config import Config
+from .config import Config
 
 if TYPE_CHECKING:
     from gino_starlette import Gino  # noqa:F811

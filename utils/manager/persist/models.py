@@ -1,6 +1,6 @@
 from sqlalchemy import JSON, Column, ForeignKey, Index, Integer, SmallInteger, String
 
-from .db import db
+from ...db import db
 
 
 class AllPrivileges(db.Model):  # type:ignore

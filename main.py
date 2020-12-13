@@ -5,8 +5,8 @@ from nonebot.adapters.cqhttp import Bot as CQHTTPBot
 from nonebot.drivers.fastapi import Driver as FastAPIDriver
 
 from utils.config import NONEBOT_CONFIG, VERSION
+from utils.db import db as DBPlugin
 from utils.log import logger
-from utils.manager.persist.db import db as DBPlugin
 
 COPYRIGHT = r"""<g>
     ____                     _ ____        __ 
