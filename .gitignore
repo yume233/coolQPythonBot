@@ -1,8 +1,7 @@
 #Custom ignore
 *.tmp
-*.yml
+configs/*.yml
 !.gitkeep
-!./configs/default/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
