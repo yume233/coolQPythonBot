@@ -24,7 +24,7 @@ def _getDB(path: Path):
         path = path.parent
     sys.path.append(str(path))
     os.chdir(path)
-    from utils.db import db  # noqa:E402
+    from utils.manager.persist.models import db
 
     return db
 

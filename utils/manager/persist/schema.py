@@ -1,13 +1,41 @@
+from datetime import datetime
+from enum import IntEnum
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, constr
 
-from ..privilege.models import PrivilegeStatus
+
+class PrivilegeStatus(IntEnum):
+    """
+    - PROHIBITED: Prohibit anyone to change this
+    - DISABLED: Disabled usage by default
+    - ENABLED: Enabled usage by default
+    - FORCED: Force this function open which is cannot be changed
+    """
+
+    PROHIBITED = -1
+    DISABLED = 0
+    ENABLED = 1
+    FORCED = 2
 
 
 class BaseSchema(BaseModel):
     class Config:
         orm_mode = True
+
+
+class BaseFeatureList(BaseSchema):
+    name: constr(max_length=255)  # type:ignore
+    parent: constr(max_length=255)  # type:ignore
+
+
+class FeatureListCreate(BaseFeatureList):
+    pass
+
+
+class FeatureListRead(BaseFeatureList):
+    pid: int
+    time: datetime
 
 
 class BaseFeaturePrivilege(BaseSchema):
