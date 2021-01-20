@@ -7,7 +7,9 @@ from nonebot.message import MessageSegment
 
 from utils.decorators import CatchRequestsException
 
-API_URL = "https://api.imjad.cn/bilibili/v2/"
+from .config import CONFIG
+
+API_URL = CONFIG.api.address
 APIData_T = Dict[str, Any]
 
 
