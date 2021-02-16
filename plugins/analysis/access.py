@@ -10,7 +10,7 @@ from .config import Config
 
 DATABASE_URL: str = Config.db.uri
 DATABASE_CONFIG: Dict[str, Any] = {**Config.db.settings}
-DATABASE_DEBUG: bool = Config.db.echo
+DATABASE_DEBUG: bool = settings.DATABASE_DEBUG and Config.db.echo
 MAX_PAGE_SIZE = 200
 
 
