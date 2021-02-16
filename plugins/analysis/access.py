@@ -2,15 +2,15 @@ from typing import Any, Dict, List, Optional, Union
 
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import Session, sessionmaker
-
-from utils.exception import BotNotFoundError, BotExistError
 from utils.botConfig import settings
+from utils.exception import BotExistError, BotNotFoundError
 
 from . import models, tables
+from .config import Config
 
-DATABASE_URL = "sqlite:///./data/database.sqlite3"
-DATABASE_CONFIG = {"check_same_thread": False}
-DATABASE_DEBUG = settings.DEBUG
+DATABASE_URL: str = Config.db.uri
+DATABASE_CONFIG: Dict[str, Any] = {**Config.db.settings}
+DATABASE_DEBUG: bool = settings.DATABASE_DEBUG and Config.db.echo
 MAX_PAGE_SIZE = 200
 
 

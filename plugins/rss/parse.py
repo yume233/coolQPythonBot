@@ -6,8 +6,7 @@ from typing import Callable, Iterable
 
 from feedparser import FeedParserDict
 from feedparser import parse as parseFeed
-from nonebot.log import logger
-
+from nonetrip.log import logger
 from utils.exception import BotProgramError, ExceptionProcess
 
 

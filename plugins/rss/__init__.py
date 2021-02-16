@@ -1,8 +1,7 @@
 from re import compile as compileRegexp
 
-from nonebot import CommandSession, on_command, scheduler
-from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
-
+from nonetrip import CommandSession, on_command, scheduler
+from nonetrip.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 from utils.decorators import SyncToAsync
 from utils.exception import BotExistError
 from utils.manager import PluginManager, nameJoin

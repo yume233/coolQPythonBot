@@ -2,10 +2,9 @@ import random
 from secrets import token_hex
 from typing import List
 
-from nonebot import CommandSession, MessageSegment, on_command
-from nonebot.command.argfilter.extractors import extract_numbers, extract_text
-from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
-
+from nonetrip import CommandSession, MessageSegment, on_command
+from nonetrip.command.argfilter.extractors import extract_numbers, extract_text
+from nonetrip.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 from utils.decorators import SyncToAsync, WithKeyword
 from utils.manager import PluginManager, nameJoin
 from utils.message import processSession

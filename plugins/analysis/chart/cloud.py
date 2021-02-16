@@ -1,13 +1,15 @@
-from typing import Dict, List
+from typing import Dict, Set
 
 import jieba
-from wordcloud import WordCloud
-
 from utils.objects import convertImageFormat
 from utils.tmpFile import tmpFile
+from wordcloud import WordCloud
+
+from ..config import Config
 
 FONT_PATH = "./data/font.otf"
 CACHE_LENGTH = 1000
+BLACKLIST: Set[str] = set(Config.wordcloud.blacklist)
 
 FreqDict = Dict[str, int]
 JIEBA_INIT = False
@@ -41,8 +43,14 @@ class WordcloudMaker:
         else:
             text = self._messageStorage + f"\n{text}"
             self._messageStorage = ""
-        cutText: List[str] = [i for i in jieba.cut(text) if not i.isascii()]
-        freqDict = self._wordcloud.process_text(" ".join(cutText))
+        freqDict = self._wordcloud.process_text(
+            " ".join(
+                filter(
+                    lambda x: not ((x in BLACKLIST) or x.isascii()),
+                    map(str, jieba.cut(text)),
+                )
+            )
+        )
         return self.updateFreqency(freqDict)
 
     def save(self) -> bytes:

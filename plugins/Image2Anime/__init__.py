@@ -1,5 +1,4 @@
-from nonebot import CommandSession, on_command
-
+from nonetrip import CommandSession, on_command
 from utils.decorators import SyncToAsync, WithKeyword
 from utils.exception import BotProgramError
 from utils.manager import PluginManager

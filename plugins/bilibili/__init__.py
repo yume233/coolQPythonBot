@@ -1,14 +1,13 @@
 from re import compile as compileRegexp
 
-from nonebot import (
+from nonetrip import (
     CommandSession,
     IntentCommand,
     NLPSession,
     on_command,
     on_natural_language,
 )
-from nonebot.permission import GROUP_ADMIN, SUPERUSER
-
+from nonetrip.permission import GROUP_ADMIN, SUPERUSER
 from utils.decorators import SyncToAsync
 from utils.manager import PluginManager
 from utils.message import processSession

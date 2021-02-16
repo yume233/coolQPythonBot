@@ -29,12 +29,12 @@ def filenameQuickChange(file: str, name: str) -> str:
     return os.path.join(path, name)
 
 
-def touchFile(path: str, newContent: Union[str, bytes] = None) -> None:
+def touchFile(path: str, newContent: Union[str, bytes] = None):
     if not os.path.isfile(path):
-        if type(newContent) == bytes:
+        if isinstance(newContent, bytes):
             with open(path, "wb") as f:
                 f.write(newContent)
-        elif type(newContent) == str:
+        elif isinstance(newContent, str):
             with open(path, "wt", encoding="utf-8") as f:
                 f.write(newContent)
     return path

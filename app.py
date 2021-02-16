@@ -1,10 +1,7 @@
-import logging
 import os
 
-import nonebot
-from loguru import logger as loguruLogger
+import nonetrip
 from nonebot.log import logger as botLogger
-from quart import Quart
 
 from utils.botConfig import convertSettingsToDict, settings
 
@@ -15,38 +12,14 @@ if not os.path.exists(LOG_FILE_DIR):
     os.mkdir(LOG_FILE_DIR)
 
 
-class _LoguruHandler(logging.Handler):
-    def emit(self, record):
-        message = record.getMessage()
-        logger = loguruLogger
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, message)
-
-
-def initApp() -> Quart:
-    assert nonebot.scheduler  # Check if scheduler exists
+def initApp():
+    assert nonetrip.scheduler  # Check if scheduler exists
     # Initialize logging
     loggingPath = os.path.join(LOG_FILE_DIR, "{time}.log")
-    loguruHandler = _LoguruHandler()
-    loguruLogger.add(loggingPath, enqueue=True, encoding="utf-8")
-    botLogger.handlers.clear()
-    botLogger.addHandler(loguruHandler)
+    botLogger.add(loggingPath, enqueue=True, encoding="utf-8")
     # Initialize settings
-    nonebot.init(settings)
-    nonebot.load_plugins("plugins", "plugins")
-    nonebot.logger.debug(
-        f"The robot is currently configured as: {convertSettingsToDict()}"
-    )
-    bot = nonebot.get_bot()
-    bot.logger.handlers.clear()
-    bot.logger.addHandler(_LoguruHandler())
+    nonetrip.init(settings)
+    nonetrip.load_plugins("plugins", "plugins")
+    botLogger.info(f"The robot is currently configured as: {convertSettingsToDict()}")
+    bot = nonetrip.get_bot()
     return bot.asgi

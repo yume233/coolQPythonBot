@@ -1,0 +1,10 @@
+db:
+  uri: "sqlite:///./data/database.sqlite3"
+  settings: {
+    "check_same_thread": False
+  }
+  echo: false
+
+wordcloud:
+  cache_length: 2000
+  blacklist: []

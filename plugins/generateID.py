@@ -6,8 +6,7 @@ from time import strftime
 from typing import Dict, List, Tuple
 from zipfile import PyZipFile
 
-from nonebot import CommandSession, on_command
-
+from nonetrip import CommandSession, on_command
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import SyncToAsync
 from utils.message import processSession

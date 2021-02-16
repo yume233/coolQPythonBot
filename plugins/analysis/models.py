@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from nonebot.typing import Context_T
+from nonetrip.typing import Context_T
 from pydantic import BaseModel
 
 

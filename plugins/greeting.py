@@ -7,10 +7,9 @@ from urllib.parse import urljoin
 
 import apscheduler
 import requests
-from nonebot import CommandSession, MessageSegment, logger, on_command, scheduler
-from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
+from nonetrip import CommandSession, MessageSegment, logger, on_command, scheduler
+from nonetrip.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 from PIL import Image
-
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import CatchRequestsException, SyncToAsync
 from utils.exception import ExceptionProcess
