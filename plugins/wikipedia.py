@@ -1,13 +1,12 @@
 import os
 
 import requests
-from nonebot import CommandSession, on_command
-
+from nonetrip import CommandSession, on_command
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import CatchRequestsException, SyncToAsync
+from utils.manager import PluginManager
 from utils.message import processSession
 from utils.network import NetworkUtils
-from utils.manager import PluginManager
 
 __plugin_name__ = "wikipedia"
 

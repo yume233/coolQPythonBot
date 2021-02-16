@@ -6,7 +6,7 @@ from inspect import isawaitable
 from time import time
 from typing import Awaitable, Callable, Optional, Union
 
-from nonebot import IntentCommand, get_bot, logger, on_natural_language
+from nonetrip import IntentCommand, get_bot, logger, on_natural_language
 from requests import HTTPError, RequestException
 
 from .botConfig import settings

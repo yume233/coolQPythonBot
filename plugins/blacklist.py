@@ -1,14 +1,13 @@
-from aiocqhttp import Event
-from nonebot import CommandSession, NoneBot, on_command, MessageSegment
-from nonebot.command.argfilter.extractors import extract_numbers
-from nonebot.message import CanceledException, message_preprocessor
-from nonebot.permission import GROUP_ADMIN, SUPERUSER
-
+from nonetrip import CommandSession, MessageSegment, NoneBot, on_command
+from nonetrip.command.argfilter.extractors import extract_numbers
+from nonetrip.compat import Event
+from nonetrip.message import CanceledException, message_preprocessor
+from nonetrip.permission import GROUP_ADMIN, SUPERUSER
 from utils.botConfig import settings
 from utils.decorators import SyncToAsync
-from utils.objects import callModuleAPI
 from utils.manager import PluginManager
 from utils.message import processSession
+from utils.objects import callModuleAPI
 
 __plugin_name__ = "blacklist"
 POWER_GROUP = GROUP_ADMIN | SUPERUSER

@@ -2,7 +2,7 @@ import json
 from html import unescape as htmlUnescape
 from re import compile as compileRegexp
 
-from nonebot import (
+from nonetrip import (
     CommandSession,
     IntentCommand,
     MessageSegment,
@@ -11,7 +11,6 @@ from nonebot import (
     on_command,
     on_natural_language,
 )
-
 from utils.decorators import SyncToAsync
 from utils.message import processSession
 

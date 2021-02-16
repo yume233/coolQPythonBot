@@ -1,9 +1,8 @@
 from time import time
 from typing import List
 
-from nonebot import CommandSession, on_command
-from nonebot.permission import GROUP_ADMIN, SUPERUSER
-
+from nonetrip import CommandSession, on_command
+from nonetrip.permission import GROUP_ADMIN, SUPERUSER
 from utils.decorators import SyncToAsync
 from utils.manager import PluginManager
 from utils.message import processSession

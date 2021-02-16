@@ -1,13 +1,12 @@
 import os
 
 import requests
-from nonebot import CommandSession, on_command
-
+from nonetrip import CommandSession, on_command
 from utils.configsReader import configsReader, copyFileInText
 from utils.decorators import Async, WithKeyword
 from utils.exception import BotRequestError
-from utils.message import processSession
 from utils.manager import PluginManager
+from utils.message import processSession
 
 __plugin_name__ = "hitokoto"
 
