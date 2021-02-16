@@ -1,6 +1,5 @@
-from nonebot import CommandSession, on_command
-from nonebot.permission import SUPERUSER
-
+from nonetrip import CommandSession, on_command
+from nonetrip.permission import SUPERUSER
 from utils.decorators import SyncToAsync, WithKeyword
 from utils.exception import ExceptionProcess
 from utils.message import processSession

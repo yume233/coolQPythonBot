@@ -5,7 +5,7 @@ from secrets import token_hex
 from traceback import format_exc
 from typing import Optional
 
-from nonebot import logger
+from nonetrip.log import logger
 
 STORE_EXCEPTION_DIR = "./data/errors"
 STORE_EXCEPTION_DEPTH = 3

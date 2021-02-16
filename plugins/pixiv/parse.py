@@ -1,4 +1,4 @@
-from nonebot import MessageSegment
+from nonetrip import MessageSegment
 
 from .tools import Executor, downloadImage
 

@@ -1,7 +1,6 @@
 import requests
-from nonebot import CommandSession, on_command
-from nonebot.permission import GROUP_MEMBER, check_permission
-
+from nonetrip import CommandSession, on_command
+from nonetrip.permission import GROUP_MEMBER, check_permission
 from utils.decorators import (
     AsyncToSync,
     CatchRequestsException,

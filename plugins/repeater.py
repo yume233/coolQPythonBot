@@ -1,12 +1,11 @@
 from random import randint
 
-from nonebot import CommandSession, NLPSession, logger, on_command, on_natural_language
-from nonebot.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
-
+from nonetrip import CommandSession, NLPSession, logger, on_command, on_natural_language
+from nonetrip.permission import GROUP_ADMIN, GROUP_MEMBER, SUPERUSER
 from utils.decorators import SyncToAsync
+from utils.manager import PluginManager
 from utils.message import processSession
 from utils.objects import SyncWrapper
-from utils.manager import PluginManager
 
 __plugin_name__ = "repeater"
 

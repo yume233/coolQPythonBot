@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from nonebot import default_config as dc
+from nonetrip import default_config as dc
 from yaml import safe_load
 
 CONFIG_DIR = "./configs/bot.yml"

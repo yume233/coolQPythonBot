@@ -1,19 +1,18 @@
-from base64 import b64encode
 import datetime
+from base64 import b64encode
 from itertools import count
 from typing import Iterator, Optional
 
-from nonebot import CommandSession, on_command
-from nonebot.message import MessageSegment
-from nonebot.permission import GROUP_ADMIN, PRIVATE, SUPERUSER
-
+from nonetrip import CommandSession, on_command
+from nonetrip.message import MessageSegment
+from nonetrip.permission import GROUP_ADMIN, PRIVATE, SUPERUSER
 from utils.decorators import SyncToAsync
 from utils.message import processSession
 
 from . import models, record
 from .access import MAX_PAGE_SIZE
 from .chart.cloud import WordcloudMaker
-from .chart.statistics import DataFrameMaker, Chart
+from .chart.statistics import Chart, DataFrameMaker
 
 DatabaseIO = record.DatabaseIO
 POWER_GROUP = GROUP_ADMIN | SUPERUSER | PRIVATE

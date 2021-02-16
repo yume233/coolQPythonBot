@@ -3,8 +3,7 @@ from time import localtime, strftime
 from typing import Any, Dict, Union
 
 import requests
-from nonebot.message import MessageSegment
-
+from nonetrip.message import MessageSegment
 from utils.decorators import CatchRequestsException
 
 API_URL = "https://api.imjad.cn/bilibili/v2/"

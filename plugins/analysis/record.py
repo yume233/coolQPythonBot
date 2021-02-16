@@ -1,11 +1,11 @@
 import asyncio
 from typing import Any, Dict, List
 
-from nonebot import NLPSession, get_bot, on_natural_language, scheduler
-from nonebot.command.argfilter.extractors import extract_text
-from nonebot.exceptions import CQHttpError
-from nonebot.log import logger
-
+from nonebot import get_driver
+from nonetrip import NLPSession, get_bot, on_natural_language, scheduler
+from nonetrip.command.argfilter.extractors import extract_text
+from nonetrip.exceptions import CQHttpError
+from nonetrip.log import logger
 from utils.decorators import SyncToAsync
 from utils.exception import ExceptionProcess
 from utils.objects import callModuleAPI
@@ -15,7 +15,7 @@ from .access import RecordDAO
 
 DatabaseIO = RecordDAO()
 
-on_startup = get_bot().server_app.before_serving
+on_startup = get_driver().on_bot_connect
 
 
 @scheduler.scheduled_job("interval", minutes=10)
@@ -53,7 +53,7 @@ def saveDetail():
 
 
 @on_startup
-async def startupHook():
+async def startupHook(bot):
     async def wrapper():
         while True:
             await asyncio.sleep(1)

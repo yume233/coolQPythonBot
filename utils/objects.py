@@ -1,11 +1,11 @@
 from asyncio import iscoroutinefunction
 from os.path import getsize as getFileSize
 from secrets import token_bytes
-from typing import Any, Dict, Optional, Union, List
+from typing import Any, Dict, List, Optional, Union
 
-from aiocqhttp.exceptions import ActionFailed
-from nonebot import NoneBot, get_bot
-from nonebot.log import logger
+from nonetrip import NoneBot, get_bot
+from nonetrip.compat import ActionFailed
+from nonetrip.log import logger
 from PIL import Image
 
 MAX_IMAGE_SIZE = 4 * 1024 ** 2
@@ -106,15 +106,13 @@ def callModuleAPI(
         + f"data: action={method}, params={str(params):.100s}"
     )
     try:
-        return syncAPIMethod(method, **params)
+        return syncAPIMethod(method, **(params or {}))
     except ActionFailed as e:
         if ignoreError:
             return
         from .exception import BotMessageError, ExceptionProcess
 
-        raise BotMessageError(
-            reason=f"调用API出错,错误码:{e.retcode}", trace=ExceptionProcess.catch()
-        )
+        raise BotMessageError(reason=f"调用API出错,错误:{e}", trace=ExceptionProcess.catch())
 
 
 def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
@@ -133,6 +131,8 @@ def convertImageFormat(image: bytes, quality: Optional[int] = 80) -> bytes:
         Returns the converted picture bytes
     """
     from .tmpFile import tmpFile
+
+    quality = quality or 80
 
     with tmpFile() as file1, tmpFile() as file2:
         with open(file1, "wb") as f:

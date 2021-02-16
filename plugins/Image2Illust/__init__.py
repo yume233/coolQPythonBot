@@ -1,6 +1,5 @@
-from nonebot import CommandSession, on_command
-from nonebot.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
-
+from nonetrip import CommandSession, on_command
+from nonetrip.permission import GROUP_ADMIN, PRIVATE_FRIEND, SUPERUSER
 from utils.decorators import SyncToAsync, WithKeyword
 from utils.manager import PluginManager
 from utils.message import processSession

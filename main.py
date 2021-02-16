@@ -1,8 +1,11 @@
 from time import time
 
+import nonebot
 from colorama import init as colorInit
+from nonebot import logger
+from nonebot.adapters.cqhttp import Bot
 
-from utils.exception import ExceptionProcess
+from utils.botConfig import settings
 
 colorInit()
 
@@ -24,22 +27,29 @@ Project: https://github.com/mnixry/coolQPythonBot
     + "\033[0m"
 )
 
+nonebot.init(debug=settings.DEBUG)
+nonebot.load_plugin("nonetrip")
+nonebot.get_driver().register_adapter("cqhttp", Bot)
+
 if __name__ == "__main__":
     print(COPYRIGHT)
-    import nonebot
+
     from app import initApp
 
     app = initApp()
     startTime = time()
+
+    from utils.exception import ExceptionProcess
+
     try:
-        nonebot.run(use_reloader=False)
+        nonebot.run(host=settings.HOST, port=settings.PORT)
     except KeyboardInterrupt:
-        nonebot.logger.fatal(
+        logger.critical(
             "Program stopped due to user termination."
             + f"Uptime:{time() - startTime:.3f}s"
         )
     finally:
-        nonebot.logger.fatal(
+        logger.critical(
             "The program encountered a fatal error and exited unexpectedly."
             + f" Tracking ID: {ExceptionProcess.catch()}"
         )
