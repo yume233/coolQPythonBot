@@ -5,7 +5,7 @@ from colorama import init as colorInit
 from nonebot import logger
 from nonebot.adapters.cqhttp import Bot
 
-from utils.botConfig import settings
+from utils.botConfig import convertSettingsToDict
 
 colorInit()
 
@@ -27,8 +27,10 @@ Project: https://github.com/mnixry/coolQPythonBot
     + "\033[0m"
 )
 
-nonebot.init(debug=settings.DEBUG)
+nonebot.init(**{k.lower(): v for k, v in convertSettingsToDict().items()})
+nonebot.load_plugin("nonebot_plugin_apscheduler")
 nonebot.load_plugin("nonetrip")
+nonebot.load_plugins("ELF_RSS/src/plugins")
 nonebot.get_driver().register_adapter("cqhttp", Bot)
 
 if __name__ == "__main__":
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     from utils.exception import ExceptionProcess
 
     try:
-        nonebot.run(host=settings.HOST, port=settings.PORT)
+        nonebot.run()
     except KeyboardInterrupt:
         logger.critical(
             "Program stopped due to user termination."

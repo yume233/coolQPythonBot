@@ -70,7 +70,6 @@ def convertSettingsToDict() -> dict:
 
 
 class settings:
-    API_ROOT = None
     ACCESS_TOKEN = CONFIG_READ.get("access_token", dc.ACCESS_TOKEN)
     SECRET = CONFIG_READ.get("secret", dc.SECRET)
     HOST = CONFIG_READ.get("host", dc.HOST)
